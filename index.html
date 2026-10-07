@@ -301,9 +301,9 @@
                 
                 <table class="doc-table w-1/2 ml-auto mr-0 mt-8 mb-8">
                     <tr><th class="w-1/2">立切結書人</th><td class="w-1/2 h-16 text-center out_name"></td></tr>
-                    <tr><th>簽章</th><td class="text-center h-16 relative">
+                    <tr><th>簽章</th><td class="text-center h-16 align-middle">
                         <span id="text_sig_1" class="text-gray-400 text-sm inline-block leading-[4rem]">請於列印後親簽</span>
-                        <img id="img_sig_1" class="hidden absolute inset-0 w-full h-full object-contain p-1">
+                        <img id="img_sig_1" class="hidden mx-auto" style="max-height: 50px; max-width: 100%; width: auto; object-fit: contain;">
                     </td></tr>
                 </table>
                 
@@ -354,7 +354,7 @@
                         <div class="font-bold border-b border-black pb-1 mb-4">立同意書人(法定代理人)</div>
                         <div class="flex items-center gap-2 h-12">
                             <span>簽名：</span><span id="text_sig_g" class="text-gray-400 text-sm">請親簽</span>
-                            <img id="img_sig_g" class="hidden h-12 object-contain">
+                            <img id="img_sig_g" class="hidden" style="max-height: 45px; max-width: 100%; width: auto; object-fit: contain;">
                         </div>
                         <div>姓名：<span class="out_g_name"></span></div>
                     </div>
@@ -362,7 +362,7 @@
                         <div class="font-bold border-b border-black pb-1 mb-4">申請人</div>
                         <div class="flex items-center gap-2 h-12">
                             <span>簽名：</span><span id="text_sig_a" class="text-gray-400 text-sm">請親簽</span>
-                            <img id="img_sig_a" class="hidden h-12 object-contain">
+                            <img id="img_sig_a" class="hidden" style="max-height: 45px; max-width: 100%; width: auto; object-fit: contain;">
                         </div>
                         <div>姓名：<span class="out_name"></span></div>
                     </div>
@@ -444,6 +444,35 @@
             document.querySelector('.out_funding_agree').textContent = e.target.value === 'agree' ? '☑' : '☐';
             document.querySelector('.out_funding_disagree').textContent = e.target.value === 'disagree' ? '☑' : '☐';
         }));
+
+        // 自動裁切簽名畫布周圍的空白，並放大簽名筆跡
+        function cropSignatureCanvas(canvas, ctx) {
+            const w = canvas.width, h = canvas.height;
+            const imgData = ctx.getImageData(0, 0, w, h).data;
+            let top = null, bottom = null, left = null, right = null;
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    if (imgData[(y * w + x) * 4 + 3] > 0) { // 偵測非透明像素
+                        if (top === null) top = y;
+                        bottom = y;
+                        if (left === null || x < left) left = x;
+                        if (right === null || x > right) right = x;
+                    }
+                }
+            }
+            if (top === null) return canvas.toDataURL('image/png'); // 如果沒寫字，直接回傳原圖
+            
+            // 加上 10px 的安全邊距
+            const pad = 10;
+            left = Math.max(0, left - pad); top = Math.max(0, top - pad);
+            right = Math.min(w, right + pad); bottom = Math.min(h, bottom + pad);
+            
+            // 建立一個新畫布並把裁切後的圖像畫上去
+            const tCanvas = document.createElement('canvas');
+            tCanvas.width = right - left; tCanvas.height = bottom - top;
+            tCanvas.getContext('2d').drawImage(canvas, left, top, right - left, bottom - top, 0, 0, right - left, bottom - top);
+            return tCanvas.toDataURL('image/png');
+        }
 
         // 影像預覽處理
         ['front', 'back'].forEach(side => {
@@ -549,7 +578,7 @@
 
         submitBtn.onclick = () => {
             if (conn && conn.open) {
-                const dataUrl = canvas.toDataURL('image/png');
+                const dataUrl = cropSignatureCanvas(canvas, ctx); // 使用自動裁切功能
                 conn.send({ role: signRole, image: dataUrl }); 
                 titleEl.innerHTML = "🎉 傳送成功！請看電腦螢幕";
                 submitBtn.innerText = "已回傳完成";
@@ -627,7 +656,7 @@
             document.getElementById('btn_mobile_clear').onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
             document.getElementById('btn_mobile_close').onclick = () => view.classList.add('hidden');
             document.getElementById('btn_mobile_submit').onclick = () => {
-                const dataUrl = canvas.toDataURL('image/png');
+                const dataUrl = cropSignatureCanvas(canvas, ctx); // 使用自動裁切功能
                 if (role === 'applicant') {
                     document.getElementById('qr_applicant_box').classList.add('hidden');
                     document.getElementById('status_applicant_sign').classList.remove('hidden');
