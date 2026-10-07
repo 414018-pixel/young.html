@@ -462,8 +462,8 @@
             }
             if (top === null) return canvas.toDataURL('image/png'); // 如果沒寫字，直接回傳原圖
             
-            // 加上 10px 的安全邊距
-            const pad = 10;
+            // 加上安全邊距 (適應高畫質)
+            const pad = 20;
             left = Math.max(0, left - pad); top = Math.max(0, top - pad);
             right = Math.min(w, right + pad); bottom = Math.min(h, bottom + pad);
             
@@ -525,10 +525,20 @@
         submitBtn.classList.replace('bg-blue-600', 'bg-gray-400');
         submitBtn.innerText = "📡 連線中...";
 
-        // 畫布設定
+        // 畫布設定 (高畫質平滑渲染)
         const canvas = document.getElementById('mobile_sign_canvas');
         const ctx = canvas.getContext('2d');
-        setTimeout(() => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; ctx.lineWidth = 4; ctx.lineCap = 'round'; }, 50);
+        setTimeout(() => { 
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1; // 偵測螢幕像素密度
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr); // 縮放畫布以適應高畫質螢幕
+            ctx.lineWidth = 5;   // 稍微加粗筆觸
+            ctx.lineCap = 'round';  // 筆觸端點圓滑
+            ctx.lineJoin = 'round'; // 筆觸轉角圓滑
+            ctx.strokeStyle = '#000000'; // 純黑墨水
+        }, 50);
 
         let isDrawing = false;
         const getPos = e => { const r = canvas.getBoundingClientRect(); return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top }; };
@@ -640,9 +650,20 @@
             document.getElementById('mobile_sign_title').innerHTML = role === 'guardian' ? '法定代理人 - 請用滑鼠簽名 ' : '申請人 - 請用滑鼠簽名 ';
             view.classList.remove('hidden');
             
+            // 畫布設定 (高畫質平滑渲染)
             const canvas = document.getElementById('mobile_sign_canvas');
             const ctx = canvas.getContext('2d');
-            setTimeout(() => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; ctx.lineWidth = 4; ctx.lineCap = 'round'; }, 50);
+            setTimeout(() => { 
+                const rect = canvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                ctx.scale(dpr, dpr);
+                ctx.lineWidth = 5; 
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#000000';
+            }, 50);
 
             let isDrawing = false;
             const getPos = e => { const r = canvas.getBoundingClientRect(); return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top }; };
