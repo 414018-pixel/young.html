@@ -647,7 +647,15 @@
         document.getElementById('btn_mobile_clear').onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // WebRTC 點對點連線
-        const peer = new Peer();
+        const peer = new Peer({
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' }
+                ]
+            }
+        });
         let conn;
         peer.on('open', () => {
             conn = peer.connect(signPeerId, { reliable: true });
@@ -685,7 +693,15 @@
         };
     } else {
         // --- 狀態 B：電腦端接收模式 ---
-        const peer = new Peer();
+        const peer = new Peer({
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' }
+                ]
+            }
+        });
         
         peer.on('open', (id) => {
             // 自動產生包含這台電腦專屬 Peer ID 的網址
