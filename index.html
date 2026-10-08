@@ -3,45 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>青年百億圓夢基金計畫 - 申請書產生器</title>
-    <!-- 引入必備套件 -->
+    <title>青年百億圓夢基金計畫 - 申請書系統</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- html2pdf.js for PDF Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e2e8f0; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
 
-        /* 左側表單樣式 */
         .form-input {
             width: 100%; border-radius: 0.375rem; border: 1px solid #cbd5e1; padding: 0.5rem;
             font-size: 0.875rem; background-color: #f8fafc; transition: all 0.2s;
         }
         .form-input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 2px #c7d2fe; }
 
-        /* 右側預覽區 (僅供網頁瀏覽) */
-        #preview-pane { padding: 2rem; display: flex; flex-direction: column; align-items: center; gap: 2rem; overflow-y: auto; }
-        .web-page {
-            width: 100%; max-width: 210mm; background: white; padding: 2cm 2.5cm;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-radius: 4px;
+        /* ======================================================== */
+        /* 右側預覽區 (這就是最終會印出來的樣子) */
+        /* ======================================================== */
+        #preview-pane { padding: 2rem; display: flex; flex-direction: column; align-items: center; background: #cbd5e1; overflow-y: auto; }
+        
+        .a4-page {
+            width: 210mm; min-height: 297mm; background: white; padding: 2cm 2.5cm;
+            margin-bottom: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             font-family: 'DFKai-SB', 'BiauKai', '標楷體', serif !important;
-            font-size: 14pt; line-height: 24pt; color: black; text-align: justify;
+            font-size: 14pt; line-height: 1.5; color: black; text-align: justify;
+            box-sizing: border-box;
+            /* 關鍵：讓 PDF 轉檔時知道這裡要換頁 */
+            page-break-after: always;
         }
-        .web-page table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 14pt; }
-        .web-page th, .web-page td { border: 1px solid black; padding: 8px; vertical-align: middle; text-align: center; }
-        .web-page .no-border td { border: none !important; text-align: left; }
+
+        /* 移除最後一頁的換頁與下邊界，避免多出一張空白頁 */
+        .a4-page:last-child { page-break-after: auto; margin-bottom: 0; }
+
+        .a4-page table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 14pt; }
+        .a4-page th, .a4-page td { border: 1px solid black; padding: 8px; vertical-align: middle; text-align: center; }
+        .a4-page .no-border td, .a4-page .no-border th { border: none !important; text-align: left; }
+        
+        /* 避免表格列被腰斬 */
+        tr { page-break-inside: avoid; }
+
+        /* 隱藏區塊，用於儲存圖片 Base64 */
+        .hidden-storage { display: none; }
     </style>
 </head>
 <body class="h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- 圖片暫存區 -->
+    <div class="hidden-storage">
+        <img id="store_id_front" />
+        <img id="store_id_back" />
+        <img id="store_sig_app" />
+        <img id="store_sig_gua" />
+    </div>
 
     <!-- ================= 左側控制面板 ================= -->
     <div class="w-full md:w-5/12 lg:w-1/3 h-full bg-white shadow-2xl flex flex-col z-20 border-r">
         <div class="p-4 bg-indigo-700 text-white flex justify-between items-center shrink-0">
             <h1 class="text-lg font-bold tracking-wider">計畫申請書系統</h1>
-            <span class="text-xs bg-indigo-500 px-2 py-1 rounded">完美重製版</span>
+            <span class="text-xs bg-indigo-500 px-2 py-1 rounded">極速搶救版</span>
         </div>
 
         <div class="flex-1 overflow-y-auto p-5 space-y-6" id="form-container">
@@ -113,25 +135,21 @@
                 </div>
             </div>
 
-            <!-- 5. 簽名區 -->
+            <!-- 5. 簽名區 (移除網路連線，改為純本機) -->
             <div class="border rounded-xl p-4 bg-gray-50 pb-8">
                 <h2 class="font-bold text-gray-800 border-b pb-2 mb-3">5. 智慧簽章區</h2>
                 <div class="space-y-4">
-                    <!-- 申請人簽章 -->
                     <div class="bg-white p-3 rounded border flex gap-4 items-center">
-                        <div id="qr_app_box" class="w-[80px] h-[80px] flex items-center justify-center bg-gray-100 border p-1"></div>
                         <div class="flex-1">
                             <h3 class="font-bold text-sm">申請人簽章</h3>
-                            <button onclick="openSignModal('app')" class="mt-2 text-xs bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded hover:bg-indigo-200">滑鼠簽名</button>
+                            <button onclick="openSignModal('app')" class="mt-2 text-xs bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded hover:bg-indigo-200 w-full">開啟簽名板</button>
                             <span id="status_app" class="text-xs text-green-600 font-bold hidden block mt-1">✅ 簽署完成</span>
                         </div>
                     </div>
-                    <!-- 法代簽章 -->
-                    <div id="qr_gua_container" class="hidden bg-white p-3 rounded border flex gap-4 items-center">
-                        <div id="qr_gua_box" class="w-[80px] h-[80px] flex items-center justify-center bg-gray-100 border p-1"></div>
+                    <div id="gua_sign_container" class="hidden bg-white p-3 rounded border flex gap-4 items-center">
                         <div class="flex-1">
                             <h3 class="font-bold text-sm">法定代理人簽章</h3>
-                            <button onclick="openSignModal('gua')" class="mt-2 text-xs bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded hover:bg-indigo-200">滑鼠簽名</button>
+                            <button onclick="openSignModal('gua')" class="mt-2 text-xs bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded hover:bg-indigo-200 w-full">開啟簽名板</button>
                             <span id="status_gua" class="text-xs text-green-600 font-bold hidden block mt-1">✅ 簽署完成</span>
                         </div>
                     </div>
@@ -145,9 +163,9 @@
         </div>
     </div>
 
-    <!-- ================= 右側預覽區 ================= -->
-    <div class="w-full md:w-7/12 lg:w-2/3 h-full preview-pane bg-slate-300" id="preview-pane">
-        <!-- 內容由 JS 即時渲染 -->
+    <!-- ================= 右側預覽區 (這就是輸出的本體) ================= -->
+    <div class="w-full md:w-7/12 lg:w-2/3 h-full preview-pane" id="preview-pane">
+        <!-- 內容由 JS 產生 -->
     </div>
 
     <!-- ================= 簽名畫布彈出視窗 ================= -->
@@ -170,9 +188,8 @@
         </div>
     </div>
 
-    <!-- ================= 系統核心架構 ================= -->
     <script>
-        // --- 1. 全域資料庫 (單一真相來源) ---
+        // 1. 全域資料
         const AppData = {
             v_name: '', v_id: '', v_birth: '', v_phone: '', v_email: '', v_address: '',
             v_em_name: '', v_em_relation: '', v_em_phone: '',
@@ -185,24 +202,24 @@
             dateY: new Date().getFullYear() - 1911, dateM: new Date().getMonth() + 1, dateD: new Date().getDate()
         };
 
-        // --- 2. 監聽與綁定 ---
+        // 2. 綁定事件
         const textInputs = ['v_name', 'v_id', 'v_birth', 'v_phone', 'v_email', 'v_address', 'v_em_name', 'v_em_relation', 'v_em_phone', 'v_g_name', 'v_g_relation', 'v_g_id', 'v_g_phone', 'v_g_address', 'v_project_name', 'v_content_1', 'v_content_2', 'v_content_3', 'v_content_4', 'v_content_5', 'v_content_6'];
         textInputs.forEach(id => {
             document.getElementById(id).addEventListener('input', e => {
                 AppData[id] = e.target.value;
-                Renderer.updatePreview();
+                renderPreview();
             });
         });
 
         document.getElementById('v_is_guardian').addEventListener('change', e => {
             AppData.v_is_guardian = e.target.checked;
-            document.getElementById('guardian_box').style.display = AppData.v_is_guardian ? 'grid' : 'none';
-            document.getElementById('qr_gua_container').style.display = AppData.v_is_guardian ? 'flex' : 'none';
-            Renderer.updatePreview();
+            document.getElementById('guardian_box').style.display = e.target.checked ? 'grid' : 'none';
+            document.getElementById('gua_sign_container').style.display = e.target.checked ? 'flex' : 'none';
+            renderPreview();
         });
 
         document.querySelectorAll('input[name="v_funding"]').forEach(el => {
-            el.addEventListener('change', e => { AppData.v_funding = e.target.value; Renderer.updatePreview(); });
+            el.addEventListener('change', e => { AppData.v_funding = e.target.value; renderPreview(); });
         });
 
         function handleFile(inputId, key) {
@@ -210,7 +227,7 @@
                 const file = e.target.files[0];
                 if(file){
                     const r = new FileReader();
-                    r.onload = ev => { AppData[key] = ev.target.result; Renderer.updatePreview(); };
+                    r.onload = ev => { AppData[key] = ev.target.result; renderPreview(); };
                     r.readAsDataURL(file);
                 }
             });
@@ -218,162 +235,170 @@
         handleFile('file_front', 'img_front');
         handleFile('file_back', 'img_back');
 
+        // 3. 渲染引擎
+        function generateHTML() {
+            const d = AppData;
+            const getV = (key) => d[key] || '';
+            const getHtml = (key) => d[key] ? d[key].replace(/\n/g, '<br>') : '';
+            const getImg = (key, text) => d[key] ? `<img src="${d[key]}" style="max-height:100%; max-width:100%; object-fit:contain;" />` : `<span style="color:#999;">${text}</span>`;
+            const getSig = (key) => d[key] ? `<img src="${d[key]}" style="max-height:40px; width:auto;" />` : `<span style="color:#999;">請親筆簽名</span>`;
 
-        // --- 3. 核心模板引擎 (負責生成所有 HTML) ---
-        const Template = {
-            getVal: (key) => AppData[key] || '',
-            getHtml: (key) => AppData[key] ? AppData[key].replace(/\n/g, '<br>') : '',
-            getImg: (key, emptyText) => AppData[key] ? `<img src="${AppData[key]}" style="max-height:100%; max-width:100%; object-fit:contain;" />` : `<span style="color:#999;">${emptyText}</span>`,
-            getSig: (key) => AppData[key] ? `<img src="${AppData[key]}" style="max-height:40px; width:auto;" />` : `<span style="color:#999;">請親筆簽名</span>`,
+            const chkG = d.v_is_guardian ? '☑' : '&nbsp;&nbsp;';
+            const agree = d.v_funding === 'agree' ? '☑' : '&nbsp;&nbsp;';
+            const disagree = d.v_funding === 'disagree' ? '☑' : '&nbsp;&nbsp;';
 
-            generatePages: function() {
-                const d = AppData;
-                const chkG = d.v_is_guardian ? '☑' : '&nbsp;&nbsp;';
-                const agree = d.v_funding === 'agree' ? '☑' : '&nbsp;&nbsp;';
-                const disagree = d.v_funding === 'disagree' ? '☑' : '&nbsp;&nbsp;';
+            let html = '';
 
-                const pages = [];
+            // P1: 檢核清單
+            html += `<div class="a4-page">
+                <div style="text-align:right; font-size:12pt; margin-bottom:10px;">附件1</div>
+                <div style="text-align:center; font-size:18pt; font-weight:bold; margin-bottom:20px;">教育部青年發展署<br>青年百億海外圓夢基金計畫海外翱翔組<br>申請檢核清單</div>
+                <table border="1">
+                    <tr><th style="width:15%;">檢核(請打勾)</th><th style="width:35%;">內容</th><th>說明</th></tr>
+                    <tr><td>[ &nbsp;&nbsp; ]</td><td>申請資料上傳</td><td style="text-align:left;">請至平臺登入填寫。</td></tr>
+                    <tr><td>[ &nbsp;&nbsp; ]</td><td colspan="2" style="font-weight:bold;">申請文件請於報名期間以PDF檔上傳至報名專區</td></tr>
+                    <tr><td>[ &nbsp;&nbsp; ]</td><td>(1)參與切結書</td><td style="text-align:left;">附件2</td></tr>
+                    <tr><td>[ &nbsp;&nbsp; ]</td><td>(2)特殊身分證明文件</td><td style="text-align:left;">請檢附相關證明文件。</td></tr>
+                    <tr><td>[ ${chkG} ]</td><td>(3)法定代理人同意書</td><td style="text-align:left;">附件3，未成年者務必繳交</td></tr>
+                    <tr><td>[ ☑ ]</td><td>(4)計畫申請書</td><td style="text-align:left;">附件4、5</td></tr>
+                </table>
+            </div>`;
 
-                // Page 1: 檢核清單
-                pages.push(`
-                    <div style="text-align:right; font-size:12pt; margin-bottom:10px;">附件1</div>
-                    <div style="text-align:center; font-size:18pt; font-weight:bold; margin-bottom:20px;">教育部青年發展署<br>青年百億海外圓夢基金計畫海外翱翔組<br>申請檢核清單</div>
-                    <table border="1">
-                        <tr><th style="width:15%;">檢核(請打勾)</th><th style="width:35%;">內容</th><th>說明</th></tr>
-                        <tr><td>[ &nbsp;&nbsp; ]</td><td>申請資料上傳</td><td style="text-align:left;">請申請人至平臺登入填寫。</td></tr>
-                        <tr><td>[ &nbsp;&nbsp; ]</td><td colspan="2" style="font-weight:bold;">申請文件請於報名期間以PDF檔上傳至報名專區</td></tr>
-                        <tr><td>[ &nbsp;&nbsp; ]</td><td>(1)參與切結書</td><td style="text-align:left;">附件2</td></tr>
-                        <tr><td>[ &nbsp;&nbsp; ]</td><td>(2)特殊身分證明文件</td><td style="text-align:left;">請檢附相關證明文件。</td></tr>
-                        <tr><td>[ ${chkG} ]</td><td>(3)法定代理人同意書</td><td style="text-align:left;">附件3，未成年者務必繳交</td></tr>
-                        <tr><td>[ ☑ ]</td><td>(4)計畫申請書</td><td style="text-align:left;">附件4、5</td></tr>
-                    </table>
-                `);
+            // P2: 切結書
+            html += `<div class="a4-page">
+                <div style="text-align:right; font-size:12pt;">附件2</div>
+                <div style="font-weight:bold; font-size:12pt; margin-bottom:10px;">參與切結書（須親筆簽名提供予青年百億海外圓夢基金計畫專案小組。）</div>
+                <div style="text-align:center; font-size:16pt; font-weight:bold; margin-bottom:20px;">教育部青年發展署<br>青年百億海外圓夢基金計畫海外翱翔組<br>參與切結書</div>
+                <div style="text-indent:2em; text-align:justify; margin-bottom:10px;">
+                    本人申請教育部青年發展署「115年青年百億海外圓夢基金計畫海外翱翔組」<span style="border-bottom:1px solid black; padding:0 5px;">${getV('v_project_name')}</span>提案。本人確定所填資料均屬事實，嗣後如經查發現不實，願負一切法律責任並繳回獎勵金，特此切結。
+                </div>
+                <div style="text-indent:2em; text-align:justify; margin-bottom:20px;">
+                    另同意於審查錄取後，依相關規定參與並完成計畫。
+                </div>
+                <div style="margin-bottom:20px;">此致<br><span style="padding-left:2em;">教育部青年發展署</span></div>
+                <table border="1" style="width:60%; margin:0 0 20px auto;">
+                    <tr><th style="width:40%; font-weight:normal;">立切結書人</th><td>${getV('v_name')}</td></tr>
+                    <tr><th style="font-weight:normal;">簽章</th><td style="height:50px;">${getSig('sig_app')}</td></tr>
+                </table>
+                <div style="text-align:right; margin-bottom:20px;">中華民國 <span>${d.dateY}</span> 年 <span>${d.dateM}</span> 月 <span>${d.dateD}</span> 日</div>
+                <div style="font-weight:bold; margin-bottom:5px;">一、申請人資料</div>
+                <table border="1" style="font-size:12pt;">
+                    <tr><th rowspan="2" style="width:15%; font-weight:normal;">立切結書人</th><th style="font-weight:normal;">姓名</th><th style="font-weight:normal;">身分證字號</th><th style="font-weight:normal;">出生年月日</th><th style="font-weight:normal;">手機號碼</th><th colspan="2" style="font-weight:normal;">戶籍地址</th></tr>
+                    <tr><td style="height:30px;">${getV('v_name')}</td><td>${getV('v_id')}</td><td>${getV('v_birth')}</td><td>${getV('v_phone')}</td><td colspan="2" style="text-align:left;">${getV('v_address')}</td></tr>
+                    <tr><th rowspan="2" style="font-weight:normal;">緊急連絡人</th><th style="font-weight:normal;">姓名</th><th style="font-weight:normal;">關係</th><th colspan="4" style="font-weight:normal;">連絡電話</th></tr>
+                    <tr><td style="height:30px;">${getV('v_em_name')}</td><td>${getV('v_em_relation')}</td><td colspan="4">${getV('v_em_phone')}</td></tr>
+                </table>
+                <div style="margin-top:10px;">計畫編號：<span style="border-bottom:1px solid black; padding:0 10px;">${getV('v_project_name')}</span></div>
+            </div>`;
 
-                // Page 2: 切結書
-                pages.push(`
-                    <div style="text-align:right; font-size:12pt;">附件2</div>
-                    <div style="font-weight:bold; font-size:12pt; margin-bottom:10px;">參與切結書（須親筆簽名提供予青年百億海外圓夢基金計畫專案小組。）</div>
-                    <div style="text-align:center; font-size:16pt; font-weight:bold; margin-bottom:20px;">教育部青年發展署<br>青年百億海外圓夢基金計畫海外翱翔組<br>參與切結書</div>
-                    <div style="text-indent:2em; text-align:justify; margin-bottom:10px;">
-                        本人申請教育部青年發展署「115年青年百億海外圓夢基金計畫海外翱翔組」<span style="border-bottom:1px solid black; padding:0 5px;">${this.getVal('v_project_name')}</span>提案。本人確定所填資料均屬事實，嗣後如經查發現不實，願負一切法律責任並繳回獎勵金，特此切結。
+            // P3: 身分證
+            html += `<div class="a4-page">
+                <div style="font-weight:bold; font-size:16pt; margin-bottom:20px;">二、請提供身分證正反面影本</div>
+                <table border="1">
+                    <tr><th style="width:25%; font-weight:normal;">立切結書人</th><th style="font-weight:normal;">證件正反面影本</th></tr>
+                    <tr>
+                        <td style="font-weight:bold; font-size:16pt;">${getV('v_name')}</td>
+                        <td style="padding:20px;">
+                            <div style="border:1px solid black; width:300px; height:180px; margin:0 auto 20px auto; display:flex; justify-content:center; align-items:center;">
+                                ${getImg('img_front', '正面影本放置處')}
+                            </div>
+                            <div style="border:1px solid black; width:300px; height:180px; margin:0 auto; display:flex; justify-content:center; align-items:center;">
+                                ${getImg('img_back', '反面影本放置處')}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <div style="margin-top:15px; font-size:12pt;">附註：本表填妥後請於報名期間以PDF檔上傳。</div>
+            </div>`;
+
+            // P4: 法代 (若有勾選)
+            if (d.v_is_guardian) {
+                html += `<div class="a4-page">
+                    <div style="text-align:right; font-size:12pt;">附件3</div>
+                    <div style="font-weight:bold; font-size:12pt; margin-bottom:20px;">法定代理人同意書</div>
+                    <div style="text-align:center; font-size:18pt; font-weight:bold; margin-bottom:30px;">教育部青年發展署<br>115年青年百億海外圓夢基金計畫海外翱翔組<br>法定代理人同意書</div>
+                    <div style="text-indent:2em; text-align:justify; margin-bottom:30px; line-height:1.8;">
+                        本人 <span style="border-bottom:1px solid black; padding:0 5px;">${getV('v_g_name')}</span> 為 <span style="border-bottom:1px solid black; padding:0 5px;">${getV('v_name')}</span> (身分證字號：${getV('v_id')}) 之法定代理人(關係：${getV('v_g_relation')})，茲承諾同意申請人參加「115年百億海外圓夢基金計畫海外翱翔組」，並同意遵守相關規定。
                     </div>
-                    <div style="text-indent:2em; text-align:justify; margin-bottom:20px;">
-                        另同意於審查錄取後，依相關規定參與並完成計畫。
-                    </div>
-                    <div style="margin-bottom:20px;">此致<br><span style="padding-left:2em;">教育部青年發展署</span></div>
-                    <table border="1" style="width:60%; margin:0 0 20px auto;">
-                        <tr><th style="width:40%; font-weight:normal;">立切結書人</th><td>${this.getVal('v_name')}</td></tr>
-                        <tr><th style="font-weight:normal;">簽章</th><td style="height:50px;">${this.getSig('sig_app')}</td></tr>
-                    </table>
-                    <div style="text-align:right; margin-bottom:20px;">中華民國 <span>${d.dateY}</span> 年 <span>${d.dateM}</span> 月 <span>${d.dateD}</span> 日</div>
-                    <div style="font-weight:bold; margin-bottom:5px;">一、申請人資料</div>
-                    <table border="1" style="font-size:12pt;">
-                        <tr><th rowspan="2" style="width:15%; font-weight:normal;">立切結書人</th><th style="font-weight:normal;">姓名</th><th style="font-weight:normal;">身分證字號</th><th style="font-weight:normal;">出生年月日</th><th style="font-weight:normal;">手機號碼</th><th colspan="2" style="font-weight:normal;">戶籍地址</th></tr>
-                        <tr><td style="height:30px;">${this.getVal('v_name')}</td><td>${this.getVal('v_id')}</td><td>${this.getVal('v_birth')}</td><td>${this.getVal('v_phone')}</td><td colspan="2" style="text-align:left;">${this.getVal('v_address')}</td></tr>
-                        <tr><th rowspan="2" style="font-weight:normal;">緊急連絡人</th><th style="font-weight:normal;">姓名</th><th style="font-weight:normal;">關係</th><th colspan="4" style="font-weight:normal;">連絡電話</th></tr>
-                        <tr><td style="height:30px;">${this.getVal('v_em_name')}</td><td>${this.getVal('v_em_relation')}</td><td colspan="4">${this.getVal('v_em_phone')}</td></tr>
-                    </table>
-                    <div style="margin-top:10px;">計畫編號：<span style="border-bottom:1px solid black; padding:0 10px;">${this.getVal('v_project_name')}</span></div>
-                `);
-
-                // Page 3: 身分證
-                pages.push(`
-                    <div style="font-weight:bold; font-size:16pt; margin-bottom:20px;">二、請提供身分證正反面影本</div>
-                    <table border="1">
-                        <tr><th style="width:25%; font-weight:normal;">立切結書人</th><th style="font-weight:normal;">證件正反面影本</th></tr>
+                    <div style="text-align:right; margin-bottom:40px;">此致 教育部青年發展署</div>
+                    <table class="no-border" style="width:100%;">
                         <tr>
-                            <td style="font-weight:bold; font-size:16pt;">${this.getVal('v_name')}</td>
-                            <td style="padding:20px;">
-                                <div style="border:1px solid black; width:300px; height:180px; margin:0 auto 20px auto; display:flex; justify-content:center; align-items:center;">
-                                    ${this.getImg('img_front', '正面影本放置處')}
-                                </div>
-                                <div style="border:1px solid black; width:300px; height:180px; margin:0 auto; display:flex; justify-content:center; align-items:center;">
-                                    ${this.getImg('img_back', '反面影本放置處')}
-                                </div>
+                            <td style="width:50%; vertical-align:top; line-height:2;">
+                                <div>法定代理人姓名：<span style="border-bottom:1px solid black;">${getV('v_g_name')}</span></div>
+                                <div style="height:50px;">簽章：${getSig('sig_gua')}</div>
+                                <div>身分證字號：<span style="border-bottom:1px solid black;">${getV('v_g_id')}</span></div>
+                                <div>聯絡手機：<span style="border-bottom:1px solid black;">${getV('v_g_phone')}</span></div>
+                            </td>
+                            <td style="width:50%; vertical-align:top; line-height:2;">
+                                <div>申請人姓名：<span style="border-bottom:1px solid black;">${getV('v_name')}</span></div>
+                                <div style="height:50px;">簽章：${getSig('sig_app')}</div>
+                                <div>身分證字號：<span style="border-bottom:1px solid black;">${getV('v_id')}</span></div>
+                                <div>計畫名稱：<span style="border-bottom:1px solid black;">${getV('v_project_name')}</span></div>
                             </td>
                         </tr>
                     </table>
-                    <div style="margin-top:15px; font-size:12pt;">附註：本表填妥後請於報名期間以PDF檔上傳。</div>
-                `);
-
-                // Page 4: 法代 (若有勾選)
-                if (d.v_is_guardian) {
-                    pages.push(`
-                        <div style="text-align:right; font-size:12pt;">附件3</div>
-                        <div style="font-weight:bold; font-size:12pt; margin-bottom:20px;">法定代理人同意書</div>
-                        <div style="text-align:center; font-size:18pt; font-weight:bold; margin-bottom:30px;">教育部青年發展署<br>115年青年百億海外圓夢基金計畫海外翱翔組<br>法定代理人同意書</div>
-                        <div style="text-indent:2em; text-align:justify; margin-bottom:30px; line-height:1.8;">
-                            本人 <span style="border-bottom:1px solid black; padding:0 5px;">${this.getVal('v_g_name')}</span> 為 <span style="border-bottom:1px solid black; padding:0 5px;">${this.getVal('v_name')}</span> (身分證字號：${this.getVal('v_id')}) 之法定代理人(關係：${this.getVal('v_g_relation')})，茲承諾同意申請人參加「115年百億海外圓夢基金計畫海外翱翔組」，並同意遵守相關規定。
-                        </div>
-                        <div style="text-align:right; margin-bottom:40px;">此致 教育部青年發展署</div>
-                        <table class="no-border" style="width:100%;">
-                            <tr>
-                                <td style="width:50%; vertical-align:top; line-height:2;">
-                                    <div>法定代理人姓名：<span style="border-bottom:1px solid black;">${this.getVal('v_g_name')}</span></div>
-                                    <div style="height:50px;">簽章：${this.getSig('sig_gua')}</div>
-                                    <div>身分證字號：<span style="border-bottom:1px solid black;">${this.getVal('v_g_id')}</span></div>
-                                    <div>聯絡手機：<span style="border-bottom:1px solid black;">${this.getVal('v_g_phone')}</span></div>
-                                </td>
-                                <td style="width:50%; vertical-align:top; line-height:2;">
-                                    <div>申請人姓名：<span style="border-bottom:1px solid black;">${this.getVal('v_name')}</span></div>
-                                    <div style="height:50px;">簽章：${this.getSig('sig_app')}</div>
-                                    <div>身分證字號：<span style="border-bottom:1px solid black;">${this.getVal('v_id')}</span></div>
-                                    <div>計畫名稱：<span style="border-bottom:1px solid black;">${this.getVal('v_project_name')}</span></div>
-                                </td>
-                            </tr>
-                        </table>
-                    `);
-                }
-
-                // Page 5: 封面
-                pages.push(`
-                    <div style="text-align:right; font-size:12pt; margin-bottom:3cm;">附件4</div>
-                    <div style="text-align:center; font-size:18pt; font-weight:bold; margin-bottom:10px;">教育部青年發展署</div>
-                    <div style="text-align:center; font-size:18pt; font-weight:bold; margin-bottom:10px;">青年百億海外圓夢基金計畫</div>
-                    <div style="text-align:center; font-size:18pt; font-weight:bold; margin-bottom:30px;">海外翱翔組</div>
-                    <div style="text-align:center; font-size:26pt; font-weight:bold; margin-bottom:2.5cm;">計畫申請書</div>
-                    <table class="no-border" style="width:80%; margin:0 auto; font-size:16pt;">
-                        <tr><td style="text-align:right; width:40%; padding:15px;">申請人姓名：</td><td style="border-bottom:1px solid black !important;">${this.getVal('v_name')}</td></tr>
-                        <tr><td style="text-align:right; padding:15px;">計畫編號與名稱：</td><td style="border-bottom:1px solid black !important;">${this.getVal('v_project_name')}</td></tr>
-                        <tr><td style="text-align:right; padding:15px;">手機：</td><td style="border-bottom:1px solid black !important;">${this.getVal('v_phone')}</td></tr>
-                        <tr><td style="text-align:right; padding:15px;">E-mail：</td><td style="border-bottom:1px solid black !important;">${this.getVal('v_email')}</td></tr>
-                    </table>
-                    <div style="text-align:center; font-size:18pt; margin-top:3cm;">中華民國 ${d.dateY} 年 ${d.dateM} 月 ${d.dateD} 日</div>
-                `);
-
-                // Page 6: 內文
-                pages.push(`
-                    <div style="text-align:right; font-size:12pt; margin-bottom:10px;">附件5</div>
-                    <div style="font-size:18pt; font-weight:bold; margin-bottom:20px;">計畫申請書（內文）</div>
-                    <div style="line-height:1.8; text-align:justify;">
-                        <div style="margin-bottom:15px;"><b>一、請依照下列項目順序撰寫申請青年之學經歷。</b><br><div style="padding-left:2em;">${this.getHtml('v_content_1')}</div></div>
-                        <div style="margin-bottom:15px;"><b>二、請說明對所申請機關及此項圓夢機會的了解。</b><br><div style="padding-left:2em;">${this.getHtml('v_content_2')}</div></div>
-                        <div style="margin-bottom:15px;"><b>三、說明申請的原因、動機及期待。</b><br><div style="padding-left:2em;">${this.getHtml('v_content_3')}</div></div>
-                        <div style="margin-bottom:15px;"><b>四、回國後的未來發展規劃及後續行動。</b><br><div style="padding-left:2em;">${this.getHtml('v_content_4')}</div></div>
-                        <div style="margin-bottom:15px;"><b>五、經費需求(僅需勾選)：</b><br><div style="padding-left:2em;">[ ${agree} ] 同意依簡章辦理<br>[ ${disagree} ] 不同意依簡章辦理</div></div>
-                        <div style="margin-bottom:15px;"><b>六、外語能力證明文件。</b><br><div style="padding-left:2em;">${this.getHtml('v_content_5')}</div></div>
-                        <div style="margin-bottom:15px;"><b>七、其他證明文件。</b><br><div style="padding-left:2em;">${this.getHtml('v_content_6')}</div></div>
-                    </div>
-                `);
-
-                return pages;
+                </div>`;
             }
-        };
 
-        // --- 4. 渲染器 (網頁、PDF、Word 分開處理) ---
-        const Renderer = {
-            updatePreview: function() {
-                const pages = Template.generatePages();
-                let html = '';
-                pages.forEach(p => { html += `<div class="web-page">${p}</div>`; });
-                document.getElementById('preview-pane').innerHTML = html;
-            }
-        };
-        // 初次渲染
-        Renderer.updatePreview();
+            // P5: 封面
+            html += `<div class="a4-page">
+                <div style="text-align:right; font-size:12pt; margin-bottom:3cm;">附件4</div>
+                <div style="text-align:center; font-size:18pt; font-weight:bold; margin-bottom:10px;">教育部青年發展署</div>
+                <div style="text-align:center; font-size:18pt; font-weight:bold; margin-bottom:10px;">青年百億海外圓夢基金計畫</div>
+                <div style="text-align:center; font-size:18pt; font-weight:bold; margin-bottom:30px;">海外翱翔組</div>
+                <div style="text-align:center; font-size:26pt; font-weight:bold; margin-bottom:2.5cm;">計畫申請書</div>
+                <table class="no-border" style="width:80%; margin:0 auto; font-size:16pt;">
+                    <tr><td style="text-align:right; width:40%; padding:15px;">申請人姓名：</td><td style="border-bottom:1px solid black !important;">${getV('v_name')}</td></tr>
+                    <tr><td style="text-align:right; padding:15px;">計畫編號與名稱：</td><td style="border-bottom:1px solid black !important;">${getV('v_project_name')}</td></tr>
+                    <tr><td style="text-align:right; padding:15px;">手機：</td><td style="border-bottom:1px solid black !important;">${getV('v_phone')}</td></tr>
+                    <tr><td style="text-align:right; padding:15px;">E-mail：</td><td style="border-bottom:1px solid black !important;">${getV('v_email')}</td></tr>
+                </table>
+                <div style="text-align:center; font-size:18pt; margin-top:3cm;">中華民國 ${d.dateY} 年 ${d.dateM} 月 ${d.dateD} 日</div>
+            </div>`;
 
+            // P6: 內文
+            html += `<div class="a4-page" style="height: auto !important; min-height: 297mm;">
+                <div style="text-align:right; font-size:12pt; margin-bottom:10px;">附件5</div>
+                <div style="font-size:18pt; font-weight:bold; margin-bottom:20px;">計畫申請書（內文）</div>
+                <div style="line-height:1.8; text-align:justify;">
+                    <div style="margin-bottom:15px;"><b>一、請依照下列項目順序撰寫申請青年之學經歷。</b><br><div style="padding-left:2em;">${getHtml('v_content_1')}</div></div>
+                    <div style="margin-bottom:15px;"><b>二、請說明對所申請機關及此項圓夢機會的了解。</b><br><div style="padding-left:2em;">${getHtml('v_content_2')}</div></div>
+                    <div style="margin-bottom:15px;"><b>三、說明申請的原因、動機及期待。</b><br><div style="padding-left:2em;">${getHtml('v_content_3')}</div></div>
+                    <div style="margin-bottom:15px;"><b>四、回國後的未來發展規劃及後續行動。</b><br><div style="padding-left:2em;">${getHtml('v_content_4')}</div></div>
+                    <div style="margin-bottom:15px;"><b>五、經費需求(僅需勾選)：</b><br><div style="padding-left:2em;">[ ${agree} ] 同意依簡章辦理<br>[ ${disagree} ] 不同意依簡章辦理</div></div>
+                    <div style="margin-bottom:15px;"><b>六、外語能力證明文件。</b><br><div style="padding-left:2em;">${getHtml('v_content_5')}</div></div>
+                    <div style="margin-bottom:15px;"><b>七、其他證明文件。</b><br><div style="padding-left:2em;">${getHtml('v_content_6')}</div></div>
+                </div>
+            </div>`;
+
+            return html;
+        }
+
+        // 渲染到畫面上
+        function renderPreview() {
+            document.getElementById('preview-pane').innerHTML = generateHTML();
+        }
+        renderPreview(); // 初次載入立刻執行
+
+        // 4. 匯出邏輯 (抓取畫面上現成的，絕對不隱藏)
         const ExportManager = {
+            downloadPDF: function() {
+                // PDF 直接抓取 #preview-pane，因為已經是 A4 比例，絕對抓得到
+                const element = document.getElementById('preview-pane');
+                
+                // 設定 HTML2PDF 參數，確保啟用 CSS 的 page-break-after
+                html2pdf().set({ 
+                    margin: 0, 
+                    filename: '青年百億計畫申請書.pdf', 
+                    image: { type: 'jpeg', quality: 1 }, 
+                    html2canvas: { scale: 2, useCORS: true, logging: false }, 
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['css', 'legacy'] }
+                }).from(element).save();
+            },
+            
             downloadWord: function() {
+                // Word 需要替換樣式，所以手動重組
                 const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head><meta charset='utf-8'><style>
                     @page { size: 21cm 29.7cm; margin: 2.5cm; }
@@ -381,66 +406,19 @@
                     table { border-collapse: collapse; width: 100%; font-size: 14pt; }
                     th, td { border: 1px solid black; padding: 8px; vertical-align: middle; text-align: center; }
                     .no-border td { border: none !important; text-align: left; }
+                    .a4-page { page-break-after: always; }
                 </style></head><body>`;
                 
-                let bodyHtml = '';
-                const pages = Template.generatePages();
-                pages.forEach((p, idx) => {
-                    if(idx > 0) bodyHtml += `<br clear="all" style="page-break-before:always;" />`;
-                    bodyHtml += `<div>${p}</div>`;
-                });
+                // 利用畫面上現有的 HTML
+                const bodyHtml = document.getElementById('preview-pane').innerHTML;
                 
                 const blob = new Blob(['\ufeff', header + bodyHtml + '</body></html>'], { type: 'application/msword' });
                 const link = document.createElement('a'); link.href = URL.createObjectURL(blob); 
                 link.download = '青年百億計畫申請書.doc'; link.click();
-            },
-            
-            downloadPDF: function() {
-                // 產生一個純淨的、絕對 210mm 寬度的隱藏容器給 PDF 截圖
-                const container = document.createElement('div');
-                container.style.position = 'absolute';
-                container.style.top = '-9999px';
-                container.style.width = '210mm';
-                container.style.backgroundColor = 'white';
-                container.style.fontFamily = "'DFKai-SB', 'BiauKai', '標楷體', serif";
-                container.style.fontSize = "14pt";
-                container.style.color = "black";
-                
-                // 加入嚴格防腰斬的 CSS
-                container.innerHTML = `<style>
-                    table { border-collapse: collapse; width: 100%; }
-                    th, td { border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; }
-                    .no-border td { border: none !important; text-align: left; }
-                    tr, .no-cut { page-break-inside: avoid; }
-                    .pdf-page { padding: 2cm 2.5cm; box-sizing: border-box; width: 210mm; }
-                    .pdf-break { page-break-before: always; height: 0; }
-                </style>`;
-
-                const pages = Template.generatePages();
-                pages.forEach((p, idx) => {
-                    if (idx > 0) {
-                        const br = document.createElement('div'); br.className = 'pdf-break html2pdf__page-break';
-                        container.appendChild(br);
-                    }
-                    const pageDiv = document.createElement('div');
-                    pageDiv.className = 'pdf-page';
-                    pageDiv.innerHTML = p;
-                    container.appendChild(pageDiv);
-                });
-
-                document.body.appendChild(container);
-
-                html2pdf().set({ 
-                    margin: 0, filename: '青年百億計畫申請書.pdf', image: { type: 'jpeg', quality: 1 }, 
-                    html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak: { mode: 'css' }
-                }).from(container).save().then(() => {
-                    document.body.removeChild(container);
-                });
             }
         };
 
-        // --- 5. 簽名板與連線機制 (最精簡、不報錯) ---
+        // 5. 簽名板功能 (純本機，最穩定)
         const canvas = document.getElementById('sign_canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false, currentSignRole = '';
@@ -464,15 +442,16 @@
         canvas.addEventListener('pointerout', () => { isDrawing = false; });
         
         function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-        function openSignModal(role) {
+        
+        window.openSignModal = function(role) {
             currentSignRole = role;
             document.getElementById('sign_title').innerText = role === 'app' ? '申請人簽名' : '法定代理人簽名';
             document.getElementById('sign_modal').style.display = 'flex';
             setTimeout(resizeCanvas, 100);
         }
-        function closeSignModal() { document.getElementById('sign_modal').style.display = 'none'; clearCanvas(); }
+        window.closeSignModal = function() { document.getElementById('sign_modal').style.display = 'none'; clearCanvas(); }
 
-        function saveSignature() {
+        document.getElementById('btn_save_sign').addEventListener('click', () => {
             // 裁切空白
             let top=null, bottom=null, left=null, right=null;
             const w = canvas.width, h = canvas.height, imgData = ctx.getImageData(0,0,w,h).data;
@@ -491,20 +470,11 @@
             tc.getContext('2d').drawImage(canvas, left, top, right-left, bottom-top, 0, 0, right-left, bottom-top);
             const dataUrl = tc.toDataURL('image/png');
 
-            if(currentSignRole === 'app') { AppData.sig_app = dataUrl; document.getElementById('status_app').style.display = 'block'; document.getElementById('qr_app_box').style.display = 'none'; }
-            else { AppData.sig_gua = dataUrl; document.getElementById('status_gua').style.display = 'block'; document.getElementById('qr_gua_box').style.display = 'none'; }
+            if(currentSignRole === 'app') { AppData.sig_app = dataUrl; document.getElementById('status_app').style.display = 'block'; }
+            else { AppData.sig_gua = dataUrl; document.getElementById('status_gua').style.display = 'block'; }
             
-            Renderer.updatePreview(); closeSignModal();
-        }
-        document.getElementById('btn_save_sign').addEventListener('click', saveSignature);
-
-        // QR Code 產生
-        setTimeout(() => {
-            const baseUrl = window.location.href.split('?')[0].split('#')[0];
-            new QRCode(document.getElementById("qr_applicant"), { text: `${baseUrl}?role=app`, width: 70, height: 70 });
-            new QRCode(document.getElementById("qr_guardian"), { text: `${baseUrl}?role=gua`, width: 70, height: 70 });
-        }, 500);
-
+            renderPreview(); closeSignModal();
+        });
     </script>
 </body>
 </html>
