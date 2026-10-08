@@ -70,6 +70,9 @@
         
         /* 圖片預覽容器 */
         .id-card-preview { width: 100%; max-height: 200px; object-fit: contain; border: 1px dashed #ccc; }
+        
+        /* Checkbox 放大 */
+        .big-checkbox { transform: scale(1.5); margin: 5px; }
     </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col md:flex-row">
@@ -156,6 +159,10 @@
                         <input type="text" id="i_g_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700">與申請人關係</label>
+                        <input type="text" id="i_g_relation" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div class="col-span-2">
                         <label class="block text-sm font-medium text-gray-700">身分證字號</label>
                         <input type="text" id="i_g_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
                     </div>
@@ -237,15 +244,15 @@
             </section>
 
             <!-- 四、親筆簽名 -->
-        <section class="space-y-4 pb-10">
-            <h2 class="text-xl font-semibold text-gray-800 border-b pb-2">四、親筆簽名 (遠端或本機簽名)</h2>
-            
-            <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded text-sm text-blue-800 shadow-sm mb-4">
-                <strong>📱 跨裝置掃描簽名 (免後端黑科技)</strong><br>
-                <p class="mt-1">本系統採用 WebRTC 點對點連線，免安裝資料庫、免 API，將網頁發布至 GitHub Pages 後，手機掃描 QR Code 即可直接連線到此電腦螢幕！</p>
-            </div>
+            <section class="space-y-4 pb-10">
+                <h2 class="text-xl font-semibold text-gray-800 border-b pb-2">四、親筆簽名 (遠端或本機簽名)</h2>
+                
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded text-sm text-blue-800 shadow-sm mb-4">
+                    <strong>📱 跨裝置掃描簽名 (免後端黑科技)</strong><br>
+                    <p class="mt-1">本系統採用 WebRTC 點對點連線，免安裝資料庫、免 API，將網頁發布至 GitHub Pages 後，手機掃描 QR Code 即可直接連線到此電腦螢幕！</p>
+                </div>
 
-            <div class="flex gap-4">
+                <div class="flex gap-4">
                     <!-- 申請人簽名區 -->
                     <div class="flex-1 bg-white p-4 rounded border border-gray-200 flex flex-col items-center shadow-sm text-center">
                         <h3 class="font-bold text-sm mb-4 text-gray-800">申請人簽名</h3>
@@ -287,14 +294,59 @@
     <div class="w-full md:w-2/3 lg:w-3/5 h-full overflow-y-auto document-preview no-scrollbar" id="preview-pane">
         <div id="export-container" class="w-full flex flex-col items-center gap-6">
             
+            <!-- P0: 附件1 檢核清單 -->
+            <div class="a4-page">
+                <div class="text-right text-sm">附件1</div>
+                <div class="title-18 mt-4">教育部青年發展署<br>青年百億海外圓夢基金計畫海外翱翔組<br>申請檢核清單</div>
+                <table class="doc-table w-full mt-4 text-[12pt] leading-relaxed text-left">
+                    <tr>
+                        <th class="w-24 text-center">檢核(請打勾)</th>
+                        <th class="w-1/3 text-center">內容</th>
+                        <th class="text-center">說明</th>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><input type="checkbox" class="big-checkbox"></td>
+                        <td>申請資料上傳</td>
+                        <td>請申請人至青年百億海外圓夢基金計畫平臺（https://twpathfinder.org/），登入會員後，填寫相關報名資料。</td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><input type="checkbox" class="big-checkbox"></td>
+                        <td colspan="2" class="font-bold text-center">申請文件請於報名期間以PDF檔分別上傳至青年百億海外圓夢基金計畫平臺報名專區</td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><input type="checkbox" class="big-checkbox"></td>
+                        <td>(1)參與切結書（簽名後掃描電子檔）</td>
+                        <td>附件2</td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><input type="checkbox" class="big-checkbox"></td>
+                        <td>(2)特殊身分證明文件掃描影本</td>
+                        <td>請檢附相關證明：為經濟弱勢家庭青年者(低收入戶、中低收入戶、特殊境遇家庭)，須提供身分證字號，檢附個人資料使用授權同意書（附件15）及各直轄市、縣(市)主管機關開立有效之低收入戶或中低收入或特殊境遇家庭證明。為原住民青年身分者，須檢附本人具有原住民身分註記之戶籍謄本影本（依原住民身分法規定）</td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><input type="checkbox" id="chk_guardian_doc" class="big-checkbox" disabled></td>
+                        <td>(3)法定代理人同意書</td>
+                        <td>附件3，簽名後掃描電子檔，未成年者務必繳交</td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><input type="checkbox" class="big-checkbox" checked></td>
+                        <td>(4)計畫申請書（含封面及內文、其他證明文件如獎狀、語言證明等）</td>
+                        <td>附件4、5</td>
+                    </tr>
+                </table>
+            </div>
+
             <!-- P1: 切結書 -->
             <div class="a4-page">
                 <div class="text-right text-sm">附件2</div>
-                <div class="title-18 mt-4">參與切結書</div>
-                <div class="title-16 text-center">教育部青年發展署<br>青年百億海外圓夢基金計畫海外翱翔組<br>參與切結書</div>
+                <div class="text-[12pt] mb-2 font-bold">參與切結書（須親筆簽名提供予青年百億海外圓夢基金計畫專案小組。）</div>
+                <div class="title-16 text-center mt-2">教育部青年發展署<br>青年百億海外圓夢基金計畫海外翱翔組<br>參與切結書</div>
                 
                 <div class="indent mt-6">
                     本人申請教育部青年發展署「115年青年百億海外圓夢基金計畫海外翱翔組」<span class="border-b border-black px-2 out_project_name">（計畫名稱與編號）</span>提案。本人確定所填資料及相關附件均屬事實，嗣後如經查，發現有不實情事，本人願負一切法律責任，並繳回已領取獎勵金，特此切結，絕無異議。
+                </div>
+                <div class="indent mt-2">
+                    另，本人同意於提案計畫審查錄取獲實踐獎勵金後，依教育部青年發展署「115年青年百億海外圓夢基金計畫海外翱翔組」相關規定辦理，參與並完成計畫。
                 </div>
                 
                 <div class="mt-8">此致<br><span class="ml-8">教育部青年發展署</span></div>
@@ -311,19 +363,19 @@
                     中華民國 <span class="out_date_y border-b border-black px-2"></span> 年 <span class="out_date_m border-b border-black px-2"></span> 月 <span class="out_date_d border-b border-black px-2"></span> 日
                 </div>
 
-                <div class="title-16">一、申請人資料</div>
+                <div class="title-16 text-left">一、申請人資料</div>
                 <table class="doc-table text-center">
                     <tr><th rowspan="2" class="w-20">立切結書人</th><th>姓名</th><th>身分證字號</th><th>(西元)出生年/月/日</th><th>手機號碼</th><th colspan="2">(郵遞區號3+3碼)戶籍地址</th></tr>
                     <tr><td class="out_name h-10"></td><td class="out_id"></td><td class="out_birth"></td><td class="out_phone"></td><td colspan="2" class="out_address text-left"></td></tr>
                     <tr><th rowspan="2">緊急連絡人</th><th>姓名</th><th>關係</th><th colspan="4">連絡電話</th></tr>
                     <tr><td class="out_em_name h-10"></td><td class="out_em_relation"></td><td colspan="4" class="out_em_phone"></td></tr>
                 </table>
-                <div class="mt-4">申請計畫編號：<span class="out_project_name"></span></div>
+                <div class="mt-4 text-left">申請計畫編號：<span class="out_project_name border-b border-black px-2 min-w-[100px] inline-block"></span></div>
             </div>
 
             <!-- P2: 身分證 -->
             <div class="a4-page">
-                <div class="title-16 mt-8">二、請提供身分證正反面影本</div>
+                <div class="title-16 mt-8 text-left">二、請提供身分證正反面影本</div>
                 <table class="doc-table mt-4">
                     <tr><th class="w-24">立切結書人</th><th>證件正反面影本</th></tr>
                     <tr>
@@ -340,60 +392,115 @@
                         </td>
                     </tr>
                 </table>
+                <div class="mt-4 text-[12pt]">附註：本表填妥後請於報名期間以PDF檔上傳至青年百億海外圓夢基金計畫平臺報名專區。</div>
             </div>
 
             <!-- P3: 法定代理人 (可選) -->
             <div class="a4-page" id="page_guardian" style="display:none;">
                 <div class="text-right text-sm">附件3</div>
-                <div class="title-18 mt-4">法定代理人同意書</div>
-                <div class="indent mt-8 leading-loose">
-                    本人 <span class="border-b border-black px-2 out_g_name min-w-[100px] inline-block text-center"></span> 為 <span class="border-b border-black px-2 out_name min-w-[100px] inline-block text-center"></span>（身分證字號： <span class="border-b border-black px-2 out_id min-w-[120px] inline-block text-center"></span> ）之法定代理人，茲承諾本人同意申請人參加教育部青年發展署辦理之計畫。
+                <div class="text-[12pt] mb-2 font-bold">法定代理人同意書（若青年身分未滿法定成人年齡者，則須法定代理人同意簽名。）</div>
+                <div class="title-18 mt-4 text-center">教育部青年發展署<br>115年青年百億海外圓夢基金計畫海外翱翔組<br>法定代理人同意書</div>
+                <div class="indent mt-8 leading-loose text-justify">
+                    本人 <span class="border-b border-black px-2 out_g_name min-w-[100px] inline-block text-center"></span> （法定代理人姓名）為 <span class="border-b border-black px-2 out_name min-w-[100px] inline-block text-center"></span> （申請人姓名）（身分證字號： <span class="border-b border-black px-2 out_id min-w-[120px] inline-block text-center"></span> ）之法定代理人（與該員之關係： <span class="border-b border-black px-2 out_g_relation min-w-[80px] inline-block text-center"></span> ），茲承諾本人同意申請人參加教育部青年發展署辦理之「115年百億海外圓夢基金計畫海外翱翔組」，本人與申請人已詳閱該計畫之內容，同意遵守計畫及相關文件中註明之所有規定及注意事項。
                 </div>
-                <div class="mt-12 flex justify-between">
-                    <div class="w-1/2 pr-4 space-y-4">
-                        <div class="font-bold border-b border-black pb-1 mb-4">立同意書人(法定代理人)</div>
-                        <div class="flex items-center gap-2 h-12">
-                            <span>簽名：</span><span id="text_sig_g" class="text-gray-400 text-sm">請親簽</span>
-                            <img id="img_sig_g" class="hidden" style="max-height: 45px; max-width: 100%; width: auto; object-fit: contain;">
+                <div class="mt-8 text-right">此致<br>教育部青年發展署</div>
+                
+                <div class="mt-8 flex flex-col gap-8 ml-8">
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span>立同意書人(簽名) 法定代理人姓名：</span>
+                            <span class="out_g_name border-b border-black px-2 min-w-[100px] text-center inline-block"></span>
+                            <span id="text_sig_g" class="text-gray-400 text-sm ml-2">請親簽</span>
+                            <img id="img_sig_g" class="hidden ml-2" style="max-height: 45px; max-width: 100%; width: auto; object-fit: contain;">
                         </div>
-                        <div>姓名：<span class="out_g_name"></span></div>
+                        <div>身分證字號：<span class="out_g_id border-b border-black px-2 min-w-[150px] inline-block"></span></div>
+                        <div>聯絡手機號碼：<span class="out_g_phone border-b border-black px-2 min-w-[150px] inline-block"></span></div>
+                        <div>聯絡地址：<span class="out_g_address border-b border-black px-2 min-w-[250px] inline-block"></span></div>
                     </div>
-                    <div class="w-1/2 pl-4 space-y-4">
-                        <div class="font-bold border-b border-black pb-1 mb-4">申請人</div>
-                        <div class="flex items-center gap-2 h-12">
-                            <span>簽名：</span><span id="text_sig_a" class="text-gray-400 text-sm">請親簽</span>
-                            <img id="img_sig_a" class="hidden" style="max-height: 45px; max-width: 100%; width: auto; object-fit: contain;">
+                    
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span>申請人(簽名) 姓名：</span>
+                            <span class="out_name border-b border-black px-2 min-w-[100px] text-center inline-block"></span>
+                            <span id="text_sig_a" class="text-gray-400 text-sm ml-2">請親簽</span>
+                            <img id="img_sig_a" class="hidden ml-2" style="max-height: 45px; max-width: 100%; width: auto; object-fit: contain;">
                         </div>
-                        <div>姓名：<span class="out_name"></span></div>
+                        <div>身分證字號：<span class="out_id border-b border-black px-2 min-w-[150px] inline-block"></span></div>
+                        <div>聯絡手機號碼：<span class="out_phone border-b border-black px-2 min-w-[150px] inline-block"></span></div>
+                        <div>計畫名稱：<span class="out_project_name border-b border-black px-2 min-w-[250px] inline-block"></span></div>
                     </div>
                 </div>
             </div>
 
             <!-- P4: 封面 -->
-            <div class="a4-page flex flex-col justify-center">
+            <div class="a4-page flex flex-col justify-center relative">
+                <div class="absolute top-10 right-10 text-sm">附件4</div>
                 <div class="title-18 mt-10">教育部青年發展署</div>
-                <div class="title-18 mt-8 mb-16 text-2xl">計畫申請書</div>
-                <div class="w-2/3 mx-auto border p-8 space-y-6 text-lg">
-                    <div class="flex"><div class="w-40 font-bold">申請人：</div><div class="flex-1 border-b border-black out_name text-center"></div></div>
-                    <div class="flex"><div class="w-40 font-bold">計畫名稱：</div><div class="flex-1 border-b border-black out_project_name text-center"></div></div>
+                <div class="title-18 mt-2 mb-2">青年百億海外圓夢基金計畫</div>
+                <div class="title-18 mt-2 mb-2">海外翱翔組</div>
+                <div class="title-18 mt-2 mb-16 text-2xl">計畫申請書</div>
+                
+                <div class="w-3/4 mx-auto p-8 space-y-6 text-[16pt]">
+                    <div class="flex"><div class="w-40 font-bold text-right pr-4">申請人姓名：</div><div class="flex-1 border-b border-black out_name text-left pl-2"></div></div>
+                    <div class="flex"><div class="w-40 font-bold text-right pr-4">計畫編號與名稱：</div><div class="flex-1 border-b border-black out_project_name text-left pl-2"></div></div>
+                    <div class="flex"><div class="w-40 font-bold text-right pr-4">手機：</div><div class="flex-1 border-b border-black out_phone text-left pl-2"></div></div>
+                    <div class="flex"><div class="w-40 font-bold text-right pr-4">E-mail：</div><div class="flex-1 border-b border-black out_email text-left pl-2"></div></div>
+                </div>
+
+                <div class="text-center mt-20 text-[18pt]">
+                    中華民國 <span class="out_date_y px-2"></span> 年 <span class="out_date_m px-2"></span> 月 <span class="out_date_d px-2"></span> 日
                 </div>
             </div>
 
             <!-- P5: 內文 -->
             <div class="a4-page">
                 <div class="text-right text-sm">附件5</div>
-                <div class="title-18 mt-4 mb-8">計畫申請書（內文）</div>
-                <div class="space-y-6">
-                    <div><div class="title-16">1. 學經歷：</div><div class="whitespace-pre-wrap ml-6 out_content_1 text-justify min-h-[3rem] text-gray-500 italic">尚未填寫</div></div>
-                    <div><div class="title-16">2. 對計畫了解：</div><div class="whitespace-pre-wrap ml-6 out_content_2 text-justify min-h-[3rem] text-gray-500 italic">尚未填寫</div></div>
-                    <div><div class="title-16">3. 動機及期待：</div><div class="whitespace-pre-wrap ml-6 out_content_3 text-justify min-h-[3rem] text-gray-500 italic">尚未填寫</div></div>
-                    <div><div class="title-16">4. 未來發展：</div><div class="whitespace-pre-wrap ml-6 out_content_4 text-justify min-h-[3rem] text-gray-500 italic">尚未填寫</div></div>
+                <div class="title-18 mt-4 mb-6 text-left font-normal">計畫申請書（內文）</div>
+                <div class="mb-4">內容：</div>
+                <div class="space-y-6 leading-loose">
                     <div>
-                        <div class="title-16">5. 經費需求：</div>
-                        <div class="ml-6"><span class="out_funding_agree font-bold">☑</span> 同意辦理方式<br><span class="out_funding_disagree font-bold">☐</span> 不同意</div>
+                        <div class="">請依照下列項目順序撰寫申請青年之學經歷。</div>
+                        <div class="whitespace-pre-wrap ml-6 out_content_1 text-justify min-h-[2rem] text-gray-500 italic">尚未填寫</div>
                     </div>
-                    <div><div class="title-16">6. 外語能力證明：</div><div class="whitespace-pre-wrap ml-6 out_content_5 min-h-[2rem]">無</div></div>
-                    <div><div class="title-16">7. 其他證明文件：</div><div class="whitespace-pre-wrap ml-6 out_content_6 min-h-[2rem]">無</div></div>
+                    <div>
+                        <div class="">請說明對所申請國際組織、機關(構)及此項圓夢機會的內容及了解情形。</div>
+                        <div class="whitespace-pre-wrap ml-6 out_content_2 text-justify min-h-[2rem] text-gray-500 italic">尚未填寫</div>
+                    </div>
+                    <div>
+                        <div class="">說明為什麼想申請及參與此項圓夢機會的原因、動機及期待。</div>
+                        <div class="whitespace-pre-wrap ml-6 out_content_3 text-justify min-h-[2rem] text-gray-500 italic">尚未填寫</div>
+                    </div>
+                    <div>
+                        <div class="">參與計畫回國後想做什麼事，對自己的未來發展規劃或預計執行的後續行動，如何發揮更多影響力。</div>
+                        <div class="whitespace-pre-wrap ml-6 out_content_4 text-justify min-h-[2rem] text-gray-500 italic">尚未填寫</div>
+                    </div>
+                    <div>
+                        <div class="">經費需求(僅需勾選)：</div>
+                        <div class="indent text-justify text-[12pt] leading-normal mt-2 mb-2">
+                            依據本計畫平臺圓夢一覽表中公布之簡章中所申請圓夢機會之合作計畫所列經費編列，如獲錄取，將依簡章中之經費編列將獲選之實踐獎勵金撥付予獲選青年或合作單位，如該計畫相關支出由合作單位統一辦理，則請獲選青年填具委託第三方代收獎勵金委託切結書(附件19)辦理後續事宜。倘青年不同意依此方式辦理，考量可能影響本計畫經費撥付，將納入計畫申請審核之參考。
+                        </div>
+                        <div class="ml-6"><span class="out_funding_agree font-bold">☑</span> 同意上述辦理方式<br><span class="out_funding_disagree font-bold">☐</span> 不同意上述辦理方式</div>
+                    </div>
+                    <div>
+                        <div class="">外語能力證明文件(非必要)。</div>
+                        <div class="whitespace-pre-wrap ml-6 out_content_5 min-h-[1.5rem]">無</div>
+                    </div>
+                    <div>
+                        <div class="">其他證明文件。</div>
+                        <div class="whitespace-pre-wrap ml-6 out_content_6 min-h-[1.5rem]">無</div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-4 border-t border-gray-400 text-[12pt] leading-relaxed">
+                    <div class="font-bold">格式說明（請依格式撰寫，如因格式未符致影響審查結果，申請人請自行負責，不得異議）</div>
+                    <ol class="list-decimal pl-6 mt-2">
+                        <li>紙張規格：A4大小、直式橫書</li>
+                        <li>頁數：計畫內文以15-30頁為原則(不含附件1~3)</li>
+                        <li>行距：固定行高24點</li>
+                        <li>字型：標楷體<br>字體大小<br>1、大標：18號字體<br>2、小標：16號字體<br>3、內文：14號字體</li>
+                        <li>編頁碼</li>
+                    </ol>
+                    <div class="mt-2">備註：申請計畫電子檔，請提供一式PDF檔，檔案大小以10MB為限。請預備中英文版計畫（含履歷）與簡報備用，俾利審查委員審查所需使用，如有需要，本計畫專案小組將另行通知請申請青年提供。</div>
                 </div>
             </div>
         </div>
@@ -430,9 +537,10 @@
             document.getElementById('guardian_fields').classList.toggle('hidden', !isChecked);
             document.getElementById('page_guardian').style.display = isChecked ? 'block' : 'none';
             document.getElementById('qr_guardian_container').classList.toggle('hidden', !isChecked);
+            document.getElementById('chk_guardian_doc').checked = isChecked;
         }
 
-        const inputs = ['name', 'id', 'birth', 'phone', 'address', 'email', 'em_name', 'em_relation', 'em_phone', 'g_name', 'g_id', 'g_phone', 'g_address', 'project_name', 'content_1', 'content_2', 'content_3', 'content_4', 'content_5', 'content_6'];
+        const inputs = ['name', 'id', 'birth', 'phone', 'address', 'email', 'em_name', 'em_relation', 'em_phone', 'g_name', 'g_relation', 'g_id', 'g_phone', 'g_address', 'project_name', 'content_1', 'content_2', 'content_3', 'content_4', 'content_5', 'content_6'];
         inputs.forEach(key => {
             const inputEl = document.getElementById(`i_${key}`);
             if(inputEl) inputEl.addEventListener('input', (e) => {
@@ -497,172 +605,47 @@
         }
 
         function exportWord() {
-        const header = "<html xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><style>body { font-family: 'DFKai-SB', '標楷體'; font-size: 14pt; } .page-break { mso-special-character: line-break; page-break-before: always; }</style></head><body>";
-        const cloned = document.getElementById('export-container').cloneNode(true);
-        if(!document.getElementById('toggle_guardian').checked) cloned.querySelector('#page_guardian')?.remove();
-        cloned.querySelectorAll('.a4-page').forEach((p, i) => { if(i>0) p.insertAdjacentHTML('afterbegin', '<div class="page-break" style="page-break-before:always"></div>'); });
-        const blob = new Blob(['\ufeff', header + cloned.innerHTML + '</body></html>'], { type: 'application/msword' });
-        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = '計畫書.doc'; link.click();
-    }
+            const header = "<html xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><style>body { font-family: 'DFKai-SB', '標楷體'; font-size: 14pt; } .page-break { mso-special-character: line-break; page-break-before: always; }</style></head><body>";
+            const cloned = document.getElementById('export-container').cloneNode(true);
+            if(!document.getElementById('toggle_guardian').checked) cloned.querySelector('#page_guardian')?.remove();
+            cloned.querySelectorAll('.a4-page').forEach((p, i) => { if(i>0) p.insertAdjacentHTML('afterbegin', '<div class="page-break" style="page-break-before:always"></div>'); });
+            const blob = new Blob(['\ufeff', header + cloned.innerHTML + '</body></html>'], { type: 'application/msword' });
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = '計畫書.doc'; link.click();
+        }
 
-    // ================== P2P 跨裝置手機掃碼簽名 與 滑鼠簽名 ==================
-    const urlParams = new URLSearchParams(window.location.search);
-    const signPeerId = urlParams.get('sign_id');
-    const signRole = urlParams.get('role');
+        // ================== P2P 跨裝置手機掃碼簽名 與 滑鼠簽名 ==================
+        const urlParams = new URLSearchParams(window.location.search);
+        const signPeerId = urlParams.get('sign_id');
+        const signRole = urlParams.get('role');
 
-    if (signPeerId) {
-        // --- 狀態 A：手機端連線模式 ---
-        document.getElementById('input-form').parentElement.style.display = 'none'; 
-        document.getElementById('preview-pane').style.display = 'none';             
-        
-        const view = document.getElementById('mobile_sign_view');
-        view.classList.remove('hidden');
-        const titleEl = document.getElementById('mobile_sign_title');
-        const submitBtn = document.getElementById('btn_mobile_submit');
-        
-        titleEl.innerHTML = "🔄 正在尋找您的電腦...";
-        submitBtn.disabled = true;
-        submitBtn.classList.replace('bg-blue-600', 'bg-gray-400');
-        submitBtn.innerText = "📡 連線中...";
-
-        // 畫布設定 (高畫質平滑渲染)
-        const canvas = document.getElementById('mobile_sign_canvas');
-        const ctx = canvas.getContext('2d');
-        setTimeout(() => { 
-            const rect = canvas.getBoundingClientRect();
-            const dpr = window.devicePixelRatio || 1; // 偵測螢幕像素密度
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            ctx.scale(dpr, dpr); // 縮放畫布以適應高畫質螢幕
-            ctx.lineWidth = 5;   // 稍微加粗筆觸
-            ctx.lineCap = 'round';  // 筆觸端點圓滑
-            ctx.lineJoin = 'round'; // 筆觸轉角圓滑
-            ctx.strokeStyle = '#000000'; // 純黑墨水
-        }, 50);
-
-        let isDrawing = false;
-        const getPos = e => { const r = canvas.getBoundingClientRect(); return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top }; };
-        const start = e => { e.preventDefault(); isDrawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); };
-        const draw = e => { e.preventDefault(); if(isDrawing) { ctx.lineTo(getPos(e).x, getPos(e).y); ctx.stroke(); }};
-        const stop = e => { e.preventDefault(); isDrawing = false; ctx.closePath(); };
-
-        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stop);
-        canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', draw, {passive: false}); canvas.addEventListener('touchend', stop, {passive: false});
-        
-        document.getElementById('btn_mobile_clear').onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // WebRTC 點對點連線
-        const peer = new Peer({
-            config: {
-                'iceServers': [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' }
-                ]
-            }
-        });
-        let conn;
-        peer.on('open', () => {
-            conn = peer.connect(signPeerId, { reliable: true });
+        if (signPeerId) {
+            // --- 狀態 A：手機端連線模式 ---
+            document.getElementById('input-form').parentElement.style.display = 'none'; 
+            document.getElementById('preview-pane').style.display = 'none';             
             
-            conn.on('open', () => {
-                titleEl.innerHTML = "✅ 已連線！請在下方空白處簽名";
-                submitBtn.disabled = false;
-                submitBtn.classList.replace('bg-gray-400', 'bg-blue-600');
-                submitBtn.innerText = "確認傳送";
-            });
-
-            conn.on('close', () => {
-                titleEl.innerHTML = "❌ 電腦端已斷線，請重新掃描";
-                submitBtn.disabled = true;
-                submitBtn.classList.replace('bg-blue-600', 'bg-red-500');
-                submitBtn.innerText = "已斷線";
-            });
-        });
-
-        peer.on('error', (err) => {
-            titleEl.innerHTML = "❌ 網路環境阻擋連線，請發布至外部網站";
-            submitBtn.innerText = "連線失敗";
-            console.error(err);
-        });
-
-        submitBtn.onclick = () => {
-            if (conn && conn.open) {
-                const dataUrl = cropSignatureCanvas(canvas, ctx); // 使用自動裁切功能
-                conn.send({ role: signRole, image: dataUrl }); 
-                titleEl.innerHTML = "🎉 傳送成功！請看電腦螢幕";
-                submitBtn.innerText = "已回傳完成";
-                submitBtn.disabled = true;
-                submitBtn.classList.replace('bg-blue-600', 'bg-gray-500');
-            }
-        };
-    } else {
-        // --- 狀態 B：電腦端接收模式 ---
-        const peer = new Peer({
-            config: {
-                'iceServers': [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' }
-                ]
-            }
-        });
-        
-        peer.on('open', (id) => {
-            // 自動產生包含這台電腦專屬 Peer ID 的網址
-            let baseUrl = window.location.href.split('?')[0].split('#')[0];
-            const appUrl = `${baseUrl}?sign_id=${id}&role=applicant`;
-            const guaUrl = `${baseUrl}?sign_id=${id}&role=guardian`;
-
-            // 設定點擊連結，方便在沙盒中直接開新分頁測試
-            document.getElementById('qr_applicant_link').href = appUrl;
-            if(document.getElementById('qr_guardian_link')) document.getElementById('qr_guardian_link').href = guaUrl;
-
-            setTimeout(() => {
-                document.getElementById("qr_applicant").innerHTML = '';
-                if(document.getElementById("qr_guardian")) document.getElementById("qr_guardian").innerHTML = '';
-                new QRCode(document.getElementById("qr_applicant"), { text: appUrl, width: 120, height: 120, correctLevel : QRCode.CorrectLevel.L });
-                new QRCode(document.getElementById("qr_guardian"), { text: guaUrl, width: 120, height: 120, correctLevel : QRCode.CorrectLevel.L });
-            }, 500);
-        });
-
-        // 隨時監聽是否有手機傳送資料過來
-        peer.on('connection', (conn) => {
-            conn.on('data', (data) => {
-                if (data.role === 'applicant') {
-                    document.getElementById('qr_applicant_box').classList.add('hidden');
-                    document.getElementById('status_applicant_sign').classList.remove('hidden');
-                    ['img_sig_1', 'img_sig_a'].forEach(id => { document.getElementById(id).src = data.image; document.getElementById(id).classList.remove('hidden'); });
-                    ['text_sig_1', 'text_sig_a'].forEach(id => document.getElementById(id).classList.add('hidden'));
-                } else if (data.role === 'guardian') {
-                    document.getElementById('qr_guardian_box').classList.add('hidden');
-                    document.getElementById('status_guardian_sign').classList.remove('hidden');
-                    document.getElementById('img_sig_g').src = data.image; document.getElementById('img_sig_g').classList.remove('hidden');
-                    document.getElementById('text_sig_g').classList.add('hidden');
-                }
-            });
-        });
-
-        // 保留給電腦使用者的備用滑鼠簽名功能
-        window.openLocalSign = function(role) {
             const view = document.getElementById('mobile_sign_view');
-            document.getElementById('btn_mobile_close').classList.remove('hidden');
-            document.getElementById('mobile_sign_title').innerHTML = role === 'guardian' ? '法定代理人 - 請用滑鼠簽名 ' : '申請人 - 請用滑鼠簽名 ';
             view.classList.remove('hidden');
+            const titleEl = document.getElementById('mobile_sign_title');
+            const submitBtn = document.getElementById('btn_mobile_submit');
             
+            titleEl.innerHTML = "🔄 正在尋找您的電腦...";
+            submitBtn.disabled = true;
+            submitBtn.classList.replace('bg-blue-600', 'bg-gray-400');
+            submitBtn.innerText = "📡 連線中...";
+
             // 畫布設定 (高畫質平滑渲染)
             const canvas = document.getElementById('mobile_sign_canvas');
             const ctx = canvas.getContext('2d');
             setTimeout(() => { 
                 const rect = canvas.getBoundingClientRect();
-                const dpr = window.devicePixelRatio || 1;
+                const dpr = window.devicePixelRatio || 1; // 偵測螢幕像素密度
                 canvas.width = rect.width * dpr;
                 canvas.height = rect.height * dpr;
-                ctx.scale(dpr, dpr);
-                ctx.lineWidth = 5; 
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.strokeStyle = '#000000';
+                ctx.scale(dpr, dpr); // 縮放畫布以適應高畫質螢幕
+                ctx.lineWidth = 5;   // 稍微加粗筆觸
+                ctx.lineCap = 'round';  // 筆觸端點圓滑
+                ctx.lineJoin = 'round'; // 筆觸轉角圓滑
+                ctx.strokeStyle = '#000000'; // 純黑墨水
             }, 50);
 
             let isDrawing = false;
@@ -675,24 +658,149 @@
             canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', draw, {passive: false}); canvas.addEventListener('touchend', stop, {passive: false});
             
             document.getElementById('btn_mobile_clear').onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
-            document.getElementById('btn_mobile_close').onclick = () => view.classList.add('hidden');
-            document.getElementById('btn_mobile_submit').onclick = () => {
-                const dataUrl = cropSignatureCanvas(canvas, ctx); // 使用自動裁切功能
-                if (role === 'applicant') {
-                    document.getElementById('qr_applicant_box').classList.add('hidden');
-                    document.getElementById('status_applicant_sign').classList.remove('hidden');
-                    ['img_sig_1', 'img_sig_a'].forEach(id => { document.getElementById(id).src = dataUrl; document.getElementById(id).classList.remove('hidden'); });
-                    ['text_sig_1', 'text_sig_a'].forEach(id => document.getElementById(id).classList.add('hidden'));
-                } else {
-                    document.getElementById('qr_guardian_box').classList.add('hidden');
-                    document.getElementById('status_guardian_sign').classList.remove('hidden');
-                    document.getElementById('img_sig_g').src = dataUrl; document.getElementById('img_sig_g').classList.remove('hidden');
-                    document.getElementById('text_sig_g').classList.add('hidden');
+
+            // WebRTC 點對點連線
+            const peer = new Peer({
+                config: {
+                    'iceServers': [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
                 }
-                view.classList.add('hidden');
+            });
+            let conn;
+            peer.on('open', () => {
+                conn = peer.connect(signPeerId, { reliable: true });
+                
+                conn.on('open', () => {
+                    titleEl.innerHTML = "✅ 已連線！請在下方空白處簽名";
+                    submitBtn.disabled = false;
+                    submitBtn.classList.replace('bg-gray-400', 'bg-blue-600');
+                    submitBtn.innerText = "確認傳送";
+                });
+
+                conn.on('close', () => {
+                    titleEl.innerHTML = "❌ 電腦端已斷線，請重新掃描";
+                    submitBtn.disabled = true;
+                    submitBtn.classList.replace('bg-blue-600', 'bg-red-500');
+                    submitBtn.innerText = "已斷線";
+                });
+            });
+
+            peer.on('error', (err) => {
+                titleEl.innerHTML = "❌ 網路環境阻擋連線，請發布至外部網站";
+                submitBtn.innerText = "連線失敗";
+                console.error(err);
+            });
+
+            submitBtn.onclick = () => {
+                if (conn && conn.open) {
+                    const dataUrl = cropSignatureCanvas(canvas, ctx); // 使用自動裁切功能
+                    conn.send({ role: signRole, image: dataUrl }); 
+                    titleEl.innerHTML = "🎉 傳送成功！請看電腦螢幕";
+                    submitBtn.innerText = "已回傳完成";
+                    submitBtn.disabled = true;
+                    submitBtn.classList.replace('bg-blue-600', 'bg-gray-500');
+                }
             };
-        };
-    }
-</script>
+        } else {
+            // --- 狀態 B：電腦端接收模式 ---
+            const peer = new Peer({
+                config: {
+                    'iceServers': [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
+                }
+            });
+            
+            peer.on('open', (id) => {
+                // 自動產生包含這台電腦專屬 Peer ID 的網址
+                let baseUrl = window.location.href.split('?')[0].split('#')[0];
+                const appUrl = `${baseUrl}?sign_id=${id}&role=applicant`;
+                const guaUrl = `${baseUrl}?sign_id=${id}&role=guardian`;
+
+                // 設定點擊連結，方便在沙盒中直接開新分頁測試
+                document.getElementById('qr_applicant_link').href = appUrl;
+                if(document.getElementById('qr_guardian_link')) document.getElementById('qr_guardian_link').href = guaUrl;
+
+                setTimeout(() => {
+                    document.getElementById("qr_applicant").innerHTML = '';
+                    if(document.getElementById("qr_guardian")) document.getElementById("qr_guardian").innerHTML = '';
+                    new QRCode(document.getElementById("qr_applicant"), { text: appUrl, width: 120, height: 120, correctLevel : QRCode.CorrectLevel.L });
+                    new QRCode(document.getElementById("qr_guardian"), { text: guaUrl, width: 120, height: 120, correctLevel : QRCode.CorrectLevel.L });
+                }, 500);
+            });
+
+            // 隨時監聽是否有手機傳送資料過來
+            peer.on('connection', (conn) => {
+                conn.on('data', (data) => {
+                    if (data.role === 'applicant') {
+                        document.getElementById('qr_applicant_box').classList.add('hidden');
+                        document.getElementById('status_applicant_sign').classList.remove('hidden');
+                        ['img_sig_1', 'img_sig_a'].forEach(id => { document.getElementById(id).src = data.image; document.getElementById(id).classList.remove('hidden'); });
+                        ['text_sig_1', 'text_sig_a'].forEach(id => document.getElementById(id).classList.add('hidden'));
+                    } else if (data.role === 'guardian') {
+                        document.getElementById('qr_guardian_box').classList.add('hidden');
+                        document.getElementById('status_guardian_sign').classList.remove('hidden');
+                        document.getElementById('img_sig_g').src = data.image; document.getElementById('img_sig_g').classList.remove('hidden');
+                        document.getElementById('text_sig_g').classList.add('hidden');
+                    }
+                });
+            });
+
+            // 保留給電腦使用者的備用滑鼠簽名功能
+            window.openLocalSign = function(role) {
+                const view = document.getElementById('mobile_sign_view');
+                document.getElementById('btn_mobile_close').classList.remove('hidden');
+                document.getElementById('mobile_sign_title').innerHTML = role === 'guardian' ? '法定代理人 - 請用滑鼠簽名 ' : '申請人 - 請用滑鼠簽名 ';
+                view.classList.remove('hidden');
+                
+                // 畫布設定 (高畫質平滑渲染)
+                const canvas = document.getElementById('mobile_sign_canvas');
+                const ctx = canvas.getContext('2d');
+                setTimeout(() => { 
+                    const rect = canvas.getBoundingClientRect();
+                    const dpr = window.devicePixelRatio || 1;
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    ctx.scale(dpr, dpr);
+                    ctx.lineWidth = 5; 
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.strokeStyle = '#000000';
+                }, 50);
+
+                let isDrawing = false;
+                const getPos = e => { const r = canvas.getBoundingClientRect(); return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top }; };
+                const start = e => { e.preventDefault(); isDrawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); };
+                const draw = e => { e.preventDefault(); if(isDrawing) { ctx.lineTo(getPos(e).x, getPos(e).y); ctx.stroke(); }};
+                const stop = e => { e.preventDefault(); isDrawing = false; ctx.closePath(); };
+
+                canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stop);
+                canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', draw, {passive: false}); canvas.addEventListener('touchend', stop, {passive: false});
+                
+                document.getElementById('btn_mobile_clear').onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+                document.getElementById('btn_mobile_close').onclick = () => view.classList.add('hidden');
+                document.getElementById('btn_mobile_submit').onclick = () => {
+                    const dataUrl = cropSignatureCanvas(canvas, ctx); // 使用自動裁切功能
+                    if (role === 'applicant') {
+                        document.getElementById('qr_applicant_box').classList.add('hidden');
+                        document.getElementById('status_applicant_sign').classList.remove('hidden');
+                        ['img_sig_1', 'img_sig_a'].forEach(id => { document.getElementById(id).src = dataUrl; document.getElementById(id).classList.remove('hidden'); });
+                        ['text_sig_1', 'text_sig_a'].forEach(id => document.getElementById(id).classList.add('hidden'));
+                    } else {
+                        document.getElementById('qr_guardian_box').classList.add('hidden');
+                        document.getElementById('status_guardian_sign').classList.remove('hidden');
+                        document.getElementById('img_sig_g').src = dataUrl; document.getElementById('img_sig_g').classList.remove('hidden');
+                        document.getElementById('text_sig_g').classList.add('hidden');
+                    }
+                    view.classList.add('hidden');
+                };
+            };
+        }
+    </script>
 </body>
 </html>
