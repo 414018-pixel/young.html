@@ -1,602 +1,567 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>青年百億圓夢基金計畫 - 專業申請書系統</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; margin: 0; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-
-        /* 右側預覽區 */
-        .preview-pane {
-            background: #cbd5e1; padding: 2rem; overflow-y: auto; text-align: center;
-        }
-        
-        .word-page {
-            font-family: 'DFKai-SB', 'BiauKai', '標楷體', serif !important;
-            font-size: 14pt; line-height: 1.5; color: black;
-            background: white; width: 210mm; min-height: 297mm;
-            padding: 2.5cm; margin: 0 auto 2rem auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; text-align: left;
-            position: relative;
-        }
-
-        .word-page table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 14pt; }
-        .word-page th, .word-page td { border: 1px solid black; padding: 8px; vertical-align: middle; }
-        .word-page .no-border th, .word-page .no-border td { border: none !important; }
-        
-        .title-18 { font-size: 18pt; font-weight: bold; text-align: center; margin-bottom: 20px;}
-        .title-16 { font-size: 16pt; font-weight: bold; margin: 15px 0; }
-        .indent { text-indent: 2em; text-align: justify; }
-        .center { text-align: center; }
-        .right { text-align: right; }
-        
-        @media print {
-            body * { visibility: hidden; }
-            #export-container, #export-container * { visibility: visible; }
-            #export-container { position: absolute; left: 0; top: 0; background: white; padding: 0; width: 100%; }
-            .word-page { box-shadow: none; margin: 0; width: 210mm; padding: 2.5cm; page-break-after: always; }
-            .preview-pane { background: white; padding: 0; }
-        }
-
-        .form-input {
-            width: 100%; border-radius: 0.5rem; border: 1px solid #e2e8f0; padding: 0.625rem;
-            font-size: 0.875rem; background-color: #f8fafc; transition: all 0.2s; box-sizing: border-box;
-        }
-        .form-input:focus { outline: none; border-color: #6366f1; background-color: #ffffff; box-shadow: 0 0 0 2px #c7d2fe; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>青年百億圓夢基金計畫 - 最終防跑版系統</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- html2pdf.js for PDF Export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- QRCode.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- PeerJS for WebRTC -->
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<style>
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; margin: 0; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+/* A4 預覽區：絕對固定 210mm x 297mm 比例，防止任何跑版 */
+.preview-pane {
+background: #cbd5e1; padding: 2rem; overflow-y: auto; text-align: center;
+}
+.word-page {
+font-family: 'DFKai-SB', 'BiauKai', '標楷體', serif !important;
+font-size: 13pt; line-height: 1.4; color: black;
+background: white;
+width: 210mm;
+min-height: 297mm;
+max-height: 297mm;
+padding: 2cm 2.5cm;
+margin: 0 auto 2rem auto;
+box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+box-sizing: border-box;
+text-align: left;
+position: relative;
+overflow: hidden;
+page-break-after: always;
+}
+.word-page table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13pt; }
+.word-page th, .word-page td { border: 1px solid black; padding: 6px; vertical-align: middle; }
+.word-page .no-border th, .word-page .no-border td { border: none !important; }
+.title-18 { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 15px;}
+.title-16 { font-size: 15pt; font-weight: bold; margin: 10px 0; }
+.indent { text-indent: 2em; text-align: justify; }
+.center { text-align: center; }
+.right { text-align: right; }
+.form-input {
+width: 100%; border-radius: 0.5rem; border: 1px solid #e2e8f0; padding: 0.625rem;
+font-size: 0.875rem; background-color: #f8fafc; transition: all 0.2s; box-sizing: border-box;
+}
+.form-input:focus { outline: none; border-color: #6366f1; background-color: #ffffff; box-shadow: 0 0 0 2px #c7d2fe; }
+</style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col md:flex-row">
+<!-- 左側輸入表單區 -->
+<div class="w-full md:w-5/12 lg:w-1/3 h-full bg-white shadow-2xl flex flex-col z-10 border-r border-gray-200">
+<div class="p-5 bg-white border-b border-gray-200 flex-shrink-0 flex items-center gap-4">
+<div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center font-bold text-lg">✈️</div>
+<div><h1 class="text-lg font-bold text-gray-900">計畫申請書系統</h1><p class="text-indigo-600 text-xs">絕對不跑版防護版</p></div>
+</div>
+<div class="flex-1 overflow-y-auto p-5 space-y-6" id="input-form">
+<!-- 1. 基本資料 -->
+<section class="border border-gray-200 p-4 rounded-xl shadow-sm bg-white">
+<h2 class="text-md font-bold text-gray-800 mb-3 border-b pb-2">1. 申請人資料</h2>
+<div class="grid grid-cols-2 gap-3">
+<div><label class="block text-xs text-gray-500 mb-1">姓名</label><input type="text" id="i_name" class="form-input"></div>
+<div><label class="block text-xs text-gray-500 mb-1">身分證字號</label><input type="text" id="i_id" class="form-input"></div>
+<div><label class="block text-xs text-gray-500 mb-1">出生年月日</label><input type="date" id="i_birth" class="form-input"></div>
+<div><label class="block text-xs text-gray-500 mb-1">手機號碼</label><input type="tel" id="i_phone" class="form-input"></div>
+<div class="col-span-2"><label class="block text-xs text-gray-500 mb-1">Email</label><input type="email" id="i_email" class="form-input"></div>
+<div class="col-span-2"><label class="block text-xs text-gray-500 mb-1">戶籍地址</label><input type="text" id="i_address" class="form-input"></div>
+</div>
+<div class="mt-4 pt-3 border-t">
+<h3 class="text-xs font-bold text-gray-700 mb-2">緊急連絡人</h3>
+<div class="grid grid-cols-2 gap-3">
+<div><input type="text" id="i_em_name" class="form-input" placeholder="姓名"></div>
+<div><input type="text" id="i_em_relation" class="form-input" placeholder="關係"></div>
+<div class="col-span-2"><input type="tel" id="i_em_phone" class="form-input" placeholder="連絡電話"></div>
+</div>
+</div>
+</section>
+<!-- 2. 法定代理人 -->
+<section class="border border-gray-200 p-4 rounded-xl shadow-sm bg-white">
+<div class="flex justify-between items-center border-b pb-2 mb-3">
+<h2 class="text-md font-bold text-gray-800">2. 法定代理人 (未滿18歲)</h2>
+<input type="checkbox" id="toggle_guardian" onchange="toggleGuardian()" class="w-5 h-5 cursor-pointer accent-indigo-600">
+</div>
+<div id="guardian_fields" class="hidden grid-cols-2 gap-3">
+<div><label class="block text-xs text-gray-500 mb-1">姓名</label><input type="text" id="i_g_name" class="form-input"></div>
+<div><label class="block text-xs text-gray-500 mb-1">關係</label><input type="text" id="i_g_relation" class="form-input"></div>
+<div class="col-span-2"><label class="block text-xs text-gray-500 mb-1">身分證字號</label><input type="text" id="i_g_id" class="form-input"></div>
+<div class="col-span-2"><label class="block text-xs text-gray-500 mb-1">聯絡電話</label><input type="tel" id="i_g_phone" class="form-input"></div>
+<div class="col-span-2"><label class="block text-xs text-gray-500 mb-1">聯絡地址</label><input type="text" id="i_g_address" class="form-input"></div>
+</div>
+</section>
+<!-- 3. 計畫資訊與圖片 -->
+<section class="border border-gray-200 p-4 rounded-xl shadow-sm bg-white">
+<h2 class="text-md font-bold text-gray-800 mb-3 border-b pb-2">3. 計畫資訊與證件</h2>
+<div class="space-y-3">
+<div><label class="block text-xs text-gray-500 mb-1">計畫名稱與編號</label><input type="text" id="i_project_name" class="form-input"></div>
+<div class="grid grid-cols-2 gap-3">
+<div><label class="block text-xs text-gray-500 mb-1">正面圖檔</label><input type="file" id="i_id_front" accept="image/*" class="text-xs w-full"></div>
+<div><label class="block text-xs text-gray-500 mb-1">反面圖檔</label><input type="file" id="i_id_back" accept="image/*" class="text-xs w-full"></div>
+</div>
+</div>
+</section>
+<!-- 4. 內文 -->
+<section class="border border-gray-200 p-4 rounded-xl shadow-sm bg-white">
+<h2 class="text-md font-bold text-gray-800 mb-3 border-b pb-2">4. 申請書內文</h2>
+<div class="space-y-3">
+<div><label class="block text-sm font-semibold mb-1">1. 學經歷</label><textarea id="i_content_1" rows="3" class="form-input"></textarea></div>
+<div><label class="block text-sm font-semibold mb-1">2. 對計畫了解</label><textarea id="i_content_2" rows="3" class="form-input"></textarea></div>
+<div><label class="block text-sm font-semibold mb-1">3. 動機及期待</label><textarea id="i_content_3" rows="3" class="form-input"></textarea></div>
+<div><label class="block text-sm font-semibold mb-1">4. 未來規劃及影響</label><textarea id="i_content_4" rows="3" class="form-input"></textarea></div>
+<div class="bg-gray-50 p-3 rounded border">
+<label class="block text-sm font-semibold mb-2">5. 經費需求同意</label>
+<div class="flex gap-4">
+<label><input type="radio" name="i_funding" value="agree" checked> 同意</label>
+<label><input type="radio" name="i_funding" value="disagree"> 不同意</label>
+</div>
+</div>
+<div><label class="block text-sm font-semibold mb-1">6. 外語證明 (選填)</label><textarea id="i_content_5" rows="2" class="form-input"></textarea></div>
+<div><label class="block text-sm font-semibold mb-1">7. 其他證明 (選填)</label><textarea id="i_content_6" rows="2" class="form-input"></textarea></div>
+</div>
+</section>
+<!-- 5. 簽名 -->
+<section class="border border-gray-200 p-4 rounded-xl shadow-sm bg-white pb-8">
+<h2 class="text-md font-bold text-gray-800 mb-3 border-b pb-2">5. 智慧簽章</h2>
+<div class="space-y-4">
+<div class="bg-white p-3 rounded-lg border shadow-sm flex items-center gap-3">
+<div id="qr_applicant_box" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid #e2e8f0;">
+<div id="qr_applicant"></div>
+</div>
+<div class="flex-1">
+<h3 class="font-bold text-sm">申請人簽章</h3>
+<button type="button" onclick="openLocalSign('applicant')" class="mt-2 text-xs bg-indigo-600 text-white px-4 py-2 rounded shadow-sm hover:bg-indigo-700 transition font-bold cursor-pointer">點我開啟簽名板</button>
+<span id="status_applicant_sign" class="text-xs text-green-600 font-bold hidden block mt-1">✅ 簽署完成</span>
+</div>
+</div>
+<div id="qr_guardian_container" class="hidden bg-white p-3 rounded-lg border shadow-sm flex items-center gap-3">
+<div id="qr_guardian_box" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid #e2e8f0;">
+<div id="qr_guardian"></div>
+</div>
+<div class="flex-1">
+<h3 class="font-bold text-sm">法定代理人簽章</h3>
+<button type="button" onclick="openLocalSign('guardian')" class="mt-2 text-xs bg-indigo-600 text-white px-4 py-2 rounded shadow-sm hover:bg-indigo-700 transition font-bold">點我開啟簽名板</button>
+<span id="status_guardian_sign" class="text-xs text-green-600 font-bold hidden block mt-1">✅ 簽署完成</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<div class="p-4 bg-gray-50 border-t flex gap-3 flex-shrink-0">
+<button onclick="exportWord()" class="flex-1 bg-white border border-indigo-600 text-indigo-700 font-bold py-3 rounded-lg hover:bg-indigo-50 shadow-sm transition">📥 匯出 Word</button>
+<button onclick="exportPDF()" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 shadow-sm transition">📥 匯出 PDF</button>
+</div>
+</div>
+<!-- 右側預覽區 -->
+<div class="w-full md:w-7/12 lg:w-2/3 h-full preview-pane" id="preview-pane">
+<div id="export-container" style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%; align-items: center;">
+<!-- 附件1 -->
+<div class="word-page">
+<div class="right" style="font-size: 0.9em; color: #555;">附件1</div>
+<div class="title-18">教育部青年發展署
+青年百億海外圓夢基金計畫海外翱翔組
+申請檢核清單</div>
+<table border="1" cellpadding="6" cellspacing="0">
+<tr><th style="width: 15%;">檢核(請打勾)</th><th style="width: 35%;">內容</th><th>說明</th></tr>
+<tr><td class="center">[  ]</td><td>申請資料上傳</td><td>請申請人至青年百億海外圓夢基金計畫平臺，登入會員後，填寫相關報名資料。</td></tr>
+<tr><td class="center">[  ]</td><td colspan="2" class="center" style="font-weight: bold;">申請文件請於報名期間以PDF檔分別上傳至青年百億海外圓夢基金計畫平臺報名專區</td></tr>
+<tr><td class="center">[  ]</td><td>(1)參與切結書（簽名後掃描電子檔）</td><td>附件2</td></tr>
+<tr><td class="center">[  ]</td><td>(2)特殊身分證明文件掃描影本</td><td>請檢附相關證明文件。</td></tr>
+<tr><td id="out_chk_guardian" class="center">[  ]</td><td>(3)法定代理人同意書</td><td>附件3，簽名後掃描電子檔，未成年者務必繳交</td></tr>
+<tr><td class="center">[ ☑ ]</td><td>(4)計畫申請書（含封面及內文）</td><td>附件4、5</td></tr>
+</table>
+</div>
+<!-- 附件2 -->
+<div class="word-page">
+<div class="right" style="font-size: 0.9em; color: #555;">附件2</div>
+<div style="font-weight: bold; margin-bottom: 5px; font-size: 11pt;">參與切結書（須親筆簽名提供予青年百億海外圓夢基金計畫專案小組。）</div>
+<div class="title-16 center" style="margin: 5px 0;">教育部青年發展署
+青年百億海外圓夢基金計畫海外翱翔組
+參與切結書</div>
+<div class="indent" style="margin-top: 10px; font-size: 11.5pt;">
+本人申請教育部青年發展署「115年青年百億海外圓夢基金計畫海外翱翔組」<span class="out_project_name" style="border-bottom: 1px solid black; padding: 0 5px;"></span>提案。本人確定所填資料及相關附件均屬事實，嗣後如經查，發現有不實情事，本人願負一切法律責任，並繳回已領取獎勵金，特此切結，絕無異議。
+</div>
+<div class="indent" style="margin-top: 5px; font-size: 11.5pt;">
+另，本人同意於提案計畫審查錄取獲實踐獎勵金後，依教育部青年發展署「115年青年百億海外圓夢基金計畫海外翱翔組」相關規定辦理，參與並完成計畫。
+</div>
+<div style="margin-top: 10px;">此致
+<span style="padding-left: 2em;">教育部青年發展署</span></div>
+<table border="1" cellpadding="4" cellspacing="0" style="width: 50%; margin: 10px 0 10px auto;">
+<tr><th style="width: 40%; font-weight: normal;">立切結書人</th><td class="out_name center"></td></tr>
+<tr><th style="font-weight: normal;">簽章</th><td class="center" style="height: 50px;">
+<span id="text_sig_1" style="color: #999; font-size: 11pt;">請親筆簽名</span>
+<img id="img_sig_1" style="display: none; max-height: 40px; width: auto; margin: 0 auto;" />
+</td></tr>
+</table>
+<div class="right" style="margin-bottom: 15px;">
+中華民國 <span class="out_date_y" style="padding: 0 5px;"></span> 年 <span class="out_date_m" style="padding: 0 5px;"></span> 月 <span class="out_date_d" style="padding: 0 5px;"></span> 日
+</div>
+<div class="title-16" style="margin: 5px 0;">一、申請人資料</div>
+<table border="1" cellpadding="5" cellspacing="0">
+<tr><th rowspan="2" style="width: 20%; font-weight: normal;">立切結書人</th><th style="font-weight: normal;">姓名</th><th style="font-weight: normal;">身分證字號</th><th style="font-weight: normal;">(西元)出生年/月/日</th><th style="font-weight: normal;">手機號碼</th><th colspan="2" style="font-weight: normal;">(郵遞區號)戶籍地址</th></tr>
+<tr><td class="out_name center" style="height: 25px;"></td><td class="out_id center"></td><td class="out_birth center"></td><td class="out_phone center"></td><td colspan="2" class="out_address text-left"></td></tr>
+<tr><th rowspan="2" style="font-weight: normal;">緊急連絡人</th><th style="font-weight: normal;">姓名</th><th style="font-weight: normal;">關係</th><th colspan="4" style="font-weight: normal;">連絡電話</th></tr>
+<tr><td class="out_em_name center" style="height: 25px;"></td><td class="out_em_relation center"></td><td colspan="4" class="out_em_phone center"></td></tr>
+</table>
+<div style="margin-top: 10px;">申請計畫編號：<span class="out_project_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
+</div>
+<!-- 附件2 身分證 -->
+<div class="word-page">
+<div class="title-16">二、請提供身分證正反面影本</div>
+<table border="1" cellpadding="8" cellspacing="0">
+<tr><th style="width: 25%; font-weight: normal;">立切結書人</th><th style="font-weight: normal;">證件正反面影本</th></tr>
+<tr>
+<td class="out_name center" style="font-weight: bold; font-size: 16pt;"></td>
+<td class="center" style="padding: 15px;">
+<div style="border: 1px solid black; width: 300px; height: 180px; margin: 0 auto 15px auto; background: #f9f9f9; text-align: center; line-height: 180px; position:relative;">
+<span id="placeholder_front" style="color: #999;">正面影本放置處</span>
+<img id="preview_id_front" style="display: none; max-width: 100%; max-height: 180px; vertical-align: middle;" />
+</div>
+<div style="border: 1px solid black; width: 300px; height: 180px; margin: 0 auto; background: #f9f9f9; text-align: center; line-height: 180px; position:relative;">
+<span id="placeholder_back" style="color: #999;">反面影本放置處</span>
+<img id="preview_id_back" style="display: none; max-width: 100%; max-height: 180px; vertical-align: middle;" />
+</div>
+</td>
+</tr>
+</table>
+<div style="margin-top: 15px; font-size: 12pt;">附註：本表填妥後請於報名期間以PDF檔上傳。</div>
+</div>
+<!-- 附件3 法定代理人 -->
+<div class="word-page" id="page_guardian" style="display:none;">
+<div class="right" style="font-size: 0.9em; color: #555;">附件3</div>
+<div style="font-weight: bold; margin-bottom: 10px;">法定代理人同意書（若青年身分未滿法定成人年齡者，則須法定代理人同意簽名。）</div>
+<div class="title-18">教育部青年發展署
+115年青年百億海外圓夢基金計畫海外翱翔組
+法定代理人同意書</div>
+<div class="indent" style="line-height: 1.8; margin-top: 15px; margin-bottom: 15px;">
+本人 <span class="out_g_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span> （法定代理人姓名）為 <span class="out_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span> （申請人姓名）（身分證字號： <span class="out_id" style="border-bottom: 1px solid black; padding: 0 10px;"></span> ）之法定代理人（與該員之關係： <span class="out_g_relation" style="border-bottom: 1px solid black; padding: 0 10px;"></span> ），茲承諾本人同意申請人參加教育部青年發展署辦理之「115年百億海外圓夢基金計畫海外翱翔組」，本人與申請人已詳閱該計畫之內容，同意遵守計畫及相關文件中註明之所有規定及注意事項。
+</div>
+<div class="right" style="margin-bottom: 20px;">此致
+教育部青年發展署</div>
+<table class="no-border" style="width: 100%; border: none;">
+<tr>
+<td style="width: 50%; border: none; vertical-align: top; line-height: 1.8;">
+<div>立同意書人(簽名) 法定代理人姓名：<span class="out_g_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
+<div style="min-height: 45px; margin-top: 5px;">
+簽章：
+<span id="text_sig_g" style="color: #999; font-size: 11pt;">請親筆簽名</span>
+<img id="img_sig_g" style="display: none; max-height: 35px; vertical-align: middle;" />
+</div>
+<div>身分證字號：<span class="out_g_id" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
+<div>聯絡手機：<span class="out_g_phone" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
+<div>聯絡地址：<span class="out_g_address" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
+</td>
+<td style="width: 50%; border: none; vertical-align: top; line-height: 1.8;">
+<div>申請人(簽名) 姓名：<span class="out_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
+<div style="min-height: 45px; margin-top: 5px;">
+簽章：
+<span id="text_sig_a" style="color: #999; font-size: 11pt;">請親筆簽名</span>
+<img id="img_sig_a" style="display: none; max-height: 35px; vertical-align: middle;" />
+</div>
+<div>身分證字號：<span class="out_id" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
+<div>聯絡手機：<span class="out_phone" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
+<div>計畫名稱：<span class="out_project_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
+</td>
+</tr>
+</table>
+</div>
+<!-- 附件4 封面 -->
+<div class="word-page center" style="padding-top: 2cm;">
+<div class="right" style="font-size: 0.9em; color: #555; margin-bottom: 2cm;">附件4</div>
+<div style="font-size: 18pt; font-weight: bold; margin-bottom: 10px;">教育部青年發展署</div>
+<div style="font-size: 18pt; font-weight: bold; margin-bottom: 10px;">青年百億海外圓夢基金計畫</div>
+<div style="font-size: 18pt; font-weight: bold; margin-bottom: 30px;">海外翱翔組</div>
+<div style="font-size: 26pt; font-weight: bold; margin-bottom: 1.5cm;">計畫申請書</div>
+<table class="no-border" style="width: 80%; margin: 0 auto; font-size: 15pt; border: none;">
+<tr><td class="right" style="width: 40%; padding: 12px; border: none;">申請人姓名：</td><td style="text-align: left; padding: 12px; border-bottom: 1px solid black !important; border-top:none; border-left:none; border-right:none;" class="out_name"></td></tr>
+<tr><td class="right" style="padding: 12px; border: none;">計畫編號與名稱：</td><td style="text-align: left; padding: 12px; border-bottom: 1px solid black !important; border-top:none; border-left:none; border-right:none;" class="out_project_name"></td></tr>
+<tr><td class="right" style="padding: 12px; border: none;">手機：</td><td style="text-align: left; padding: 12px; border-bottom: 1px solid black !important; border-top:none; border-left:none; border-right:none;" class="out_phone"></td></tr>
+<tr><td class="right" style="padding: 12px; border: none;">E-mail：</td><td style="text-align: left; padding: 12px; border-bottom: 1px solid black !important; border-top:none; border-left:none; border-right:none;" class="out_email"></td></tr>
+</table>
+<div style="font-size: 16pt; margin-top: 2.5cm;">
+中華民國 <span class="out_date_y" style="padding: 0 10px;"></span> 年 <span class="out_date_m" style="padding: 0 10px;"></span> 月 <span class="out_date_d" style="padding: 0 10px;"></span> 日
+</div>
+</div>
+<!-- 附件5 內文 -->
+<div class="word-page">
+<div class="right" style="font-size: 0.9em; color: #555;">附件5</div>
+<div style="font-size: 16pt; font-weight: bold; margin: 10px 0;">計畫申請書（內文）</div>
+<div style="margin-bottom: 10px;">內容：</div>
+<div style="line-height: 1.6;">
+<div style="margin-bottom: 10px;">
+<div>一、請依照下列項目順序撰寫申請青年之學經歷。</div>
+<div class="out_content_1" style="padding-left: 2em; color: #333; min-height: 1.5em;"></div>
+</div>
+<div style="margin-bottom: 10px;">
+<div>二、請說明對所申請國際組織、機關(構)及此項圓夢機會的內容及了解情形。</div>
+<div class="out_content_2" style="padding-left: 2em; color: #333; min-height: 1.5em;"></div>
+</div>
+<div style="margin-bottom: 10px;">
+<div>三、說明為什麼想申請及參與此項圓夢機會的原因、動機及期待。</div>
+<div class="out_content_3" style="padding-left: 2em; color: #333; min-height: 1.5em;"></div>
+</div>
+<div style="margin-bottom: 10px;">
+<div>四、參與計畫回國後想做什麼事，對自己的未來發展規劃或預計執行的後續行動，如何發揮更多影響力。</div>
+<div class="out_content_4" style="padding-left: 2em; color: #333; min-height: 1.5em;"></div>
+</div>
+<div style="margin-bottom: 10px;">
+<div>五、經費需求(僅需勾選)：</div>
+<div style="text-indent: 2em; font-size: 11pt; line-height: 1.4; margin: 5px 0; text-align: justify;">
+依據本計畫平臺圓夢一覽表中公布之簡章中所申請圓夢機會之合作計畫所列經費編列，如獲錄取，將依簡章中之經費編列將獲選之實踐獎勵金撥付予獲選青年或合作單位，如該計畫相關支出由合作單位統一辦理，則請獲選青年填具委託第三方代收獎勵金委託切結書(附件19)辦理後續事宜。倘青年不同意依此方式辦理，考量可能影響本計畫經費撥付，將納入計畫申請審核之參考。
+</div>
+<div style="padding-left: 2em; font-size: 11pt;">
+<span class="out_funding_agree font-bold" style="font-family: monospace;">[ ☑ ]</span> 同意上述辦理方式
 
-    <!-- ================= 左側：現代化輸入介面 ================= -->
-    <div class="w-full md:w-5/12 lg:w-1/3 h-full bg-white shadow-2xl flex flex-col z-10 border-r border-gray-200">
-        <div class="p-5 bg-white border-b border-gray-200 flex-shrink-0 flex items-center gap-4">
-            <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center font-bold text-lg">✈️</div>
-            <div><h1 class="text-lg font-bold text-gray-900">計畫申請書系統</h1><p class="text-indigo-600 text-xs">防空白修復版</p></div>
-        </div>
-
-        <div class="flex-1 overflow-y-auto p-5 space-y-6" id="input-form">
-            <!-- 1. 基本資料 -->
-            <section class="border border-gray-200 p-4 rounded-xl shadow-sm bg-white">
-                <h2 class="text-md font-bold text-gray-800 mb-3 border-b pb-2">1. 申請人資料</h2>
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="block text-xs text-gray-500 mb-1">姓名</label><input type="text" id="i_name" class="form-input"></div>
-                    <div><label class="block text-xs text-gray-500 mb-1">身分證字號</label><input type="text" id="i_id" class="form-input"></div>
-                    <div><label class="block text-xs text-gray-500 mb-1">出生年月日</label><input type="date" id="i_birth" class="form-input"></div>
-                    <div><label class="block text-xs text-gray-500 mb-1">手機號碼</label><input type="tel" id="i_phone" class="form-input"></div>
-                    <div class="col-span-2"><label class="block text-xs text-gray-500 mb-1">Email</label><input type="email" id="i_email" class="form-input"></div>
-                    <div class="col-span-2"><label class="block text-xs text-gray-500 mb-1">戶籍地址</label><input type="text" id="i_address" class="form-input"></div>
-                </div>
-                <div class="mt-4 pt-3 border-t">
-                    <h3 class="text-xs font-bold text-gray-700 mb-2">緊急連絡人</h3>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div><input type="text" id="i_em_name" class="form-input" placeholder="姓名"></div>
-                        <div><input type="text" id="i_em_relation" class="form-input" placeholder="關係"></div>
-                        <div class="col-span-2"><input type="tel" id="i_em_phone" class="form-input" placeholder="連絡電話"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 2. 法定代理人 -->
-            <section class="border border-gray-200 p-4 rounded-xl shadow-sm bg-white">
-                <div class="flex justify-between items-center border-b pb-2 mb-3">
-                    <h2 class="text-md font-bold text-gray-800">2. 法定代理人 (未滿18歲)</h2>
-                    <input type="checkbox" id="toggle_guardian" onchange="toggleGuardian()" class="w-5 h-5 cursor-pointer accent-indigo-600">
-                </div>
-                <div id="guardian_fields" class="hidden grid-cols-2 gap-3">
-                    <div><label class="block text-xs text-gray-500 mb-1">姓名</label><input type="text" id="i_g_name" class="form-input"></div>
-                    <div><label class="block text-xs text-gray-500 mb-1">關係</label><input type="text" id="i_g_relation" class="form-input"></div>
-                    <div class="col-span-2"><label class="block text-xs text-gray-500 mb-1">身分證字號</label><input type="text" id="i_g_id" class="form-input"></div>
-                    <div class="col-span-2"><label class="block text-xs text-gray-500 mb-1">聯絡電話</label><input type="tel" id="i_g_phone" class="form-input"></div>
-                    <div class="col-span-2"><label class="block text-xs text-gray-500 mb-1">聯絡地址</label><input type="text" id="i_g_address" class="form-input"></div>
-                </div>
-            </section>
-
-            <!-- 3. 計畫資訊與圖片 -->
-            <section class="border border-gray-200 p-4 rounded-xl shadow-sm bg-white">
-                <h2 class="text-md font-bold text-gray-800 mb-3 border-b pb-2">3. 計畫資訊與證件</h2>
-                <div class="space-y-3">
-                    <div><label class="block text-xs text-gray-500 mb-1">計畫名稱與編號</label><input type="text" id="i_project_name" class="form-input"></div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div><label class="block text-xs text-gray-500 mb-1">正面圖檔</label><input type="file" id="i_id_front" accept="image/*" class="text-xs w-full"></div>
-                        <div><label class="block text-xs text-gray-500 mb-1">反面圖檔</label><input type="file" id="i_id_back" accept="image/*" class="text-xs w-full"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 4. 內文 -->
-            <section class="border border-gray-200 p-4 rounded-xl shadow-sm bg-white">
-                <h2 class="text-md font-bold text-gray-800 mb-3 border-b pb-2">4. 申請書內文</h2>
-                <div class="space-y-3">
-                    <div><label class="block text-sm font-semibold mb-1">1. 學經歷</label><textarea id="i_content_1" rows="3" class="form-input"></textarea></div>
-                    <div><label class="block text-sm font-semibold mb-1">2. 對計畫了解</label><textarea id="i_content_2" rows="3" class="form-input"></textarea></div>
-                    <div><label class="block text-sm font-semibold mb-1">3. 動機及期待</label><textarea id="i_content_3" rows="3" class="form-input"></textarea></div>
-                    <div><label class="block text-sm font-semibold mb-1">4. 未來規劃及影響</label><textarea id="i_content_4" rows="3" class="form-input"></textarea></div>
-                    <div class="bg-gray-50 p-3 rounded border">
-                        <label class="block text-sm font-semibold mb-2">5. 經費需求同意</label>
-                        <div class="flex gap-4">
-                            <label><input type="radio" name="i_funding" value="agree" checked> 同意</label>
-                            <label><input type="radio" name="i_funding" value="disagree"> 不同意</label>
-                        </div>
-                    </div>
-                    <div><label class="block text-sm font-semibold mb-1">6. 外語證明 (選填)</label><textarea id="i_content_5" rows="2" class="form-input"></textarea></div>
-                    <div><label class="block text-sm font-semibold mb-1">7. 其他證明 (選填)</label><textarea id="i_content_6" rows="2" class="form-input"></textarea></div>
-                </div>
-            </section>
-
-            <!-- 5. 簽名 -->
-            <section class="border border-gray-200 p-4 rounded-xl shadow-sm bg-white pb-8">
-                <h2 class="text-md font-bold text-gray-800 mb-3 border-b pb-2">5. 智慧簽章</h2>
-                <div class="space-y-4">
-                    <div class="bg-white p-3 rounded-lg border shadow-sm flex items-center gap-3">
-                        <div id="qr_applicant_box"><a id="qr_applicant_link" target="_blank" class="cursor-pointer border block p-1"><div id="qr_applicant"></div></a></div>
-                        <div>
-                            <h3 class="font-bold text-sm">申請人簽章</h3>
-                            <button type="button" onclick="openLocalSign('applicant')" class="mt-2 text-xs bg-gray-100 border border-gray-300 px-4 py-2 rounded shadow-sm hover:bg-gray-200 transition font-bold">點我開啟簽名板</button>
-                            <span id="status_applicant_sign" class="text-xs text-green-600 font-bold hidden block mt-1">✅ 簽署完成</span>
-                        </div>
-                    </div>
-                    <div id="qr_guardian_container" class="hidden bg-white p-3 rounded-lg border shadow-sm flex items-center gap-3">
-                        <div id="qr_guardian_box"><a id="qr_guardian_link" target="_blank" class="cursor-pointer border block p-1"><div id="qr_guardian"></div></a></div>
-                        <div>
-                            <h3 class="font-bold text-sm">法定代理人簽章</h3>
-                            <button type="button" onclick="openLocalSign('guardian')" class="mt-2 text-xs bg-gray-100 border border-gray-300 px-4 py-2 rounded shadow-sm hover:bg-gray-200 transition font-bold">點我開啟簽名板</button>
-                            <span id="status_guardian_sign" class="text-xs text-green-600 font-bold hidden block mt-1">✅ 簽署完成</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <div class="p-4 bg-gray-50 border-t flex gap-3 flex-shrink-0">
-            <button onclick="exportWord()" class="flex-1 bg-white border border-indigo-600 text-indigo-700 font-bold py-3 rounded-lg hover:bg-indigo-50 shadow-sm transition">📥 匯出 Word</button>
-            <button onclick="exportPDF()" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 shadow-sm transition">📥 匯出 PDF</button>
-        </div>
-    </div>
-
-    <!-- ================= 右側：防跑版文件預覽區 ================= -->
-    <div class="w-full md:w-7/12 lg:w-2/3 h-full preview-pane" id="preview-pane">
-        <div id="export-container" style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%; align-items: center;">
-            
-            <!-- 【附件1 檢核清單】 -->
-            <div class="word-page">
-                <div class="right" style="font-size: 0.9em; color: #555;">附件1</div>
-                <div class="title-18">教育部青年發展署<br>青年百億海外圓夢基金計畫海外翱翔組<br>申請檢核清單</div>
-                <table border="1" cellpadding="8" cellspacing="0">
-                    <tr><th style="width: 15%;">檢核(請打勾)</th><th style="width: 35%;">內容</th><th>說明</th></tr>
-                    <tr><td class="center">[  ]</td><td>申請資料上傳</td><td>請申請人至青年百億海外圓夢基金計畫平臺，登入會員後，填寫相關報名資料。</td></tr>
-                    <tr><td class="center">[  ]</td><td colspan="2" class="center" style="font-weight: bold;">申請文件請於報名期間以PDF檔分別上傳至青年百億海外圓夢基金計畫平臺報名專區</td></tr>
-                    <tr><td class="center">[  ]</td><td>(1)參與切結書（簽名後掃描電子檔）</td><td>附件2</td></tr>
-                    <tr><td class="center">[  ]</td><td>(2)特殊身分證明文件掃描影本</td><td>請檢附相關證明文件。</td></tr>
-                    <tr><td id="out_chk_guardian" class="center">[  ]</td><td>(3)法定代理人同意書</td><td>附件3，簽名後掃描電子檔，未成年者務必繳交</td></tr>
-                    <tr><td class="center">[ ☑ ]</td><td>(4)計畫申請書（含封面及內文）</td><td>附件4、5</td></tr>
-                </table>
-            </div>
-
-            <!-- 【附件2 切結書】 -->
-            <div class="word-page">
-                <div class="right" style="font-size: 0.9em; color: #555;">附件2</div>
-                <div style="font-weight: bold; margin-bottom: 10px;">參與切結書（須親筆簽名提供予青年百億海外圓夢基金計畫專案小組。）</div>
-                <div class="title-16 center">教育部青年發展署<br>青年百億海外圓夢基金計畫海外翱翔組<br>參與切結書</div>
-                <div class="indent" style="margin-top: 20px;">
-                    本人申請教育部青年發展署「115年青年百億海外圓夢基金計畫海外翱翔組」<span class="out_project_name" style="border-bottom: 1px solid black; padding: 0 5px;"></span>提案。本人確定所填資料及相關附件均屬事實，嗣後如經查，發現有不實情事，本人願負一切法律責任，並繳回已領取獎勵金，特此切結，絕無異議。
-                </div>
-                <div class="indent" style="margin-top: 10px;">
-                    另，本人同意於提案計畫審查錄取獲實踐獎勵金後，依教育部青年發展署「115年青年百億海外圓夢基金計畫海外翱翔組」相關規定辦理，參與並完成計畫。
-                </div>
-                <div style="margin-top: 30px;">此致<br><span style="padding-left: 2em;">教育部青年發展署</span></div>
-                
-                <table border="1" cellpadding="8" cellspacing="0" style="width: 50%; margin: 20px 0 20px auto;">
-                    <tr><th style="width: 40%; font-weight: normal;">立切結書人</th><td class="out_name center"></td></tr>
-                    <tr><th style="font-weight: normal;">簽章</th><td class="center" style="height: 60px;">
-                        <span id="text_sig_1" style="color: #999; font-size: 12pt;">請親筆簽名</span>
-                        <img id="img_sig_1" style="display: none; max-height: 50px; width: auto; margin: 0 auto;" />
-                    </td></tr>
-                </table>
-                <div class="right" style="margin-bottom: 30px;">
-                    中華民國 <span class="out_date_y" style="padding: 0 5px;"></span> 年 <span class="out_date_m" style="padding: 0 5px;"></span> 月 <span class="out_date_d" style="padding: 0 5px;"></span> 日
-                </div>
-
-                <div class="title-16">一、申請人資料</div>
-                <table border="1" cellpadding="8" cellspacing="0">
-                    <tr><th rowspan="2" style="width: 20%; font-weight: normal;">立切結書人</th><th style="font-weight: normal;">姓名</th><th style="font-weight: normal;">身分證字號</th><th style="font-weight: normal;">(西元)出生年/月/日</th><th style="font-weight: normal;">手機號碼</th><th colspan="2" style="font-weight: normal;">(郵遞區號)戶籍地址</th></tr>
-                    <tr><td class="out_name center" style="height: 30px;"></td><td class="out_id center"></td><td class="out_birth center"></td><td class="out_phone center"></td><td colspan="2" class="out_address text-left"></td></tr>
-                    <tr><th rowspan="2" style="font-weight: normal;">緊急連絡人</th><th style="font-weight: normal;">姓名</th><th style="font-weight: normal;">關係</th><th colspan="4" style="font-weight: normal;">連絡電話</th></tr>
-                    <tr><td class="out_em_name center" style="height: 30px;"></td><td class="out_em_relation center"></td><td colspan="4" class="out_em_phone center"></td></tr>
-                </table>
-                <div style="margin-top: 15px;">申請計畫編號：<span class="out_project_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
-            </div>
-
-            <!-- 【附件2 身分證】 -->
-            <div class="word-page" id="page_3">
-                <div class="title-16">二、請提供身分證正反面影本</div>
-                <table border="1" cellpadding="8" cellspacing="0">
-                    <tr><th style="width: 25%; font-weight: normal;">立切結書人</th><th style="font-weight: normal;">證件正反面影本</th></tr>
-                    <tr>
-                        <td class="out_name center" style="font-weight: bold; font-size: 16pt;"></td>
-                        <td class="center" style="padding: 20px;">
-                            <div style="border: 1px solid black; width: 320px; height: 200px; margin: 0 auto 20px auto; background: #f9f9f9; text-align: center; line-height: 200px; position:relative;">
-                                <span id="placeholder_front" style="color: #999;">正面影本放置處</span>
-                                <img id="preview_id_front" style="display: none; max-width: 100%; max-height: 200px; vertical-align: middle;" />
-                            </div>
-                            <div style="border: 1px solid black; width: 320px; height: 200px; margin: 0 auto; background: #f9f9f9; text-align: center; line-height: 200px; position:relative;">
-                                <span id="placeholder_back" style="color: #999;">反面影本放置處</span>
-                                <img id="preview_id_back" style="display: none; max-width: 100%; max-height: 200px; vertical-align: middle;" />
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-                <div style="margin-top: 15px; font-size: 12pt;">附註：本表填妥後請於報名期間以PDF檔上傳。</div>
-            </div>
-
-            <!-- 【附件3 法定代理人】 (預設隱藏) -->
-            <div class="word-page" id="page_guardian" style="display:none;">
-                <div class="right" style="font-size: 0.9em; color: #555;">附件3</div>
-                <div style="font-weight: bold; margin-bottom: 15px;">法定代理人同意書（若青年身分未滿法定成人年齡者，則須法定代理人同意簽名。）</div>
-                <div class="title-18">教育部青年發展署<br>115年青年百億海外圓夢基金計畫海外翱翔組<br>法定代理人同意書</div>
-                <div class="indent" style="line-height: 2; margin-top: 30px; margin-bottom: 30px;">
-                    本人 <span class="out_g_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span> （法定代理人姓名）為 <span class="out_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span> （申請人姓名）（身分證字號： <span class="out_id" style="border-bottom: 1px solid black; padding: 0 10px;"></span> ）之法定代理人（與該員之關係： <span class="out_g_relation" style="border-bottom: 1px solid black; padding: 0 10px;"></span> ），茲承諾本人同意申請人參加教育部青年發展署辦理之「115年百億海外圓夢基金計畫海外翱翔組」，本人與申請人已詳閱該計畫之內容，同意遵守計畫及相關文件中註明之所有規定及注意事項。
-                </div>
-                <div class="right" style="margin-bottom: 40px;">此致<br>教育部青年發展署</div>
-                
-                <table class="no-border" style="width: 100%; border: none;">
-                    <tr>
-                        <td style="width: 50%; border: none; vertical-align: top; line-height: 2;">
-                            <div>立同意書人(簽名) 法定代理人姓名：<span class="out_g_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
-                            <div style="min-height: 50px; margin-top: 10px;">
-                                簽章：
-                                <span id="text_sig_g" style="color: #999; font-size: 12pt;">請親筆簽名</span>
-                                <img id="img_sig_g" style="display: none; max-height: 40px; vertical-align: middle;" />
-                            </div>
-                            <div>身分證字號：<span class="out_g_id" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
-                            <div>聯絡手機：<span class="out_g_phone" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
-                            <div>聯絡地址：<span class="out_g_address" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
-                        </td>
-                        <td style="width: 50%; border: none; vertical-align: top; line-height: 2;">
-                            <div>申請人(簽名) 姓名：<span class="out_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
-                            <div style="min-height: 50px; margin-top: 10px;">
-                                簽章：
-                                <span id="text_sig_a" style="color: #999; font-size: 12pt;">請親筆簽名</span>
-                                <img id="img_sig_a" style="display: none; max-height: 40px; vertical-align: middle;" />
-                            </div>
-                            <div>身分證字號：<span class="out_id" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
-                            <div>聯絡手機：<span class="out_phone" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
-                            <div>計畫名稱：<span class="out_project_name" style="border-bottom: 1px solid black; padding: 0 10px;"></span></div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <!-- 【附件4 封面】 -->
-            <div class="word-page center" style="padding-top: 3cm;">
-                <div class="right" style="font-size: 12pt; margin-bottom: 3cm;">附件4</div>
-                <div style="font-size: 18pt; font-weight: bold; margin-bottom: 10px;">教育部青年發展署</div>
-                <div style="font-size: 18pt; font-weight: bold; margin-bottom: 10px;">青年百億海外圓夢基金計畫</div>
-                <div style="font-size: 18pt; font-weight: bold; margin-bottom: 30px;">海外翱翔組</div>
-                <div style="font-size: 26pt; font-weight: bold; margin-bottom: 2cm;">計畫申請書</div>
-                
-                <table class="no-border" style="width: 80%; margin: 0 auto; font-size: 16pt; border: none;">
-                    <tr><td class="right" style="width: 40%; padding: 15px; border: none;">申請人姓名：</td><td style="text-align: left; padding: 15px; border-bottom: 1px solid black !important; border-top:none; border-left:none; border-right:none;" class="out_name"></td></tr>
-                    <tr><td class="right" style="padding: 15px; border: none;">計畫編號與名稱：</td><td style="text-align: left; padding: 15px; border-bottom: 1px solid black !important; border-top:none; border-left:none; border-right:none;" class="out_project_name"></td></tr>
-                    <tr><td class="right" style="padding: 15px; border: none;">手機：</td><td style="text-align: left; padding: 15px; border-bottom: 1px solid black !important; border-top:none; border-left:none; border-right:none;" class="out_phone"></td></tr>
-                    <tr><td class="right" style="padding: 15px; border: none;">E-mail：</td><td style="text-align: left; padding: 15px; border-bottom: 1px solid black !important; border-top:none; border-left:none; border-right:none;" class="out_email"></td></tr>
-                </table>
-
-                <div style="font-size: 18pt; margin-top: 3cm;">
-                    中華民國 <span class="out_date_y" style="padding: 0 10px;"></span> 年 <span class="out_date_m" style="padding: 0 10px;"></span> 月 <span class="out_date_d" style="padding: 0 10px;"></span> 日
-                </div>
-            </div>
-
-            <!-- 【附件5 內文】 -->
-            <div class="word-page">
-                <div class="right" style="font-size: 12pt;">附件5</div>
-                <div style="font-size: 18pt; font-weight: bold; margin: 20px 0;">計畫申請書（內文）</div>
-                <div style="margin-bottom: 15px;">內容：</div>
-                
-                <div style="line-height: 2;">
-                    <div style="margin-bottom: 15px;">
-                        <div>一、請依照下列項目順序撰寫申請青年之學經歷。</div>
-                        <div class="out_content_1" style="padding-left: 2em; color: #333; min-height: 2em;"></div>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <div>二、請說明對所申請國際組織、機關(構)及此項圓夢機會的內容及了解情形。</div>
-                        <div class="out_content_2" style="padding-left: 2em; color: #333; min-height: 2em;"></div>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <div>三、說明為什麼想申請及參與此項圓夢機會的原因、動機及期待。</div>
-                        <div class="out_content_3" style="padding-left: 2em; color: #333; min-height: 2em;"></div>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <div>四、參與計畫回國後想做什麼事，對自己的未來發展規劃或預計執行的後續行動，如何發揮更多影響力。</div>
-                        <div class="out_content_4" style="padding-left: 2em; color: #333; min-height: 2em;"></div>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <div>五、經費需求(僅需勾選)：</div>
-                        <div style="text-indent: 2em; font-size: 12pt; line-height: 1.5; margin: 10px 0; text-align: justify;">
-                            依據本計畫平臺圓夢一覽表中公布之簡章中所申請圓夢機會之合作計畫所列經費編列，如獲錄取，將依簡章中之經費編列將獲選之實踐獎勵金撥付予獲選青年或合作單位，如該計畫相關支出由合作單位統一辦理，則請獲選青年填具委託第三方代收獎勵金委託切結書(附件19)辦理後續事宜。倘青年不同意依此方式辦理，考量可能影響本計畫經費撥付，將納入計畫申請審核之參考。
-                        </div>
-                        <div style="padding-left: 2em;">
-                            <span class="out_funding_agree font-bold" style="font-family: monospace;">[ ☑ ]</span> 同意上述辦理方式<br>
-                            <span class="out_funding_disagree font-bold" style="font-family: monospace;">[ &nbsp; ]</span> 不同意上述辦理方式
-                        </div>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <div>六、外語能力證明文件(非必要)。</div>
-                        <div class="out_content_5" style="padding-left: 2em; color: #333; min-height: 1em;"></div>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <div>七、其他證明文件。</div>
-                        <div class="out_content_6" style="padding-left: 2em; color: #333; min-height: 1em;"></div>
-                    </div>
-                </div>
-
-                <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #999; font-size: 12pt; line-height: 1.6;">
-                    <div style="font-weight: bold;">格式說明（請依格式撰寫，如因格式未符致影響審查結果，申請人請自行負責，不得異議）</div>
-                    <ol style="padding-left: 2em; margin-top: 5px;">
-                        <li>紙張規格：A4大小、直式橫書</li>
-                        <li>頁數：計畫內文以15-30頁為原則(不含附件1~3)</li>
-                        <li>行距：固定行高24點</li>
-                        <li>字型：標楷體<br>字體大小<br>1、大標：18號字體<br>2、小標：16號字體<br>3、內文：14號字體</li>
-                        <li>編頁碼</li>
-                    </ol>
-                    <div style="margin-top: 10px; text-align: justify;">備註：申請計畫電子檔，請提供一式PDF檔，檔案大小以10MB為限。請預備中英文版計畫（含履歷）與簡報備用，俾利審查委員審查所需使用，如有需要，本計畫專案小組將另行通知請申請青年提供。</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= 彈出式簽名板 ================= -->
-    <div id="mobile_sign_view" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
-        <div style="background: white; width: 100%; max-width: 500px; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden;">
-            <div style="background: #4f46e5; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; font-size: 1.1rem; font-weight: bold;" id="mobile_sign_title">請在下方空白處簽名</h3>
-                <button type="button" id="btn_mobile_close" style="background: transparent; border: none; color: white; cursor: pointer; display: none; font-size: 1rem;">✖</button>
-            </div>
-            
-            <div style="padding: 15px; background: #f8fafc;">
-                <div id="canvas_container" style="position: relative; width: 100%; height: 350px; min-height: 250px; background: white; border: 2px dashed #cbd5e1; border-radius: 8px;">
-                    <canvas id="mobile_sign_canvas" style="position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; z-index: 10; cursor: crosshair;"></canvas>
-                    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #e2e8f0; font-size: 2rem; font-weight: bold; transform: rotate(-15deg); pointer-events: none; z-index: 1;">簽名區</div>
-                </div>
-            </div>
-            
-            <div style="padding: 15px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px;">
-                <button type="button" id="btn_mobile_clear" style="flex: 1; padding: 12px; background: #f1f5f9; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: #333;">清除重寫</button>
-                <button type="button" id="btn_mobile_submit" style="flex: 2; padding: 12px; background: #4f46e5; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">確認傳送</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= JavaScript 邏輯 ================= -->
-    <script>
-        // 1. 初始化日期
-        const today = new Date();
-        document.querySelectorAll('.out_date_y').forEach(el => el.textContent = today.getFullYear() - 1911);
-        document.querySelectorAll('.out_date_m').forEach(el => el.textContent = today.getMonth() + 1);
-        document.querySelectorAll('.out_date_d').forEach(el => el.textContent = today.getDate());
-
-        // 2. 表單連動
-        function toggleGuardian() {
-            const isChecked = document.getElementById('toggle_guardian').checked;
-            document.getElementById('guardian_fields').style.display = isChecked ? 'grid' : 'none';
-            document.getElementById('page_guardian').style.display = isChecked ? 'block' : 'none';
-            document.getElementById('out_chk_guardian').innerHTML = isChecked ? '[ ☑ ]' : '[ &nbsp; ]';
-        }
-
-        const inputs = ['name', 'id', 'birth', 'phone', 'address', 'email', 'em_name', 'em_relation', 'em_phone', 'g_name', 'g_relation', 'g_id', 'g_phone', 'g_address', 'project_name', 'content_1', 'content_2', 'content_3', 'content_4', 'content_5', 'content_6'];
-        inputs.forEach(key => {
-            const inputEl = document.getElementById(`i_${key}`);
-            if(inputEl) inputEl.addEventListener('input', (e) => {
-                const val = e.target.value;
-                document.querySelectorAll(`.out_${key}`).forEach(outEl => {
-                    if (key.startsWith('content_')) {
-                        outEl.innerHTML = val ? val.replace(/\n/g, '<br>') : '';
-                    } else {
-                        outEl.textContent = val;
-                    }
-                });
-            });
-        });
-
-        document.querySelectorAll('input[name="i_funding"]').forEach(r => r.addEventListener('change', e => {
-            document.querySelector('.out_funding_agree').innerHTML = e.target.value === 'agree' ? '[ ☑ ]' : '[ &nbsp; ]';
-            document.querySelector('.out_funding_disagree').innerHTML = e.target.value === 'disagree' ? '[ ☑ ]' : '[ &nbsp; ]';
-        }));
-
-        ['front', 'back'].forEach(side => {
-            document.getElementById(`i_id_${side}`).addEventListener('change', e => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = ev => {
-                        document.querySelectorAll(`#preview_id_${side}`).forEach(el => {
-                            el.src = ev.target.result;
-                            el.style.display = 'block';
-                        });
-                        document.querySelectorAll(`#placeholder_${side}`).forEach(el => el.style.display = 'none';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        });
-
-        // 3. 完美匯出器 (確保絕對不會空白)
-        function exportPDF() {
-            const element = document.getElementById('export-container');
-            html2pdf().set({ 
-                margin: 0, 
-                filename: '青年百億計畫申請書.pdf', 
-                image: { type: 'jpeg', quality: 1 }, 
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true }, 
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).from(element).save();
-        }
-
-        function exportWord() {
-            const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-            <head><meta charset='utf-8'><style>
-                @page { margin: 2.5cm; }
-                body { font-family: '標楷體', DFKai-SB, serif; font-size: 14pt; line-height: 1.5; color: black; }
-                table { border-collapse: collapse; width: 100%; font-size: 14pt; }
-                th, td { border: 1px solid black; padding: 8px; vertical-align: middle; }
-                .page-break { mso-special-character: line-break; page-break-before: always; }
-            </style></head><body>`;
-            
-            const cloned = document.getElementById('export-container').cloneNode(true);
-            if(!document.getElementById('toggle_guardian').checked) {
-                const p3 = cloned.querySelector('#page_guardian'); if(p3) p3.remove();
-            }
-            
-            let htmlContent = "";
-            cloned.querySelectorAll('.word-page').forEach((page, index) => {
-                if(index > 0) htmlContent += "<div class='page-break' style='page-break-before:always;'></div>";
-                htmlContent += page.innerHTML;
-            });
-            
-            const blob = new Blob(['\ufeff', header + htmlContent + '</body></html>'], { type: 'application/msword' });
-            const link = document.createElement('a'); 
-            link.href = URL.createObjectURL(blob); 
-            link.download = '青年百億計畫申請書.doc'; 
-            link.click();
-        }
-
-        // 4. 畫布與簽名
-        const canvas = document.getElementById('mobile_sign_canvas');
-        const ctx = canvas.getContext('2d');
-        let isDrawing = false;
-
-        function initCanvasSize() {
-            const container = document.getElementById('canvas_container');
-            canvas.width = container.offsetWidth; 
-            canvas.height = container.offsetHeight;
-            ctx.lineWidth = 4; 
-            ctx.lineCap = 'round'; 
-            ctx.lineJoin = 'round'; 
-            ctx.strokeStyle = '#000000';
-        }
-
-        canvas.addEventListener('pointerdown', (e) => { 
-            e.preventDefault(); isDrawing = true; 
-            const r = canvas.getBoundingClientRect(); 
-            ctx.beginPath(); ctx.moveTo(e.clientX - r.left, e.clientY - r.top); 
-        });
-        canvas.addEventListener('pointermove', (e) => { 
-            e.preventDefault(); if(!isDrawing) return; 
-            const r = canvas.getBoundingClientRect(); 
-            ctx.lineTo(e.clientX - r.left, e.clientY - r.top); ctx.stroke(); 
-        });
-        canvas.addEventListener('pointerup', () => { isDrawing = false; ctx.closePath(); });
-        canvas.addEventListener('pointerout', () => { isDrawing = false; });
-        canvas.addEventListener('pointercancel', () => { isDrawing = false; });
-
-        document.getElementById('btn_mobile_clear').onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        function cropSignatureCanvas(canvas, ctx) {
-            const w = canvas.width, h = canvas.height;
-            if (w === 0 || h === 0) return null;
-            const imgData = ctx.getImageData(0, 0, w, h).data;
-            let top = null, bottom = null, left = null, right = null;
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    if (imgData[(y * w + x) * 4 + 3] > 0) {
-                        if (top === null) top = y; bottom = y;
-                        if (left === null || x < left) left = x; if (right === null || x > right) right = x;
-                    }
-                }
-            }
-            if (top === null) return null;
-            const pad = 20; left = Math.max(0, left - pad); top = Math.max(0, top - pad); right = Math.min(w, right + pad); bottom = Math.min(h, bottom + pad);
-            const tCanvas = document.createElement('canvas'); tCanvas.width = right - left; tCanvas.height = bottom - top;
-            tCanvas.getContext('2d').drawImage(canvas, left, top, right - left, bottom - top, 0, 0, right - left, bottom - top);
-            return tCanvas.toDataURL('image/png');
-        }
-
-        // 5. P2P 連線
-        const urlParams = new URLSearchParams(window.location.search);
-        const signPeerId = urlParams.get('sign_id');
-        const signRole = urlParams.get('role');
-        const view = document.getElementById('mobile_sign_view');
-        const titleEl = document.getElementById('mobile_sign_title');
-        const submitBtn = document.getElementById('btn_mobile_submit');
-
-        if (signPeerId) {
-            document.getElementById('input-form').parentElement.style.display = 'none'; document.getElementById('preview-pane').style.display = 'none';             
-            view.style.display = 'flex'; 
-            
-            setTimeout(() => initCanvasSize(), 150);
-
-            titleEl.innerHTML = "🔄 尋找電腦中..."; submitBtn.disabled = true; submitBtn.style.background = '#94a3b8'; submitBtn.innerText = "📡 連線中...";
-
-            const peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
-            let conn;
-            peer.on('open', () => {
-                conn = peer.connect(signPeerId, { reliable: true });
-                conn.on('open', () => { titleEl.innerHTML = signRole === 'guardian' ? "✍️ 法定代理人簽名" : "✍️ 申請人簽名"; submitBtn.disabled = false; submitBtn.style.background = '#4f46e5'; submitBtn.innerText = "確認傳送"; });
-                conn.on('close', () => { titleEl.innerHTML = "❌ 已斷線"; submitBtn.disabled = true; submitBtn.style.background = '#ef4444'; submitBtn.innerText = "已斷線"; });
-            });
-            submitBtn.onclick = () => {
-                if (conn && conn.open) {
-                    const dataUrl = cropSignatureCanvas(canvas, ctx);
-                    if (dataUrl === null) { alert("請先在畫布上簽名！"); return; }
-                    conn.send({ role: signRole, image: dataUrl }); titleEl.innerHTML = "🎉 傳送成功！請看電腦"; submitBtn.innerText = "已回傳完成"; submitBtn.disabled = true; submitBtn.style.background = '#94a3b8';
-                }
-            };
-        } else {
-            const peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
-            peer.on('open', (id) => {
-                let baseUrl = window.location.href.split('?')[0].split('#')[0];
-                const appUrl = `${baseUrl}?sign_id=${id}&role=applicant`; const guaUrl = `${baseUrl}?sign_id=${id}&role=guardian`;
-                document.getElementById('qr_applicant_link').href = appUrl; if(document.getElementById('qr_guardian_link')) document.getElementById('qr_guardian_link').href = guaUrl;
-                setTimeout(() => {
-                    new QRCode(document.getElementById("qr_applicant"), { text: appUrl, width: 100, height: 100, colorDark: "#4f46e5", correctLevel : QRCode.CorrectLevel.L });
-                    new QRCode(document.getElementById("qr_guardian"), { text: guaUrl, width: 100, height: 100, colorDark: "#4f46e5", correctLevel : QRCode.CorrectLevel.L });
-                }, 500);
-            });
-            peer.on('connection', (conn) => {
-                conn.on('data', (data) => {
-                    if (data.role === 'applicant') {
-                        document.getElementById('qr_applicant_box').style.display = 'none'; document.getElementById('status_applicant_sign').style.display = 'block';
-                        ['img_sig_1', 'img_sig_a'].forEach(id => { const el = document.getElementById(id); if(el){ el.src = data.image; el.style.display = 'inline-block';} });
-                        ['text_sig_1', 'text_sig_a'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
-                    } else if (data.role === 'guardian') {
-                        document.getElementById('qr_guardian_box').style.display = 'none'; document.getElementById('status_guardian_sign').style.display = 'block';
-                        const imgEl = document.getElementById('img_sig_g'); if(imgEl){ imgEl.src = data.image; imgEl.style.display = 'inline-block'; }
-                        const txtEl = document.getElementById('text_sig_g'); if(txtEl) txtEl.style.display = 'none';
-                    }
-                });
-            });
-            window.openLocalSign = function(role) {
-                document.getElementById('btn_mobile_close').style.display = 'block';
-                titleEl.innerHTML = role === 'guardian' ? '✍️ 法定代理人簽名' : '✍️ 申請人簽名';
-                view.style.display = 'flex'; 
-                
-                setTimeout(() => initCanvasSize(), 150);
-                
-                submitBtn.onclick = () => {
-                    const dataUrl = cropSignatureCanvas(canvas, ctx);
-                    if (dataUrl === null) { alert("請先在畫布上簽名！"); return; }
-                    if (role === 'applicant') {
-                        document.getElementById('qr_applicant_box').style.display = 'none'; document.getElementById('status_applicant_sign').style.display = 'block';
-                        ['img_sig_1', 'img_sig_a'].forEach(id => { const el = document.getElementById(id); if(el){ el.src = dataUrl; el.style.display = 'inline-block';} });
-                        ['text_sig_1', 'text_sig_a'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
-                    } else {
-                        document.getElementById('qr_guardian_box').style.display = 'none'; document.getElementById('status_guardian_sign').style.display = 'block';
-                        const imgEl = document.getElementById('img_sig_g'); if(imgEl){ imgEl.src = dataUrl; imgEl.style.display = 'inline-block'; }
-                        const txtEl = document.getElementById('text_sig_g'); if(txtEl) txtEl.style.display = 'none';
-                    }
-                    view.style.display = 'none';
-                };
-                document.getElementById('btn_mobile_close').onclick = () => view.style.display = 'none';
-            };
-        }
-    </script>
+<span class="out_funding_disagree font-bold" style="font-family: monospace;">[   ]</span> 不同意上述辦理方式
+</div>
+</div>
+<div style="margin-bottom: 10px;">
+<div>六、外語能力證明文件(非必要)。</div>
+<div class="out_content_5" style="padding-left: 2em; color: #333; min-height: 1em;"></div>
+</div>
+<div style="margin-bottom: 10px;">
+<div>七、其他證明文件。</div>
+<div class="out_content_6" style="padding-left: 2em; color: #333; min-height: 1em;"></div>
+</div>
+</div>
+<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #999; font-size: 10.5pt; line-height: 1.4;">
+<div style="font-weight: bold;">格式說明（請依格式撰寫，如因格式未符致影響審查結果，申請人請自行負責，不得異議）</div>
+<ol style="padding-left: 2em; margin-top: 2px;">
+<li>紙張規格：A4大小、直式橫書</li>
+<li>頁數：計畫內文以15-30頁為原則(不含附件1~3)</li>
+<li>行距：固定行高24點</li>
+<li>字型：標楷體，大標18號、小標16號、內文14號</li>
+<li>編頁碼</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<!-- 彈出式簽名板 -->
+<div id="mobile_sign_view" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+<div style="background: white; width: 100%; max-width: 500px; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden;">
+<div style="background: #4f46e5; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+<h3 style="margin: 0; font-size: 1.1rem; font-weight: bold;" id="mobile_sign_title">請在下方空白處簽名</h3>
+<button type="button" id="btn_mobile_close" style="background: transparent; border: none; color: white; cursor: pointer; display: none; font-size: 1rem;">✖</button>
+</div>
+<div style="padding: 15px; background: #f8fafc;">
+<div id="canvas_container" style="position: relative; width: 100%; height: 300px; background: white; border: 2px dashed #cbd5e1; border-radius: 8px;">
+<canvas id="mobile_sign_canvas" style="position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; z-index: 10; cursor: crosshair;"></canvas>
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #e2e8f0; font-size: 2rem; font-weight: bold; transform: rotate(-15deg); pointer-events: none; z-index: 1;">簽名區</div>
+</div>
+</div>
+<div style="padding: 15px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px;">
+<button type="button" id="btn_mobile_clear" style="flex: 1; padding: 12px; background: #f1f5f9; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: #333;">清除重寫</button>
+<button type="button" id="btn_mobile_submit" style="flex: 2; padding: 12px; background: #4f46e5; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">確認傳送</button>
+</div>
+</div>
+</div>
+<!-- JavaScript 邏輯 -->
+<script>
+// 1. 初始化日期
+const today = new Date();
+document.querySelectorAll('.out_date_y').forEach(el => el.textContent = today.getFullYear() - 1911);
+document.querySelectorAll('.out_date_m').forEach(el => el.textContent = today.getMonth() + 1);
+document.querySelectorAll('.out_date_d').forEach(el => el.textContent = today.getDate());
+// 2. 表單連動
+function toggleGuardian() {
+const isChecked = document.getElementById('toggle_guardian').checked;
+document.getElementById('guardian_fields').style.display = isChecked ? 'grid' : 'none';
+document.getElementById('page_guardian').style.display = isChecked ? 'block' : 'none';
+document.getElementById('out_chk_guardian').innerHTML = isChecked ? '[ ☑ ]' : '[   ]';
+}
+const inputs = ['name', 'id', 'birth', 'phone', 'address', 'email', 'em_name', 'em_relation', 'em_phone', 'g_name', 'g_relation', 'g_id', 'g_phone', 'g_address', 'project_name', 'content_1', 'content_2', 'content_3', 'content_4', 'content_5', 'content_6'];
+inputs.forEach(key => {
+const inputEl = document.getElementById(⁠i_${key}⁠);
+if(inputEl) inputEl.addEventListener('input', (e) => {
+const val = e.target.value;
+document.querySelectorAll(⁠.out_${key}⁠).forEach(outEl => {
+if (key.startsWith('content_')) {
+outEl.innerHTML = val ? val.replace(/\n/g, '
+') : '';
+} else {
+outEl.textContent = val;
+}
+});
+});
+});
+document.querySelectorAll('input[name="i_funding"]').forEach(r => r.addEventListener('change', e => {
+document.querySelector('.out_funding_agree').innerHTML = e.target.value === 'agree' ? '[ ☑ ]' : '[   ]';
+document.querySelector('.out_funding_disagree').innerHTML = e.target.value === 'disagree' ? '[ ☑ ]' : '[   ]';
+}));
+['front', 'back'].forEach(side => {
+document.getElementById(⁠i_id_${side}⁠).addEventListener('change', e => {
+const file = e.target.files[0];
+if (file) {
+const reader = new FileReader();
+reader.onload = ev => {
+document.querySelectorAll(⁠#preview_id_${side}⁠).forEach(el => {
+el.src = ev.target.result;
+el.style.display = 'block';
+});
+document.querySelectorAll(⁠#placeholder_${side}⁠).forEach(el => el.style.display = 'none');
+};
+reader.readAsDataURL(file);
+}
+});
+});
+// 3. 匯出功能 (絕對不空白、不跑版)
+function exportPDF() {
+const element = document.getElementById('export-container');
+html2pdf().set({
+margin: 0,
+filename: '青年百億計畫申請書.pdf',
+image: { type: 'jpeg', quality: 1 },
+html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+}).from(element).save();
+}
+function exportWord() {
+const header = ⁠<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'> <head><meta charset='utf-8'><style> @page { margin: 2cm; } body { font-family: '標楷體', DFKai-SB, serif; font-size: 13pt; line-height: 1.4; color: black; } table { border-collapse: collapse; width: 100%; font-size: 13pt; } th, td { border: 1px solid black; padding: 6px; vertical-align: middle; } .page-break { mso-special-character: line-break; page-break-before: always; } </style></head><body>⁠;
+const cloned = document.getElementById('export-container').cloneNode(true);
+if(!document.getElementById('toggle_guardian').checked) {
+const p3 = cloned.querySelector('#page_guardian'); if(p3) p3.remove();
+}
+let htmlContent = "";
+cloned.querySelectorAll('.word-page').forEach((page, index) => {
+if(index > 0) htmlContent += "<div class='page-break' style='page-break-before:always;'></div>";
+htmlContent += page.innerHTML;
+});
+const blob = new Blob(['\ufeff', header + htmlContent + '</body></html>'], { type: 'application/msword' });
+const link = document.createElement('a');
+link.href = URL.createObjectURL(blob);
+link.download = '青年百億計畫申請書.doc';
+link.click();
+}
+// 4. 畫布與簽名
+const canvas = document.getElementById('mobile_sign_canvas');
+const ctx = canvas.getContext('2d');
+let isDrawing = false;
+function initCanvasSize() {
+const container = document.getElementById('canvas_container');
+canvas.width = container.offsetWidth;
+canvas.height = container.offsetHeight;
+ctx.lineWidth = 4;
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+ctx.strokeStyle = '#000000';
+}
+canvas.addEventListener('pointerdown', (e) => {
+e.preventDefault(); isDrawing = true;
+const r = canvas.getBoundingClientRect();
+ctx.beginPath(); ctx.moveTo(e.clientX - r.left, e.clientY - r.top);
+});
+canvas.addEventListener('pointermove', (e) => {
+e.preventDefault(); if(!isDrawing) return;
+const r = canvas.getBoundingClientRect();
+ctx.lineTo(e.clientX - r.left, e.clientY - r.top); ctx.stroke();
+});
+canvas.addEventListener('pointerup', () => { isDrawing = false; ctx.closePath(); });
+canvas.addEventListener('pointerout', () => { isDrawing = false; });
+canvas.addEventListener('pointercancel', () => { isDrawing = false; });
+document.getElementById('btn_mobile_clear').onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+function cropSignatureCanvas(canvas, ctx) {
+const w = canvas.width, h = canvas.height;
+if (w === 0 || h === 0) return null;
+const imgData = ctx.getImageData(0, 0, w, h).data;
+let top = null, bottom = null, left = null, right = null;
+for (let y = 0; y < h; y++) {
+for (let x = 0; x < w; x++) {
+if (imgData[(y * w + x) * 4 + 3] > 0) {
+if (top === null) top = y; bottom = y;
+if (left === null || x < left) left = x; if (right === null || x > right) right = x;
+}
+}
+}
+if (top === null) return null;
+const pad = 20; left = Math.max(0, left - pad); top = Math.max(0, top - pad); right = Math.min(w, right + pad); bottom = Math.min(h, bottom + pad);
+const tCanvas = document.createElement('canvas'); tCanvas.width = right - left; tCanvas.height = bottom - top;
+tCanvas.getContext('2d').drawImage(canvas, left, top, right - left, bottom - top, 0, 0, right - left, bottom - top);
+return tCanvas.toDataURL('image/png');
+}
+// 5. QR Code 與 WebRTC 跨裝置連線
+const urlParams = new URLSearchParams(window.location.search);
+const signPeerId = urlParams.get('sign_id');
+const signRole = urlParams.get('role');
+const view = document.getElementById('mobile_sign_view');
+const titleEl = document.getElementById('mobile_sign_title');
+const submitBtn = document.getElementById('btn_mobile_submit');
+if (signPeerId) {
+document.getElementById('input-form').parentElement.style.display = 'none'; document.getElementById('preview-pane').style.display = 'none';
+view.style.display = 'flex';
+setTimeout(() => initCanvasSize(), 150);
+titleEl.innerHTML = "🔄 尋找電腦中..."; submitBtn.disabled = true; submitBtn.style.background = '#94a3b8'; submitBtn.innerText = "📡 連線中...";
+const peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+let conn;
+peer.on('open', () => {
+conn = peer.connect(signPeerId, { reliable: true });
+conn.on('open', () => { titleEl.innerHTML = signRole === 'guardian' ? "✍️ 法定代理人簽名" : "✍️ 申請人簽名"; submitBtn.disabled = false; submitBtn.style.background = '#4f46e5'; submitBtn.innerText = "確認傳送"; });
+conn.on('close', () => { titleEl.innerHTML = "❌ 已斷線"; submitBtn.disabled = true; submitBtn.style.background = '#ef4444'; submitBtn.innerText = "已斷線"; });
+});
+submitBtn.onclick = () => {
+if (conn && conn.open) {
+const dataUrl = cropSignatureCanvas(canvas, ctx);
+if (dataUrl === null) { alert("請先在畫布上簽名！"); return; }
+conn.send({ role: signRole, image: dataUrl }); titleEl.innerHTML = "🎉 傳送成功！請看電腦"; submitBtn.innerText = "已回傳完成"; submitBtn.disabled = true; submitBtn.style.background = '#94a3b8';
+}
+};
+} else {
+const peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+peer.on('open', (id) => {
+let baseUrl = window.location.href.split('?')[0].split('#')[0];
+const appUrl = ⁠${baseUrl}?sign_id=${id}&role=applicant⁠;
+const guaUrl = ⁠${baseUrl}?sign_id=${id}&role=guardian⁠;
+setTimeout(() => {
+const appEl = document.getElementById("qr_applicant");
+const guaEl = document.getElementById("qr_guardian");
+if(appEl) {
+appEl.innerHTML = '';
+new QRCode(appEl, { text: appUrl, width: 90, height: 90, colorDark: "#4f46e5", correctLevel : QRCode.CorrectLevel.L });
+}
+if(guaEl) {
+guaEl.innerHTML = '';
+new QRCode(guaEl, { text: guaUrl, width: 90, height: 90, colorDark: "#4f46e5", correctLevel : QRCode.CorrectLevel.L });
+}
+}, 300);
+});
+peer.on('connection', (conn) => {
+conn.on('data', (data) => {
+if (data.role === 'applicant') {
+document.getElementById('qr_applicant_box').style.display = 'none'; document.getElementById('status_applicant_sign').style.display = 'block';
+['img_sig_1', 'img_sig_a'].forEach(id => { const el = document.getElementById(id); if(el){ el.src = data.image; el.style.display = 'inline-block';} });
+['text_sig_1', 'text_sig_a'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+} else if (data.role === 'guardian') {
+document.getElementById('qr_guardian_box').style.display = 'none'; document.getElementById('status_guardian_sign').style.display = 'block';
+const imgEl = document.getElementById('img_sig_g'); if(imgEl){ imgEl.src = data.image; imgEl.style.display = 'inline-block'; }
+const txtEl = document.getElementById('text_sig_g'); if(txtEl) txtEl.style.display = 'none';
+}
+});
+});
+window.openLocalSign = function(role) {
+document.getElementById('btn_mobile_close').style.display = 'block';
+titleEl.innerHTML = role === 'guardian' ? '✍️ 法定代理人簽名' : '✍️ 申請人簽名';
+view.style.display = 'flex';
+setTimeout(() => initCanvasSize(), 150);
+submitBtn.onclick = () => {
+const dataUrl = cropSignatureCanvas(canvas, ctx);
+if (dataUrl === null) { alert("請先在畫布上簽名！"); return; }
+if (role === 'applicant') {
+document.getElementById('qr_applicant_box').style.display = 'none'; document.getElementById('status_applicant_sign').style.display = 'block';
+['img_sig_1', 'img_sig_a'].forEach(id => { const el = document.getElementById(id); if(el){ el.src = dataUrl; el.style.display = 'inline-block';} });
+['text_sig_1', 'text_sig_a'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+} else {
+document.getElementById('qr_guardian_box').style.display = 'none'; document.getElementById('status_guardian_sign').style.display = 'block';
+const imgEl = document.getElementById('img_sig_g'); if(imgEl){ imgEl.src = dataUrl; imgEl.style.display = 'inline-block'; }
+const txtEl = document.getElementById('text_sig_g'); if(txtEl) txtEl.style.display = 'none';
+}
+view.style.display = 'none';
+};
+document.getElementById('btn_mobile_close').onclick = () => view.style.display = 'none';
+};
+}
+</script>
 </body>
 </html>
-```eof
