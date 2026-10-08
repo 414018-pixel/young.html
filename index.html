@@ -77,7 +77,7 @@
         <div class="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar" id="input-form">
             
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded text-sm text-yellow-800">
-                <strong>💡 隱私與手動模式：</strong> 本工具採純靜態運作，不會使用 AI，您填寫的所有資料皆僅存在您的電腦中，敬請安心填寫。
+                <strong>💡 隱私模式啟動中：</strong> 本工具為純離線手動輸入版，沒有連結任何 AI，您填寫的所有資料皆僅存在您的設備中，敬請安心填寫。
             </div>
 
             <!-- 一、基本資料 -->
@@ -119,7 +119,7 @@
                 <div id="guardian_fields" class="hidden grid-cols-2 gap-4 bg-gray-50 p-4 rounded border">
                     <div><label class="block text-sm font-medium text-gray-700">姓名</label><input type="text" id="i_g_name" class="mt-1 block w-full rounded-md shadow-sm p-2 border"></div>
                     <div><label class="block text-sm font-medium text-gray-700">身分證字號</label><input type="text" id="i_g_id" class="mt-1 block w-full rounded-md shadow-sm p-2 border"></div>
-                    <div><label class="block text-sm font-medium text-gray-700">關係</label><input type="text" id="i_g_relation" class="mt-1 block w-full rounded-md shadow-sm p-2 border" placeholder="例: 父女"></div>
+                    <div><label class="block text-sm font-medium text-gray-700">與申請人關係</label><input type="text" id="i_g_relation" class="mt-1 block w-full rounded-md shadow-sm p-2 border" placeholder="例: 父女"></div>
                     <div class="col-span-2"><label class="block text-sm font-medium text-gray-700">聯絡手機</label><input type="tel" id="i_g_phone" class="mt-1 block w-full rounded-md shadow-sm p-2 border"></div>
                     <div class="col-span-2"><label class="block text-sm font-medium text-gray-700">聯絡地址</label><input type="text" id="i_g_address" class="mt-1 block w-full rounded-md shadow-sm p-2 border"></div>
                 </div>
@@ -140,10 +140,10 @@
             <!-- 三、計畫內文 -->
             <section class="space-y-4">
                 <h2 class="text-xl font-semibold text-gray-800 border-b pb-2">三、計畫申請書內文</h2>
-                <div><label class="block text-sm font-bold text-gray-700">1. 申請青年之學經歷</label><textarea id="i_content_1" rows="3" class="mt-1 block w-full rounded-md shadow-sm p-2 border"></textarea></div>
-                <div><label class="block text-sm font-bold text-gray-700">2. 對申請組織及圓夢機會的內容了解情形</label><textarea id="i_content_2" rows="3" class="mt-1 block w-full rounded-md shadow-sm p-2 border"></textarea></div>
-                <div><label class="block text-sm font-bold text-gray-700">3. 申請原因、動機及期待</label><textarea id="i_content_3" rows="3" class="mt-1 block w-full rounded-md shadow-sm p-2 border"></textarea></div>
-                <div><label class="block text-sm font-bold text-gray-700">4. 回國後規劃及後續行動</label><textarea id="i_content_4" rows="3" class="mt-1 block w-full rounded-md shadow-sm p-2 border"></textarea></div>
+                <div><label class="block text-sm font-bold text-gray-700">1. 申請青年之學經歷</label><textarea id="i_content_1" rows="4" class="mt-1 block w-full rounded-md shadow-sm p-2 border" placeholder="請在此親自輸入您的學經歷..."></textarea></div>
+                <div><label class="block text-sm font-bold text-gray-700">2. 對申請組織及圓夢機會的內容了解情形</label><textarea id="i_content_2" rows="4" class="mt-1 block w-full rounded-md shadow-sm p-2 border" placeholder="請在此親自輸入..."></textarea></div>
+                <div><label class="block text-sm font-bold text-gray-700">3. 申請原因、動機及期待</label><textarea id="i_content_3" rows="4" class="mt-1 block w-full rounded-md shadow-sm p-2 border" placeholder="請在此親自輸入..."></textarea></div>
+                <div><label class="block text-sm font-bold text-gray-700">4. 回國後規劃及後續行動</label><textarea id="i_content_4" rows="4" class="mt-1 block w-full rounded-md shadow-sm p-2 border" placeholder="請在此親自輸入..."></textarea></div>
                 
                 <div class="p-4 bg-gray-50 border rounded-md">
                     <label class="block text-sm font-bold text-gray-700 mb-2">5. 經費需求辦理方式</label>
@@ -171,7 +171,7 @@
                     <div class="flex-1 bg-white p-4 rounded border border-gray-200 flex flex-col items-center shadow-sm text-center">
                         <h3 class="font-bold text-sm mb-4 text-gray-800">申請人簽名</h3>
                         <div id="qr_applicant_box" class="flex flex-col items-center w-full">
-                            <a id="qr_applicant_link" target="_blank" title="點擊在新分頁模擬測試" class="cursor-pointer block">
+                            <a id="qr_applicant_link" target="_blank" title="點擊在新分頁模擬測試" class="cursor-pointer block transition hover:scale-105">
                                 <div id="qr_applicant" class="bg-white p-2 border rounded shadow-sm mb-2"></div>
                             </a>
                             <button type="button" onclick="openLocalSign('applicant')" class="text-xs text-blue-600 underline hover:text-blue-800">無法掃描？點此用滑鼠簽名</button>
@@ -183,7 +183,7 @@
                     <div id="qr_guardian_container" class="flex-1 bg-white p-4 rounded border border-gray-200 flex flex-col items-center shadow-sm text-center hidden">
                         <h3 class="font-bold text-sm mb-4 text-gray-800">法定代理人簽名</h3>
                         <div id="qr_guardian_box" class="flex flex-col items-center w-full">
-                            <a id="qr_guardian_link" target="_blank" title="點擊在新分頁模擬測試" class="cursor-pointer block">
+                            <a id="qr_guardian_link" target="_blank" title="點擊在新分頁模擬測試" class="cursor-pointer block transition hover:scale-105">
                                 <div id="qr_guardian" class="bg-white p-2 border rounded shadow-sm mb-2"></div>
                             </a>
                             <button type="button" onclick="openLocalSign('guardian')" class="text-xs text-blue-600 underline hover:text-blue-800">無法掃描？點此用滑鼠簽名</button>
@@ -222,7 +222,7 @@
                         <td rowspan="4" class="text-center leading-loose">申請文件請於報名期間以PDF檔分別上傳至青年百億海外圓夢基金計畫平臺報名專區</td>
                         <td class="text-sm">(1)參與切結書（簽名後掃描電子檔） (附件2)</td>
                     </tr>
-                    <tr><td class="text-sm">(2)特殊身分證明文件掃描影本 (請檢附相關證明：為經濟弱勢家庭青年者...為原住民青年身分者...)</td></tr>
+                    <tr><td class="text-sm">(2)特殊身分證明文件掃描影本 (請檢附相關證明：為經濟弱勢家庭青年者(低收入戶、中低收入戶、特殊境遇家庭)，須提供身分證字號，檢附個人資料使用授權同意書（附件15）及各直轄市、縣(市)主管機關開立有效之低收入戶或中低收入或特殊境遇家庭證明。為原住民青年身分者，須檢附本人具有原住民身分註記之戶籍謄本影本（依原住民身分法規定）)</td></tr>
                     <tr><td class="text-sm">(3)法定代理人同意書 (附件3，簽名後掃描電子檔，未成年者務必繳交)</td></tr>
                     <tr><td class="text-sm">(4)計畫申請書（含封面及內文、其他證明文件如獎狀、語言證明等） (附件4、5)</td></tr>
                 </table>
@@ -244,7 +244,7 @@
                     <tr><th class="w-1/2 text-center">立切結書人</th><td class="w-1/2 h-16 text-center out_name align-middle font-bold"></td></tr>
                     <tr><th class="text-center">簽章</th><td class="text-center h-16 align-middle p-1">
                         <span id="text_sig_1" class="text-gray-400 text-sm">請於列印後親簽</span>
-                        <!-- 嚴格強制 width:auto 防止 Word 擠壓變形 -->
+                        <!-- style="width:auto" 防止被 Word 或排版強行拉長變形 -->
                         <img id="img_sig_1" class="hidden mx-auto" style="height: 100%; max-height: 50px; width: auto; object-fit: contain;">
                     </td></tr>
                 </table>
@@ -341,7 +341,7 @@
             <div class="a4-page">
                 <div class="text-right text-sm">附件5</div>
                 <div class="title-18 mt-4 mb-8 text-center">計畫申請書（內文）</div>
-                <div class="title-16 mb-4">內容：</div>
+                <div class="title-16 mb-4">內容：請依照下列項目順序撰寫</div>
                 <div class="space-y-6">
                     <div><div class="font-bold">1. 申請青年之學經歷。</div><div class="whitespace-pre-wrap ml-6 mt-2 out_content_1 text-justify min-h-[3rem]"></div></div>
                     <div><div class="font-bold">2. 請說明對所申請國際組織、機關(構)及此項圓夢機會的內容及了解情形。</div><div class="whitespace-pre-wrap ml-6 mt-2 out_content_2 text-justify min-h-[3rem]"></div></div>
@@ -357,6 +357,19 @@
                     </div>
                     <div><div class="font-bold">6. 外語能力證明文件(非必要)。</div><div class="whitespace-pre-wrap ml-6 mt-2 out_content_5 min-h-[2rem]"></div></div>
                     <div><div class="font-bold">7. 其他證明文件。</div><div class="whitespace-pre-wrap ml-6 mt-2 out_content_6 min-h-[2rem]"></div></div>
+                </div>
+                
+                <div class="mt-10 pt-4 border-t-2 border-black border-dotted">
+                    <div class="font-bold mb-2">格式說明（請依格式撰寫，如因格式未符致影響審查結果，申請人請自行負責，不得異議）</div>
+                    <ul class="list-none space-y-1 text-sm">
+                        <li>紙張規格：A4大小、直式橫書</li>
+                        <li>頁數：計畫內文以15-30頁為原則(不含附件1~3)</li>
+                        <li>行距：固定行高24點</li>
+                        <li>字型：標楷體</li>
+                        <li>字體大小：<br>1、大標：18號字體<br>2、小標：16號字體<br>內文：14號字體</li>
+                        <li>編頁碼</li>
+                    </ul>
+                    <div class="mt-4 text-sm font-bold">備註：申請計畫電子檔，請提供一式PDF檔，檔案大小以10MB為限。請預備中英文版計畫（含履歷）與簡報備用，俾利審查委員審查所需使用，如有需要，本計畫專案小組將另行通知請申請青年提供。</div>
                 </div>
             </div>
         </div>
@@ -380,7 +393,7 @@
     <script>
         // 1. 初始化日期
         const today = new Date();
-        document.querySelectorAll('.out_date_y').forEach(el => el.textContent = today.getFullYear() - 1911); // 民國年
+        document.querySelectorAll('.out_date_y').forEach(el => el.textContent = today.getFullYear() - 1911); 
         document.querySelectorAll('.out_date_m').forEach(el => el.textContent = today.getMonth() + 1);
         document.querySelectorAll('.out_date_d').forEach(el => el.textContent = today.getDate());
 
@@ -427,51 +440,72 @@
             });
         });
 
-        // ================== 高畫質簽名版與自動裁切 ==================
+        // ================== 高畫質簽名版與智慧壓縮裁切 ==================
         function setupCanvas(canvas) {
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const ctx = canvas.getContext('2d');
             const rect = canvas.getBoundingClientRect();
-            const dpr = window.devicePixelRatio || 1;
+            // 【重要】限制最高 DPR 為 2，防止高階手機記憶體爆炸造成無法傳送
+            const dpr = Math.min(window.devicePixelRatio || 1, 2); 
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             ctx.scale(dpr, dpr);
             ctx.lineWidth = 4;
             ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
+            ctx.lineJoin = 'round'; // 圓潤筆觸
             ctx.strokeStyle = '#000000';
             return ctx;
         }
 
         function cropSignatureCanvas(canvas, ctx) {
-            const w = canvas.width, h = canvas.height;
-            const imgData = ctx.getImageData(0, 0, w, h).data;
-            let top = null, bottom = null, left = null, right = null;
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    if (imgData[(y * w + x) * 4 + 3] > 0) { // 有畫筆跡的地方
-                        if (top === null) top = y;
-                        bottom = y;
-                        if (left === null || x < left) left = x;
-                        if (right === null || x > right) right = x;
+            try {
+                const w = canvas.width, h = canvas.height;
+                const imgData = ctx.getImageData(0, 0, w, h).data;
+                let top = null, bottom = null, left = null, right = null;
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        if (imgData[(y * w + x) * 4 + 3] > 0) { // 尋找筆跡像素
+                            if (top === null) top = y;
+                            bottom = y;
+                            if (left === null || x < left) left = x;
+                            if (right === null || x > right) right = x;
+                        }
                     }
                 }
+                if (top === null) return canvas.toDataURL('image/png'); // 全白畫布
+                
+                const pad = 15;
+                left = Math.max(0, left - pad); top = Math.max(0, top - pad);
+                right = Math.min(w, right + pad); bottom = Math.min(h, bottom + pad);
+                
+                let cropW = right - left;
+                let cropH = bottom - top;
+
+                // 【重要】智慧防崩潰：限制傳送圖片的最大寬度，等比例縮小，確保通道不塞車
+                const MAX_WIDTH = 600;
+                let scale = 1;
+                if (cropW > MAX_WIDTH) {
+                    scale = MAX_WIDTH / cropW;
+                }
+
+                const finalW = cropW * scale;
+                const finalH = cropH * scale;
+                
+                const tCanvas = document.createElement('canvas');
+                tCanvas.width = finalW; 
+                tCanvas.height = finalH;
+                tCanvas.getContext('2d').drawImage(canvas, left, top, cropW, cropH, 0, 0, finalW, finalH);
+                return tCanvas.toDataURL('image/png');
+            } catch (error) {
+                console.error("圖片裁切錯誤:", error);
+                // 若記憶體不足導致裁切失敗，退回傳送未裁切的原始縮圖
+                return canvas.toDataURL('image/png');
             }
-            if (top === null) return canvas.toDataURL('image/png'); // 空白畫布直接回傳
-            
-            const pad = 15;
-            left = Math.max(0, left - pad); top = Math.max(0, top - pad);
-            right = Math.min(w, right + pad); bottom = Math.min(h, bottom + pad);
-            
-            const tCanvas = document.createElement('canvas');
-            tCanvas.width = right - left; tCanvas.height = bottom - top;
-            tCanvas.getContext('2d').drawImage(canvas, left, top, right - left, bottom - top, 0, 0, right - left, bottom - top);
-            return tCanvas.toDataURL('image/png');
         }
 
         // ================== 匯出功能 ==================
         function exportPDF() {
             const element = document.getElementById('export-container');
-            html2pdf().set({ margin: 0, filename: '計畫申請書.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+            html2pdf().set({ margin: 0, filename: '青年百億計畫申請書.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
         }
 
         function exportWord() {
@@ -480,7 +514,7 @@
             if(!document.getElementById('toggle_guardian').checked) cloned.querySelector('#page_guardian')?.remove();
             cloned.querySelectorAll('.a4-page').forEach((p, i) => { if(i>0) p.insertAdjacentHTML('afterbegin', '<div class="page-break" style="page-break-before:always"></div>'); });
             const blob = new Blob(['\ufeff', header + cloned.innerHTML + '</body></html>'], { type: 'application/msword' });
-            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = '計畫申請書.doc'; link.click();
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = '青年百億計畫申請書.doc'; link.click();
         }
 
         // ================== P2P 跨裝置連線簽名 (PeerJS) ==================
@@ -506,6 +540,7 @@
 
             const canvas = document.getElementById('mobile_sign_canvas');
             let ctx;
+            // 延遲確保元素已顯示才抓取長寬
             setTimeout(() => { ctx = setupCanvas(canvas); }, 100);
 
             let isDrawing = false;
@@ -519,6 +554,7 @@
             
             document.getElementById('btn_mobile_clear').onclick = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); };
 
+            // 加入 STUN 伺服器，增強穿透防火牆連線能力
             const peer = new Peer({ config: { 'iceServers': [ { urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' } ] } });
             let conn;
             peer.on('open', () => {
@@ -539,12 +575,18 @@
 
             submitBtn.onclick = () => {
                 if (conn && conn.open) {
-                    const dataUrl = cropSignatureCanvas(canvas, ctx);
-                    conn.send({ role: signRole, image: dataUrl }); 
-                    titleEl.innerHTML = "🎉 傳送成功！請看電腦螢幕";
-                    submitBtn.innerText = "回傳完成";
-                    submitBtn.disabled = true;
-                    submitBtn.classList.replace('bg-blue-600', 'bg-gray-500');
+                    try {
+                        const dataUrl = cropSignatureCanvas(canvas, ctx);
+                        conn.send({ role: signRole, image: dataUrl }); 
+                        titleEl.innerHTML = "🎉 傳送成功！請看電腦螢幕";
+                        submitBtn.innerText = "回傳完成";
+                        submitBtn.disabled = true;
+                        submitBtn.classList.replace('bg-blue-600', 'bg-gray-500');
+                    } catch(err) {
+                        alert("傳送失敗，請重試！詳細錯誤: " + err.message);
+                    }
+                } else {
+                    alert("連線似乎已中斷，請重整電腦網頁並重新掃描 QR Code！");
                 }
             };
         } else {
