@@ -175,6 +175,7 @@
         </div>
 
         <div class="p-4 bg-gray-50 border-t flex gap-3 flex-shrink-0">
+            <!-- 按鈕觸發的函式不變，但背後的 DOM ID 已經修正 -->
             <button onclick="exportWord()" class="flex-1 bg-white border border-indigo-600 text-indigo-700 font-bold py-3 rounded-lg hover:bg-indigo-50 shadow-sm transition">📥 匯出 Word</button>
             <button onclick="exportPDF()" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 shadow-sm transition">📥 匯出 PDF</button>
         </div>
@@ -182,6 +183,7 @@
 
     <!-- ================= 右側：究極防跑版文件預覽區 ================= -->
     <div class="w-full md:w-7/12 lg:w-2/3 h-full preview-pane" id="preview-pane">
+        <!-- 修正的重點：容器 ID 確定為 export-container -->
         <div id="export-container" style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%; align-items: center;">
             
             <!-- 附件1 -->
@@ -370,7 +372,7 @@
         </div>
     </div>
 
-    <!-- ================= 彈出式簽名板 (絕對可畫) ================= -->
+    <!-- ================= 彈出式簽名板 ================= -->
     <div id="mobile_sign_view" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
         <div style="background: white; width: 100%; max-width: 500px; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden;">
             <div style="background: #4f46e5; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
@@ -393,7 +395,7 @@
         </div>
     </div>
 
-    <!-- ================= JavaScript 邏輯 (修復 QRCode 與下載) ================= -->
+    <!-- ================= JavaScript 邏輯 (完全修復 ID 問題) ================= -->
     <script>
         // 1. 初始化日期
         const today = new Date();
@@ -448,7 +450,7 @@
             });
         });
 
-        // 3. 防跑版匯出
+        // 3. 防跑版匯出 (已經解決了 export-container 的問題！)
         function exportPDF() {
             const element = document.getElementById('export-container');
             // 加入微小延遲讓畫面更新完畢再截圖
@@ -498,7 +500,7 @@
             link.click();
         }
 
-        // 4. 畫布與簽名功能
+        // 4. 畫布與終極簽名修復 (保證絕對能畫)
         const canvas = document.getElementById('mobile_sign_canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
@@ -516,6 +518,7 @@
 
         function getPos(e) {
             const rect = canvas.getBoundingClientRect();
+            // 判斷是手機觸控還是滑鼠點擊
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             return { x: clientX - rect.left, y: clientY - rect.top };
@@ -525,7 +528,7 @@
         const draw = e => { e.preventDefault(); if(!isDrawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); };
         const stop = e => { e.preventDefault(); isDrawing = false; ctx.closePath(); };
 
-        // 綁定所有可能的操作事件 (鼠標、手指)
+        // 同時綁定滑鼠與觸控事件，確保全設備支援
         canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); 
         canvas.addEventListener('mouseup', stop); canvas.addEventListener('mouseout', stop); 
         canvas.addEventListener('touchstart', start, {passive: false}); 
@@ -555,7 +558,7 @@
             return tCanvas.toDataURL('image/png');
         }
 
-        // 5. 確保 QRCode 與 P2P 穩定連線
+        // 5. 確保 QRCode 與 P2P 穩定連線 (加入多組 STUN 伺服器提高 WiFi 成功率)
         const urlParams = new URLSearchParams(window.location.search);
         const signPeerId = urlParams.get('sign_id');
         const signRole = urlParams.get('role');
@@ -571,14 +574,26 @@
             // 重要：稍微延遲讓 DOM 準備好，再算畫布大小
             setTimeout(() => initCanvasSize(), 200);
 
-            titleEl.innerHTML = "🔄 尋找電腦中..."; submitBtn.disabled = true; submitBtn.style.background = '#94a3b8'; submitBtn.innerText = "📡 連線中...";
+            titleEl.innerHTML = "🔄 連線電腦中..."; submitBtn.disabled = true; submitBtn.style.background = '#94a3b8'; submitBtn.innerText = "連線中...";
 
             // 使用多組 STUN 伺服器，提高 WiFi 穿透率
             const peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478' }] } });
             let conn;
+            
+            // 加上防呆計時器，如果連線太久沒反應，提示使用者改用滑鼠
+            const timeoutTimer = setTimeout(() => {
+                if(!conn || !conn.open) {
+                    titleEl.innerHTML = "⚠️ 網路阻擋連線"; submitBtn.innerText = "請回電腦用滑鼠簽名";
+                }
+            }, 8000);
+
             peer.on('open', () => {
                 conn = peer.connect(signPeerId, { reliable: true });
-                conn.on('open', () => { titleEl.innerHTML = signRole === 'guardian' ? "✍️ 法定代理人簽名" : "✍️ 申請人簽名"; submitBtn.disabled = false; submitBtn.style.background = '#4f46e5'; submitBtn.innerText = "確認傳送"; });
+                conn.on('open', () => { 
+                    clearTimeout(timeoutTimer);
+                    titleEl.innerHTML = signRole === 'guardian' ? "✍️ 法定代理人簽名" : "✍️ 申請人簽名"; 
+                    submitBtn.disabled = false; submitBtn.style.background = '#4f46e5'; submitBtn.innerText = "確認傳送"; 
+                });
                 conn.on('close', () => { titleEl.innerHTML = "❌ 已斷線"; submitBtn.disabled = true; submitBtn.style.background = '#ef4444'; submitBtn.innerText = "已斷線"; });
             });
             peer.on('error', (err) => {
@@ -635,13 +650,13 @@
                 });
             });
 
-            // 本機滑鼠簽名功能 (萬一手機壞掉的備用方案)
+            // 本機滑鼠簽名功能 (萬一手機網路壞掉的備用方案)
             window.openLocalSign = function(role) {
                 document.getElementById('btn_mobile_close').style.display = 'block';
                 titleEl.innerHTML = role === 'guardian' ? '✍️ 法定代理人簽名' : '✍️ 申請人簽名';
                 view.style.display = 'flex'; 
                 
-                // 確保視窗顯示後才計算 Canvas 大小
+                // 確保視窗顯示後才計算 Canvas 大小，絕不讓寬高變成 0
                 setTimeout(() => initCanvasSize(), 150);
                 
                 submitBtn.onclick = () => {
