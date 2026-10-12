@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>士商匿名板 | 獨立校園交流平台</title>
+    <title>東海匿名 | 獨立校園交流平台</title>
     <!-- 引入 html2canvas 負責將 DOM 轉換為 IG 圖片 -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
@@ -127,13 +127,13 @@
             </div>
 
             <div class="header">
-                <div class="logo-badge"><div class="logo-icon"></div>士商匿名板</div>
+                <div class="logo-badge"><div class="logo-icon"></div>東海匿名</div>
             </div>
 
             <div class="hero">
                 <div class="hero-tag">☼ 前台匿名・友善發言</div>
                 <h1 class="hero-title">說出你的心聲，<br><span class="highlight">匿名</span>也能被聽見</h1>
-                <p class="hero-subtitle">專屬的匿名留言板，一起讓校園更好。</p>
+                <p class="hero-subtitle">東海同學專屬的匿名留言板，一起讓校園更好。</p>
             </div>
 
             <div class="guide-card">
@@ -178,12 +178,13 @@
 
     <div id="toast-container"></div>
 
+    <!-- IG 浮水印也已替換為東海相關 -->
     <div id="ig-export-canvas">
         <div class="quote-icon">❝</div>
         <div id="ig-export-content"></div>
         <div id="ig-export-footer">
             <div id="ig-export-id"></div>
-            <div id="ig-export-watermark">🔍 IG: @slhs_anonymous</div>
+            <div id="ig-export-watermark">🔍 IG: @thu_anonymous</div>
         </div>
     </div>
 
@@ -224,7 +225,7 @@
                     const canvas = await html2canvas(document.getElementById('ig-export-canvas'), { scale: 2, backgroundColor: null });
                     const link = document.createElement('a');
                     link.href = canvas.toDataURL("image/jpeg", 0.9);
-                    link.download = `士商匿名板_${id}.jpg`;
+                    link.download = `東海匿名_${id}.jpg`;
                     link.click();
                     Toast.show('✅ 圖片已下載！', 'success');
                 } catch (e) {
@@ -233,16 +234,35 @@
             }
         };
 
+        // ✨ 這是將資料永久存在瀏覽器 (Local Storage) 的核心機制
         const Api = {
-            data: [
-                { id: "PID-X9A2B1", content: "這個匿名板的 UI 也太好看，而且發文真的不用登入耶！", timestamp: new Date(Date.now() - 1200000).toISOString() },
-                { id: "PID-Y7Z8W9", content: "溫馨提醒一下那些往洗手台倒廚餘的\n你們的學分也一起倒進去了喔", timestamp: new Date(Date.now() - 3600000).toISOString() }
-            ],
-            fetch: async () => [...Api.data],
+            STORAGE_KEY: 'thu_anonymous_posts',
+            
+            getData: () => {
+                const storedData = localStorage.getItem(Api.STORAGE_KEY);
+                if (storedData) {
+                    return JSON.parse(storedData);
+                }
+                const defaultData = [
+                    { id: "PID-X9A2B1", content: "東海匿名板上線囉！排版也太好看了吧，而且發文真的不用登入耶！", timestamp: new Date(Date.now() - 1200000).toISOString() },
+                    { id: "PID-Y7Z8W9", content: "溫馨提醒一下，天氣變涼了，大家記得多穿點衣服喔～", timestamp: new Date(Date.now() - 3600000).toISOString() }
+                ];
+                localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(defaultData));
+                return defaultData;
+            },
+
+            fetch: async () => {
+                return Api.getData();
+            },
+
             post: async (content) => {
-                await new Promise(r => setTimeout(r, 600));
+                await new Promise(r => setTimeout(r, 600)); // 模擬網路讀取時間
+                const posts = Api.getData();
                 const newPost = { id: Utils.generateID(), content, timestamp: new Date().toISOString() };
-                Api.data.unshift(newPost);
+                
+                posts.unshift(newPost);
+                localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts)); // 存回瀏覽器
+                
                 return newPost;
             }
         };
@@ -263,7 +283,6 @@
                 App.loadPosts();
             },
 
-            // ✨ 管理員登入邏輯
             toggleAdmin: () => {
                 if (App.isAdmin) {
                     App.isAdmin = false;
