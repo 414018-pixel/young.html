@@ -141,16 +141,30 @@
         .content-body p { margin-bottom: 10px; }
         .highlight-box { background: #fffbe8; border-left: 4px solid #fbbf24; padding: 10px 12px; margin: 10px 0; border-radius: 4px; font-size: 13px; }
 
-        /* ✨ 新增：管理員編輯規範區塊樣式 */
+        /* ✨ 強化版：管理員編輯規範區塊樣式 ✨ */
         .admin-rule-editor {
-            flex-direction: column; gap: 10px; background: #fef2f2; border: 1px dashed #f87171; 
-            border-radius: 12px; padding: 16px; margin: 0 20px 20px;
+            flex-direction: column; gap: 12px; background: #fff5f5; border: 2px dashed #ef4444; 
+            border-radius: 16px; padding: 20px; margin: 0 20px 24px;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+            position: relative;
         }
+        /* 左上角浮動標籤 */
+        .admin-rule-editor::before {
+            content: "👑 管理員權限解鎖";
+            position: absolute; top: -12px; left: 20px; background: #ef4444; color: white;
+            font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 12px;
+        }
+        .admin-editor-title { color: #b91c1c; font-weight: 800; font-size: 16px; margin-bottom: 4px; margin-top: 8px; }
+        .admin-editor-desc { font-size: 13px; color: #dc2626; margin-bottom: 12px; line-height: 1.5; }
+        
         .admin-rule-editor input, .admin-rule-editor textarea {
-            width: 100%; padding: 10px; border: 1px solid #fca5a5; border-radius: 8px; font-size: 14px; outline: none; font-family: inherit;
+            width: 100%; padding: 12px; border: 2px solid #fca5a5; border-radius: 8px; font-size: 14px; outline: none; font-family: inherit; transition: border 0.3s;
         }
-        .admin-rule-editor textarea { resize: vertical; min-height: 80px; }
-        .btn-add-rule { background: #dc2626; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .admin-rule-editor input:focus, .admin-rule-editor textarea:focus { border-color: #ef4444; }
+        .admin-rule-editor textarea { resize: vertical; min-height: 100px; }
+        
+        .btn-add-rule { background: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 15px; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+        .btn-add-rule:hover { background: #dc2626; }
 
         /* =========================================
            5. IG 匯出畫布 (隱藏)
@@ -217,6 +231,10 @@
                 <div class="guide-item">👻 <strong>單一身分：</strong>您的裝置已綁定唯一 UID，發言更具連貫性。</div>
                 <div class="guide-item">🎨 <strong>豐富排版：</strong>支援上傳照片、自訂文字顏色，並可申請置頂。</div>
                 <div class="guide-item">⚖️ <strong>友善守則：</strong>發文即同意 <span class="guide-link" onclick="App.switchView('legal')">平台法律聲明</span>。</div>
+                
+                <!-- ✨ 新增：管理員專屬提示 ✨ -->
+                <div class="guide-item admin-only" style="color: #dc2626;">👑 <strong>管理員：</strong>您可以前往 <span class="guide-link" onclick="App.switchView('legal')" style="color: #dc2626; text-decoration: underline;">平台法律聲明</span> 動態新增或刪除規範條文。</div>
+                
                 <button class="btn-full-guide" onclick="App.switchView('guide')">📖 閱讀完整使用說明</button>
             </div>
 
@@ -293,12 +311,16 @@
                 <div class="doc-meta">本站點所有規範由管理團隊維護與解釋</div>
             </div>
             
-            <!-- ✨ 新增：管理員專用的規範編輯區 -->
+            <!-- ✨ 強化版：管理員專用的規範編輯區 ✨ -->
             <div class="admin-rule-editor admin-only">
-                <div style="color: #dc2626; font-weight: 800; font-size: 14px;">👑 管理員專區：新增平台規範</div>
-                <input type="text" id="js-rule-title" placeholder="規範標題 (例：六、禁止洗版及惡意洗頻)">
-                <textarea id="js-rule-content" placeholder="規範內容 (支援換行，將會自動排版顯示)"></textarea>
-                <button class="btn-add-rule" onclick="App.addRule()">＋ 發布新條文</button>
+                <div class="admin-editor-title">新增平台規範與法律責任</div>
+                <div class="admin-editor-desc">
+                    💡 <strong>新手管理員指南：</strong><br>
+                    在下方輸入標題與內容，點擊發布後，新規範會立刻顯示在所有使用者的畫面上。您也可以點擊各條文右上角的「🗑️ 刪除」來移除過時的規範。
+                </div>
+                <input type="text" id="js-rule-title" placeholder="👉 請輸入規範標題 (例：六、禁止洗版及惡意洗頻)">
+                <textarea id="js-rule-content" placeholder="👉 請輸入規範內容 (支援換行，系統將會自動排版顯示)"></textarea>
+                <button class="btn-add-rule" onclick="App.addRule()">＋ 立即發布新條文</button>
             </div>
 
             <!-- 動態渲染的規範列表 -->
@@ -439,7 +461,7 @@
             STORAGE_KEY: 'thu_anonymous_posts',
             REPORTS_KEY: 'thu_reported_posts', 
             MY_REPORTS_KEY: 'thu_my_reports',
-            LEGAL_RULES_KEY: 'thu_legal_rules', // ✨ 儲存平台規範的 Key
+            LEGAL_RULES_KEY: 'thu_legal_rules',
             
             getUID: () => {
                 let uid = localStorage.getItem(Api.USER_ID_KEY);
@@ -450,7 +472,6 @@
                 return uid;
             },
 
-            // 取得匿名版貼文
             getData: () => {
                 try {
                     const storedData = localStorage.getItem(Api.STORAGE_KEY);
@@ -472,13 +493,11 @@
                 return defaultData;
             },
 
-            // ✨ 取得平台規範及法律聲明
             getRules: () => {
                 try {
                     const storedRules = localStorage.getItem(Api.LEGAL_RULES_KEY);
                     if (storedRules) return JSON.parse(storedRules);
                 } catch(e){}
-                // 預設的法律條文
                 const defaultRules = [
                     { id: "R-1", title: "一、個人資料保護與調閱限制", content: "除法律另有規定外，拒絕向不具調查權限之第三方提供識別資料。為保障真實受害人未來訴訟舉證，系統將採集必要之設備指紋，非經檢警機關依法定程序出具調取票，絕不逕行提供。" },
                     { id: "R-2", title: "二、平台免責與檢舉處理機制", content: "版主從事一般性維護，不因管理身分成為違法言論之共同行為人。收到檢舉僅為程序觸發，不代表確定違法，平台拒絕接受「遭檢舉即必須無條件移除」之片面要求。" },
@@ -488,14 +507,12 @@
                 return defaultRules;
             },
 
-            // ✨ 管理員新增規範
             addRule: async (title, content) => {
                 const rules = Api.getRules();
                 rules.push({ id: 'R-' + Date.now(), title: title, content: content });
                 localStorage.setItem(Api.LEGAL_RULES_KEY, JSON.stringify(rules));
             },
 
-            // ✨ 管理員刪除規範
             deleteRule: async (id) => {
                 let rules = Api.getRules();
                 rules = rules.filter(r => r.id !== id);
@@ -619,7 +636,7 @@
                 });
 
                 App.loadPosts();
-                App.loadRules(); // ✨ 初始化時也載入法律規範
+                App.loadRules();
             },
 
             removeImage: () => {
@@ -657,7 +674,7 @@
                     }
                     App.updateUidDisplay();
                     App.loadPosts(); 
-                    App.loadRules(); // ✨ 切換權限時刷新規範頁的刪除按鈕
+                    App.loadRules(); 
                 } catch (e) {
                     console.error("切換管理員失敗", e);
                 }
@@ -817,16 +834,12 @@
                 }
             },
 
-            // ✨ 載入並渲染法律規範清單
             loadRules: () => {
                 const rules = Api.getRules();
                 App.els.legalList.innerHTML = '';
                 
                 rules.forEach(rule => {
-                    // 將換行符號轉成 <br>
                     const safeContent = Utils.escapeHTML(rule.content).replace(/\n/g, '<br>');
-                    
-                    // 如果是管理員，顯示刪除按鈕
                     const deleteRuleBtn = App.isAdmin 
                         ? `<button class="admin-only" style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:13px; font-weight:bold;" onclick="App.deleteRule('${rule.id}')">🗑️ 刪除此條</button>` 
                         : '';
@@ -844,7 +857,6 @@
                 });
             },
 
-            // ✨ 處理新增規範的事件
             addRule: async () => {
                 const titleInput = document.getElementById('js-rule-title');
                 const contentInput = document.getElementById('js-rule-content');
@@ -861,7 +873,6 @@
                 App.loadRules();
             },
 
-            // ✨ 處理刪除規範的事件
             deleteRule: async (id) => {
                 if(confirm('確定要刪除這條平台規範嗎？')){
                     await Api.deleteRule(id);
