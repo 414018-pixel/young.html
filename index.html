@@ -26,8 +26,8 @@
         /* =========================================
            2. 共用 UI 元件
            ========================================= */
-        #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { background: #1c1c1e; color: white; padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 400px;}
+        .toast { background: #1c1c1e; color: white; padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; }
         .toast.error { background: #ef4444; }
         .toast.success { background: #10b981; }
 
@@ -58,7 +58,6 @@
         .post-card { background: #fff; border: 1px solid #e5e5ea; border-radius: 24px; margin: 0 20px 30px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .post-input { width: 100%; border: none; outline: none; resize: none; font-size: 16px; min-height: 60px; margin-bottom: 12px; color: #111; }
         
-        /* ✨ 新增：發文工具列 (顏色、圖片、置頂) ✨ */
         .post-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f4f4f5; }
         .tool-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #52525b; font-weight: 500; cursor: pointer; }
         .tool-item input[type="color"] { width: 24px; height: 24px; padding: 0; border: none; border-radius: 50%; cursor: pointer; outline: none; overflow: hidden; }
@@ -67,7 +66,6 @@
         .tool-item input[type="checkbox"] { accent-color: #5b21b6; width: 16px; height: 16px; cursor: pointer; }
         .btn-upload { background: #f4f4f5; border: none; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; color: #3f3f46; cursor: pointer; }
         
-        /* 圖片預覽區 */
         .img-preview-container { position: relative; display: none; margin-bottom: 12px; }
         .img-preview-container.active { display: block; }
         .img-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; border: 1px solid #e5e5ea; }
@@ -81,9 +79,8 @@
 
         .feed-divider { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; margin-bottom: 20px; font-size: 13px; font-weight: 500; color: #aeaeb2; }
         .feed-divider .line { flex: 1; height: 1px; background: #e5e5ea; margin-left: 12px; }
-        .post-list { display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }
+        .post-list { display: flex; flex-direction: column; gap: 16px; padding-bottom: 80px; } 
         
-        /* 貼文卡片 */
         .message-card { background: #fff; border: 1px solid #e5e5ea; border-radius: 24px; margin: 0 20px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); position: relative; }
         .message-card.pinned { border: 2px solid #fbbf24; background: #fffdf5; }
         .msg-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
@@ -98,7 +95,6 @@
         .msg-meta-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
         .msg-time { font-size: 12px; color: #aeaeb2; font-weight: 500; }
         
-        /* 置頂標籤與圖片展示 */
         .pin-badge { background: #fbbf24; color: #78350f; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; display: flex; align-items: center; gap: 4px; }
         .post-image { width: 100%; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e5e5ea; }
         .msg-content { font-size: 16px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; word-break: break-word; color: #333; }
@@ -119,7 +115,7 @@
         body.is-admin .request-pin-badge.is-requesting { display: block; }
 
         /* =========================================
-           4. 說明與法律視圖 (Guide & Legal Views)
+           4. 說明與法律視圖
            ========================================= */
         .nav-bar { position: sticky; top: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e5e5ea; z-index: 100; }
         .btn-back { color: #5b21b6; font-weight: 600; font-size: 15px; cursor: pointer; width: 60px; }
@@ -212,25 +208,19 @@
             <div class="post-card">
                 <div style="font-size: 12px; color: #8b5cf6; font-family: monospace; margin-bottom: 12px; font-weight: bold;" id="js-my-uid-display"></div>
                 
-                <!-- 新增：功能工具列 (顏色、照片、置頂申請) -->
                 <div class="post-toolbar">
                     <label class="tool-item" title="選擇文字顏色">
                         <input type="color" id="js-post-color" value="#333333">
                         字體顏色
                     </label>
-                    
-                    <button class="btn-upload" onclick="document.getElementById('js-post-image').click()">
-                        📷 附加照片
-                    </button>
+                    <button class="btn-upload" onclick="document.getElementById('js-post-image').click()">📷 附加照片</button>
                     <input type="file" id="js-post-image" accept="image/*" style="display:none;">
-                    
                     <label class="tool-item" style="margin-left: auto;">
                         <input type="checkbox" id="js-post-pin">
                         📌 申請置頂
                     </label>
                 </div>
 
-                <!-- 新增：照片預覽區 -->
                 <div class="img-preview-container" id="js-preview-container">
                     <button class="btn-remove-img" onclick="App.removeImage()">✕</button>
                     <img src="" class="img-preview" id="js-preview-img">
@@ -340,8 +330,7 @@
 
     <script>
         const Config = { MAX_CHARS: 500 };
-        
-        let currentImageBase64 = null; // 暫存上傳的圖片
+        let currentImageBase64 = null; 
 
         const Utils = {
             escapeHTML: (str) => { const div = document.createElement('div'); div.appendChild(document.createTextNode(str)); return div.innerHTML; },
@@ -354,25 +343,28 @@
                 if (diff < 1440) return `${Math.floor(diff/60)} 小時前`;
                 return `${Math.floor(diff/1440)} 天前`;
             },
-            // 壓縮並轉換圖片為 Base64 (避免 localStorage 爆滿)
+            // ✨ 加強版圖片壓縮機制 (防止 localStorage 爆滿當機)
             compressImage: (file) => {
-                return new Promise((resolve) => {
+                return new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         const img = new Image();
                         img.onload = () => {
                             const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 800;
+                            const MAX_WIDTH = 500; // 更積極的壓縮尺寸，保障網頁穩定
                             let width = img.width;
                             let height = img.height;
                             if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                             canvas.width = width; canvas.height = height;
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
-                            resolve(canvas.toDataURL('image/jpeg', 0.6)); // 品質 0.6 以節省空間
+                            // 品質 0.4，將圖片縮到極小，防止 QuotaExceededError
+                            resolve(canvas.toDataURL('image/jpeg', 0.4)); 
                         };
+                        img.onerror = reject;
                         img.src = e.target.result;
                     };
+                    reader.onerror = reject;
                     reader.readAsDataURL(file);
                 });
             }
@@ -398,7 +390,6 @@
                 contentEl.textContent = content;
                 contentEl.style.color = textColor;
                 
-                // 動態調整字體大小，如果有圖片字體要小一點
                 if (imageSrc) {
                     imageEl.src = imageSrc;
                     imageEl.style.display = 'block';
@@ -438,8 +429,12 @@
             },
 
             getData: () => {
-                const storedData = localStorage.getItem(Api.STORAGE_KEY);
-                if (storedData) return JSON.parse(storedData);
+                try {
+                    const storedData = localStorage.getItem(Api.STORAGE_KEY);
+                    if (storedData) return JSON.parse(storedData);
+                } catch(e) {
+                    console.error("無法讀取資料", e);
+                }
                 
                 const defaultData = [
                     { 
@@ -448,7 +443,7 @@
                         content: "東海匿名板全新升級！\n現在支援上傳照片、自訂文字顏色，還可以申請文章置頂喔！", 
                         color: "#5b21b6",
                         image: null,
-                        isPinned: true, // 預設置頂
+                        isPinned: true, 
                         requestPin: false,
                         timestamp: new Date().toISOString() 
                     }
@@ -483,12 +478,19 @@
                     color: color || '#333333',
                     image: image,
                     requestPin: requestPin,
-                    isPinned: App.isAdmin ? requestPin : false, // 管理員發文若勾置頂直接生效
+                    isPinned: App.isAdmin ? requestPin : false, 
                     timestamp: new Date().toISOString() 
                 };
                 
                 posts.unshift(newPost);
-                localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts)); 
+                
+                // ✨ 防護網：避免圖片太大導致存不進去當機
+                try {
+                    localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts)); 
+                } catch (e) {
+                    throw new Error('儲存空間已滿，請刪除部分含有圖片的舊貼文，或上傳更小的圖片。');
+                }
+                
                 return newPost;
             },
 
@@ -509,18 +511,16 @@
                 localStorage.setItem(Api.MY_REPORTS_KEY, JSON.stringify(myReportedIds));
             },
 
-            // ✨ 管理員審核通過置頂
             approvePin: async (id) => {
                 let posts = Api.getData();
                 const post = posts.find(p => p.id === id);
                 if (post) {
                     post.isPinned = true;
-                    post.requestPin = false; // 清除申請標記
+                    post.requestPin = false;
                     localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts));
                 }
             },
             
-            // ✨ 管理員取消置頂
             unpin: async (id) => {
                 let posts = Api.getData();
                 const post = posts.find(p => p.id === id);
@@ -547,20 +547,24 @@
             },
 
             init: () => {
-                App.updateUidDisplay();
+                if(App.els.uidDisplay) App.updateUidDisplay();
+                
                 App.els.input.addEventListener('input', App.handleInput);
                 App.els.submitBtn.addEventListener('click', App.handleSubmit);
                 App.els.feed.addEventListener('click', App.handleFeedClick);
                 
-                // 圖片上傳事件
                 App.els.imageInput.addEventListener('change', async (e) => {
                     const file = e.target.files[0];
                     if (file) {
-                        if (file.size > 5 * 1024 * 1024) return Toast.show('圖片請勿超過 5MB', 'error');
                         Toast.show('處理圖片中...');
-                        currentImageBase64 = await Utils.compressImage(file);
-                        App.els.previewImg.src = currentImageBase64;
-                        App.els.previewContainer.classList.add('active');
+                        try {
+                            currentImageBase64 = await Utils.compressImage(file);
+                            App.els.previewImg.src = currentImageBase64;
+                            App.els.previewContainer.classList.add('active');
+                            App.handleInput({target: {value: App.els.input.value}}); 
+                        } catch (err) {
+                            Toast.show('圖片處理失敗', 'error');
+                        }
                     }
                 });
 
@@ -572,9 +576,11 @@
                 App.els.imageInput.value = '';
                 App.els.previewImg.src = '';
                 App.els.previewContainer.classList.remove('active');
+                App.handleInput({target: {value: App.els.input.value}});
             },
 
             updateUidDisplay: () => {
+                if (!App.els.uidDisplay) return; // 防呆機制
                 if (App.isAdmin) {
                     App.els.uidDisplay.innerHTML = `<span style="color: #dc2626; font-size: 13px;">👑 系統管理員：THHS001</span>`;
                 } else {
@@ -583,34 +589,38 @@
             },
 
             toggleAdmin: () => {
-                if (App.isAdmin) {
-                    App.isAdmin = false;
-                    document.body.classList.remove('is-admin');
-                    Toast.show('已登出管理員模式');
-                } else {
-                    const pwd = prompt('🔒 請輸入管理員密碼 (輸入 admin 測試)');
-                    if (pwd === 'admin') {
-                        App.isAdmin = true;
-                        document.body.classList.add('is-admin');
-                        Toast.show('🔓 管理員審查模式已啟用', 'success');
-                    } else if (pwd !== null) {
-                        Toast.show('密碼錯誤', 'error');
+                try {
+                    if (App.isAdmin) {
+                        App.isAdmin = false;
+                        document.body.classList.remove('is-admin');
+                        Toast.show('已登出管理員模式');
+                    } else {
+                        const pwd = prompt('🔒 請輸入管理員密碼');
+                        if (pwd === 'admin') {
+                            App.isAdmin = true;
+                            document.body.classList.add('is-admin');
+                            Toast.show('🔓 管理員審查模式已啟用', 'success');
+                        } else if (pwd !== null) {
+                            Toast.show('密碼錯誤', 'error');
+                        }
                     }
+                    App.updateUidDisplay();
+                    App.loadPosts(); 
+                } catch (e) {
+                    console.error("切換管理員失敗", e);
                 }
-                App.updateUidDisplay();
-                App.loadPosts(); 
             },
 
             switchView: (viewName) => {
                 document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-                document.getElementById(`view-${viewName}`).classList.add('active');
+                const view = document.getElementById(`view-${viewName}`);
+                if (view) view.classList.add('active');
                 window.scrollTo(0,0);
             },
 
             handleInput: (e) => {
                 const len = e.target.value.length;
                 App.els.counter.textContent = `${len} / ${Config.MAX_CHARS}`;
-                // 若有圖片，文字可以為空；若無圖片，文字不能為空
                 const hasImage = currentImageBase64 !== null;
                 const isValid = (len > 0 || hasImage) && len <= Config.MAX_CHARS;
                 App.els.submitBtn.disabled = !isValid;
@@ -629,7 +639,6 @@
                 
                 try {
                     await Api.post(content, color, currentImageBase64, requestPin);
-                    // 清空表單
                     App.els.input.value = '';
                     App.els.colorInput.value = '#333333';
                     App.els.pinInput.checked = false;
@@ -639,7 +648,7 @@
                     Toast.show('🎉 發布成功！', 'success');
                     App.loadPosts();
                 } catch (e) {
-                    Toast.show('發布失敗', 'error');
+                    Toast.show(e.message || '發布失敗', 'error');
                 } finally {
                     App.els.submitBtn.textContent = '發布';
                 }
@@ -653,110 +662,107 @@
                 const authorId = btn.dataset.author;
                 const action = btn.dataset.action;
 
-                if (action === 'delete') {
-                    if (confirm('確定要永久刪除這篇貼文嗎？\n(此動作無法復原)')) {
-                        await Api.delete(id);
-                        Toast.show('🗑️ 貼文已刪除', 'success');
-                        App.loadPosts();
-                    }
-                } else if (action === 'export' && App.isAdmin) {
-                    const post = (await Api.fetch()).find(p => p.id === id);
-                    IgExport.process(id, authorId, post.content, post.color, post.image);
-                } else if (action === 'report') {
-                    try {
+                try {
+                    if (action === 'delete') {
+                        if (confirm('確定要永久刪除這篇貼文嗎？\n(此動作無法復原)')) {
+                            await Api.delete(id);
+                            Toast.show('🗑️ 貼文已刪除', 'success');
+                            App.loadPosts();
+                        }
+                    } else if (action === 'export' && App.isAdmin) {
+                        const post = (await Api.fetch()).find(p => p.id === id);
+                        if (post) IgExport.process(id, authorId, post.content, post.color, post.image);
+                    } else if (action === 'report') {
                         await Api.report(id);
                         Toast.show('⚠️ 檢舉已送交管理員審查', 'success');
                         App.loadPosts(); 
-                    } catch (err) {
-                        Toast.show(err.message, 'error');
+                    } else if (action === 'approve-pin' && App.isAdmin) {
+                        await Api.approvePin(id);
+                        Toast.show('📌 已批准置頂', 'success');
+                        App.loadPosts();
+                    } else if (action === 'unpin' && App.isAdmin) {
+                        await Api.unpin(id);
+                        Toast.show('取消置頂完成');
+                        App.loadPosts();
                     }
-                } else if (action === 'approve-pin' && App.isAdmin) {
-                    await Api.approvePin(id);
-                    Toast.show('📌 已批准置頂', 'success');
-                    App.loadPosts();
-                } else if (action === 'unpin' && App.isAdmin) {
-                    await Api.unpin(id);
-                    Toast.show('取消置頂完成');
-                    App.loadPosts();
+                } catch (err) {
+                    Toast.show(err.message, 'error');
                 }
             },
 
             loadPosts: async () => {
-                let posts = await Api.fetch();
-                const myUID = Api.getUID(); 
-                const allReports = Api.getReports(); 
-                
-                // ✨ 排序邏輯：置頂的文章永遠在最上面，其餘依時間排序
-                posts.sort((a, b) => {
-                    if (a.isPinned && !b.isPinned) return -1;
-                    if (!a.isPinned && b.isPinned) return 1;
-                    return new Date(b.timestamp) - new Date(a.timestamp);
-                });
+                try {
+                    let posts = await Api.fetch();
+                    const myUID = Api.getUID(); 
+                    const allReports = Api.getReports(); 
+                    
+                    posts.sort((a, b) => {
+                        if (a.isPinned && !b.isPinned) return -1;
+                        if (!a.isPinned && b.isPinned) return 1;
+                        return new Date(b.timestamp) - new Date(a.timestamp);
+                    });
 
-                App.els.feed.innerHTML = '';
-                
-                posts.forEach(post => {
-                    const safeContent = Utils.escapeHTML(post.content);
+                    App.els.feed.innerHTML = '';
                     
-                    const isMine = (post.authorId === myUID);
-                    const canDelete = App.isAdmin || isMine;
-                    
-                    // 按鈕區邏輯
-                    let deleteBtnHTML = canDelete ? `<button class="btn-action danger" data-action="delete" data-id="${post.id}">🗑️ 刪除</button>` : '';
-                    let adminActionsHTML = `<button class="btn-action dark admin-only" data-action="export" data-id="${post.id}" data-author="${post.authorId}">📸 匯出</button>`;
-                    
-                    // 管理員置頂審核按鈕
-                    if (App.isAdmin) {
-                        if (post.requestPin && !post.isPinned) {
-                            adminActionsHTML += `<button class="btn-action success admin-only" data-action="approve-pin" data-id="${post.id}">✅ 准許置頂</button>`;
-                        } else if (post.isPinned) {
-                            adminActionsHTML += `<button class="btn-action admin-only" data-action="unpin" data-id="${post.id}">❌ 取消置頂</button>`;
+                    posts.forEach(post => {
+                        const safeContent = Utils.escapeHTML(post.content);
+                        
+                        const isMine = (post.authorId === myUID);
+                        const canDelete = App.isAdmin || isMine;
+                        
+                        let deleteBtnHTML = canDelete ? `<button class="btn-action danger" data-action="delete" data-id="${post.id}">🗑️ 刪除</button>` : '';
+                        let adminActionsHTML = `<button class="btn-action dark admin-only" data-action="export" data-id="${post.id}" data-author="${post.authorId}">📸 匯出</button>`;
+                        
+                        if (App.isAdmin) {
+                            if (post.requestPin && !post.isPinned) {
+                                adminActionsHTML += `<button class="btn-action success admin-only" data-action="approve-pin" data-id="${post.id}">✅ 准許置頂</button>`;
+                            } else if (post.isPinned) {
+                                adminActionsHTML += `<button class="btn-action admin-only" data-action="unpin" data-id="${post.id}">❌ 取消置頂</button>`;
+                            }
                         }
-                    }
 
-                    // 標籤邏輯
-                    const reportCount = allReports[post.id] || 0;
-                    const reportBadgeHTML = reportCount > 0 ? `<div class="admin-badge has-reports">🚨 遭檢舉 ${reportCount} 次</div>` : '';
-                    const requestPinBadgeHTML = (post.requestPin && !post.isPinned) ? `<div class="request-pin-badge is-requesting">🛎️ 使用者申請置頂</div>` : '';
-                    const pinBadgeHTML = post.isPinned ? `<div class="pin-badge">📌 置頂</div>` : '';
+                        const reportCount = allReports[post.id] || 0;
+                        const reportBadgeHTML = reportCount > 0 ? `<div class="admin-badge has-reports">🚨 遭檢舉 ${reportCount} 次</div>` : '';
+                        const requestPinBadgeHTML = (post.requestPin && !post.isPinned) ? `<div class="request-pin-badge is-requesting">🛎️ 使用者申請置頂</div>` : '';
+                        const pinBadgeHTML = post.isPinned ? `<div class="pin-badge">📌 置頂</div>` : '';
 
-                    // 圖片渲染
-                    const imageHTML = post.image ? `<img src="${post.image}" class="post-image">` : '';
+                        const imageHTML = post.image ? `<img src="${post.image}" class="post-image">` : '';
 
-                    // 身分渲染
-                    const isSystemAdmin = post.authorId === 'THHS001';
-                    const nameHtml = isSystemAdmin
-                        ? `<span class="admin-name">👑 系統管理員</span> <span class="msg-uid admin-badge-text">#THHS001</span>`
-                        : `匿名同學 <span class="msg-uid">#${post.authorId}</span>`;
+                        const isSystemAdmin = post.authorId === 'THHS001';
+                        const nameHtml = isSystemAdmin
+                            ? `<span class="admin-name">👑 系統管理員</span> <span class="msg-uid admin-badge-text">#THHS001</span>`
+                            : `匿名同學 <span class="msg-uid">#${post.authorId}</span>`;
 
-                    const html = `
-                        <div class="message-card ${post.isPinned ? 'pinned' : ''}">
-                            ${reportBadgeHTML}
-                            ${requestPinBadgeHTML}
-                            <div class="msg-header">
-                                <div class="msg-user">
-                                    <div class="msg-avatar"><div class="avatar-hex"></div></div>
-                                    <div class="msg-name">${nameHtml}</div>
+                        const html = `
+                            <div class="message-card ${post.isPinned ? 'pinned' : ''}">
+                                ${reportBadgeHTML}
+                                ${requestPinBadgeHTML}
+                                <div class="msg-header">
+                                    <div class="msg-user">
+                                        <div class="msg-avatar"><div class="avatar-hex"></div></div>
+                                        <div class="msg-name">${nameHtml}</div>
+                                    </div>
+                                    <div class="msg-meta-right">
+                                        ${pinBadgeHTML}
+                                        <div class="msg-time">${Utils.getTimeAgo(post.timestamp)}</div>
+                                    </div>
                                 </div>
-                                <div class="msg-meta-right">
-                                    ${pinBadgeHTML}
-                                    <div class="msg-time">${Utils.getTimeAgo(post.timestamp)}</div>
+                                
+                                ${imageHTML}
+                                <div class="msg-content" style="color: ${post.color || '#333333'};">${safeContent}</div>
+                                
+                                <div class="msg-actions">
+                                    ${deleteBtnHTML}
+                                    ${adminActionsHTML}
+                                    <button class="btn-action" data-action="report" data-id="${post.id}">⚠️ 檢舉</button>
                                 </div>
                             </div>
-                            
-                            ${imageHTML}
-                            <!-- 套用使用者自訂的字體顏色 -->
-                            <div class="msg-content" style="color: ${post.color || '#333333'};">${safeContent}</div>
-                            
-                            <div class="msg-actions">
-                                ${deleteBtnHTML}
-                                ${adminActionsHTML}
-                                <button class="btn-action" data-action="report" data-id="${post.id}">⚠️ 檢舉</button>
-                            </div>
-                        </div>
-                    `;
-                    App.els.feed.insertAdjacentHTML('beforeend', html);
-                });
+                        `;
+                        App.els.feed.insertAdjacentHTML('beforeend', html);
+                    });
+                } catch (e) {
+                    console.error("渲染貼文時發生錯誤", e);
+                }
             }
         };
 
