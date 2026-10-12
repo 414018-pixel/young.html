@@ -3,513 +3,360 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>青年百億圓夢基金計畫 - 申請書系統</title>
-    <!-- Tailwind CSS (僅限左側介面使用) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- html2pdf.js for PDF Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+    <title>士商匿名板 | 獨立校園交流平台</title>
+    <!-- 引入 html2canvas 負責將 DOM 轉換為 IG 圖片 -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-
-        .form-input {
-            width: 100%; border-radius: 0.375rem; border: 1px solid #cbd5e1; padding: 0.5rem;
-            font-size: 0.875rem; background-color: #f8fafc; transition: all 0.2s;
-        }
-        .form-input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 2px #c7d2fe; }
-
-        /* ======================================================== */
-        /* 右側預覽區 (這就是最終會印出來的樣子，絕對不隱藏) */
-        /* ======================================================== */
-        #preview-wrapper {
-            background-color: #cbd5e1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; align-items: center;
-        }
+        /* =========================================
+           1. 基礎設定與手機版框架
+           ========================================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f7f7f9; display: flex; justify-content: center; min-height: 100vh; color: #111; }
         
-        #preview-container {
-            width: 210mm; /* 強制 A4 寬度 */
+        .app-container { 
+            width: 100%; max-width: 480px; background-color: #ffffff; 
+            background-image: linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px; box-shadow: 0 0 20px rgba(0,0,0,0.05); min-height: 100vh;
+            position: relative; overflow-x: hidden;
         }
 
-        .doc-page {
-            font-family: 'DFKai-SB', 'BiauKai', '標楷體', serif !important;
-            font-size: 14pt; line-height: 1.5; color: black; text-align: left;
-            background: white; 
-            width: 210mm; /* A4 寬 */
-            min-height: 297mm; /* 至少 A4 高 */
-            padding: 2cm 2.5cm; box-sizing: border-box;
-            margin-bottom: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+        /* 視圖切換 (SPA) */
+        .view-section { display: none; animation: fadeIn 0.3s ease; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 避免多出一張空白頁 */
-        .doc-page:last-child { margin-bottom: 0; }
+        /* =========================================
+           2. 共用 UI 元件 (Toast, Loader)
+           ========================================= */
+        #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: #1c1c1e; color: white; padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .toast.error { background: #ef4444; }
+        .toast.success { background: #10b981; }
 
-        /* 傳統 HTML 表格與段落設定 (Word 100% 相容) */
-        .doc-page table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 14pt; }
-        .doc-page th, .doc-page td { border: 1px solid black; padding: 8px; vertical-align: middle; text-align: center; }
-        .doc-page .no-border td, .doc-page .no-border th { border: none !important; text-align: left; }
+        /* =========================================
+           3. 首頁視圖 (Home View) 樣式
+           ========================================= */
+        .top-bar { display: flex; justify-content: space-between; padding: 12px 20px; font-size: 12px; font-weight: 500; color: #737373; }
+        .top-bar .privacy { color: #10b981; }
+        .btn-admin-login { cursor: pointer; color: #aeaeb2; transition: color 0.2s; display: flex; align-items: center; gap: 4px; }
+        .btn-admin-login:hover { color: #5b21b6; }
         
-        /* 避免表格列被腰斬 */
-        tr { page-break-inside: avoid; }
+        .header { text-align: center; padding: 10px 0; }
+        .logo-badge { display: inline-flex; align-items: center; gap: 8px; background: #1c1c1e; color: #fff; padding: 8px 20px; border-radius: 20px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .logo-icon { width: 16px; height: 16px; border-radius: 4px; border: 2px solid #fff; }
 
-        @media print {
-            body * { visibility: hidden; }
-            #preview-wrapper, #preview-container, #preview-container * { visibility: visible; }
-            #preview-wrapper { position: absolute; left: 0; top: 0; background: white; padding: 0; width: 100%; margin: 0; }
-            .doc-page { box-shadow: none; margin: 0; page-break-after: always; }
-        }
+        .hero { text-align: center; padding: 20px 20px; }
+        .hero-tag { display: inline-block; background: #f3f0ff; color: #5b21b6; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 16px; border: 1px solid #e0d4fc; }
+        .hero-title { font-size: 34px; font-weight: 800; line-height: 1.2; letter-spacing: -1px; margin-bottom: 12px; }
+        .hero-title .highlight { color: #5b21b6; }
+        .hero-subtitle { font-size: 14px; color: #737373; line-height: 1.5; }
+
+        .guide-card { background: #fafafa; border: 1.5px dashed #d4d4d8; border-radius: 20px; margin: 0 20px 24px; padding: 16px 20px; }
+        .guide-header { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 12px; }
+        .guide-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #52525b; margin-bottom: 8px; line-height: 1.5; }
+        .guide-link { color: #5b21b6; text-decoration: none; font-weight: 600; cursor: pointer; }
+
+        .post-card { background: #fff; border: 1px solid #e5e5ea; border-radius: 24px; margin: 0 20px 30px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .post-input { width: 100%; border: none; outline: none; resize: none; font-size: 16px; min-height: 60px; margin-bottom: 12px; color: #111; }
+        .post-actions { display: flex; justify-content: space-between; align-items: center; }
+        .char-counter { font-size: 12px; color: #aeaeb2; }
+        .btn-submit { background: #c4b5fd; color: #fff; border: none; padding: 10px 24px; border-radius: 20px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-submit.active { background: #8b5cf6; }
+
+        .feed-divider { display: flex; align-items: center; padding: 0 20px; margin-bottom: 20px; font-size: 13px; font-weight: 500; color: #aeaeb2; }
+        .feed-divider::after { content: ""; flex: 1; height: 1px; background: #e5e5ea; margin-left: 12px; }
+        .post-list { display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }
+        
+        .message-card { background: #fff; border: 1px solid #e5e5ea; border-radius: 24px; margin: 0 20px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .msg-user { display: flex; align-items: center; gap: 10px; }
+        .msg-avatar { width: 36px; height: 36px; background: #f4f4f5; border-radius: 12px; display: flex; justify-content: center; align-items: center; }
+        .avatar-hex { width: 18px; height: 18px; background: #34d399; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .msg-name { font-weight: 700; font-size: 15px; }
+        .msg-time { font-size: 12px; color: #aeaeb2; font-weight: 500; }
+        .msg-content { font-size: 16px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; word-break: break-word; }
+        
+        .msg-actions { display: flex; gap: 12px; }
+        .btn-action { flex: 1; padding: 12px; border-radius: 16px; border: 1px solid #e5e5ea; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; justify-content: center; gap: 6px; }
+        
+        /* ✨ 權限控制核心 CSS ✨ */
+        .admin-only { display: none !important; }
+        body.is-admin .admin-only { display: flex !important; }
+        body.is-admin .btn-action.dark { background: #1c1c1e; border: none; color: white; }
+        body.is-admin .btn-admin-login { color: #5b21b6; font-weight: 600; }
+
+        /* =========================================
+           4. 法律聲明視圖 (Legal View) 樣式
+           ========================================= */
+        .nav-bar { position: sticky; top: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e5e5ea; z-index: 100; }
+        .btn-back { color: #5b21b6; font-weight: 600; font-size: 15px; cursor: pointer; }
+        .nav-title { flex: 1; text-align: center; font-weight: 700; font-size: 16px; margin-right: 30px; }
+        .doc-header { padding: 20px; text-align: center; }
+        .doc-title { font-size: 20px; font-weight: 800; margin-bottom: 12px; }
+        .doc-intro { background: #f3f0ff; padding: 16px; margin: 0 20px 20px; border-radius: 16px; border: 1px solid #e0d4fc; font-size: 13px; color: #4c1d95; line-height: 1.6; }
+        .accordion-group { padding: 0 20px 40px; display: flex; flex-direction: column; gap: 12px; }
+        details { background: #fff; border: 1px solid #e5e5ea; border-radius: 16px; overflow: hidden; }
+        summary { padding: 16px; font-weight: 700; font-size: 14px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: "＋"; color: #aeaeb2; transition: 0.2s; }
+        details[open] summary::after { transform: rotate(45deg); color: #5b21b6; }
+        details[open] summary { border-bottom: 1px solid #e5e5ea; background: #fafafa; }
+        .content-body { padding: 16px; font-size: 13px; line-height: 1.7; color: #3a3a3c; }
+
+        /* =========================================
+           5. IG 匯出專用隱藏畫布
+           ========================================= */
+        #ig-export-canvas { position: fixed; top: -9999px; left: -9999px; width: 1080px; height: 1080px; background: linear-gradient(135deg, #1c1c1e 0%, #2d2d30 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 100px; color: white; text-align: center; }
+        #ig-export-canvas .quote-icon { font-size: 80px; color: #8b5cf6; margin-bottom: 20px; }
+        #ig-export-content { font-size: 48px; font-weight: bold; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; max-height: 600px; overflow: hidden; }
+        #ig-export-footer { position: absolute; bottom: 80px; opacity: 0.8; }
+        #ig-export-id { font-size: 32px; font-family: monospace; font-weight: bold; margin-bottom: 10px; color: #34d399; }
+        #ig-export-watermark { font-size: 24px; letter-spacing: 2px; }
     </style>
 </head>
-<body class="h-screen overflow-hidden flex flex-col md:flex-row relative">
+<body>
 
-    <!-- ================= 左側控制面板 ================= -->
-    <div class="w-full md:w-5/12 lg:w-1/3 h-full bg-white shadow-2xl flex flex-col z-20 border-r border-gray-200">
-        <div class="p-4 bg-indigo-700 text-white flex justify-between items-center shrink-0">
-            <h1 class="text-lg font-bold tracking-wider">計畫申請書系統</h1>
-            <span class="text-xs bg-indigo-500 px-2 py-1 rounded">極速搶救版</span>
+    <div class="app-container">
+        
+        <div id="view-home" class="view-section active">
+            <div class="top-bar">
+                <div class="privacy">🛡️ 隱私保護啟用</div>
+                <!-- 管理員登入開關 -->
+                <div class="btn-admin-login" onclick="App.toggleAdmin()">🔒 管理員</div>
+            </div>
+
+            <div class="header">
+                <div class="logo-badge"><div class="logo-icon"></div>士商匿名板</div>
+            </div>
+
+            <div class="hero">
+                <div class="hero-tag">☼ 前台匿名・友善發言</div>
+                <h1 class="hero-title">說出你的心聲，<br><span class="highlight">匿名</span>也能被聽見</h1>
+                <p class="hero-subtitle">專屬的匿名留言板，一起讓校園更好。</p>
+            </div>
+
+            <div class="guide-card">
+                <div class="guide-header">💡 平台使用說明</div>
+                <div class="guide-item">👻 <strong>發文匿名：</strong>系統自動保護您的真實身分。</div>
+                <div class="guide-item">⚖️ <strong>友善守則：</strong>請遵守法律，切勿發布違法言論。詳閱 <span class="guide-link" onclick="App.switchView('legal')">平台法律救濟聲明</span>。</div>
+            </div>
+
+            <div class="post-card">
+                <textarea id="js-post-input" class="post-input" placeholder="匿名說點什麼吧⋯"></textarea>
+                <div class="post-actions">
+                    <span id="js-char-counter" class="char-counter">0 / 500</span>
+                    <button id="js-btn-submit" class="btn-submit" disabled>發布</button>
+                </div>
+            </div>
+
+            <div class="feed-divider">🛡️ 最新留言</div>
+            
+            <div id="js-post-list" class="post-list"></div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-4 space-y-5">
-            <!-- 1. 基本資料 -->
-            <div class="border rounded-lg p-4 bg-gray-50">
-                <h2 class="font-bold text-gray-800 border-b pb-2 mb-3">1. 申請人資料</h2>
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="block text-xs mb-1">姓名</label><input type="text" id="v_name" class="form-input"></div>
-                    <div><label class="block text-xs mb-1">身分證字號</label><input type="text" id="v_id" class="form-input"></div>
-                    <div><label class="block text-xs mb-1">出生年月日</label><input type="date" id="v_birth" class="form-input"></div>
-                    <div><label class="block text-xs mb-1">手機號碼</label><input type="tel" id="v_phone" class="form-input"></div>
-                    <div class="col-span-2"><label class="block text-xs mb-1">Email</label><input type="email" id="v_email" class="form-input"></div>
-                    <div class="col-span-2"><label class="block text-xs mb-1">戶籍地址</label><input type="text" id="v_address" class="form-input"></div>
-                </div>
-                <div class="mt-4 pt-3 border-t">
-                    <label class="block text-xs font-bold text-gray-700 mb-2">緊急連絡人</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div><input type="text" id="v_em_name" class="form-input" placeholder="姓名"></div>
-                        <div><input type="text" id="v_em_relation" class="form-input" placeholder="關係"></div>
-                        <div class="col-span-2"><input type="tel" id="v_em_phone" class="form-input" placeholder="連絡電話"></div>
-                    </div>
-                </div>
+        <div id="view-legal" class="view-section">
+            <div class="nav-bar">
+                <div class="btn-back" onclick="App.switchView('home')">〈 返回</div>
+                <div class="nav-title">平台規範與聲明</div>
             </div>
-
-            <!-- 2. 法定代理人 -->
-            <div class="border rounded-lg p-4 bg-gray-50">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="font-bold text-gray-800">2. 法定代理人 (未滿18歲)</h2>
-                    <input type="checkbox" id="v_is_guardian" class="w-5 h-5 cursor-pointer">
-                </div>
-                <div id="wrap_guardian" class="hidden grid-cols-2 gap-3 pt-2 border-t">
-                    <div><label class="block text-xs mb-1">姓名</label><input type="text" id="v_g_name" class="form-input"></div>
-                    <div><label class="block text-xs mb-1">關係</label><input type="text" id="v_g_relation" class="form-input"></div>
-                    <div class="col-span-2"><label class="block text-xs mb-1">身分證字號</label><input type="text" id="v_g_id" class="form-input"></div>
-                    <div class="col-span-2"><label class="block text-xs mb-1">聯絡電話</label><input type="tel" id="v_g_phone" class="form-input"></div>
-                    <div class="col-span-2"><label class="block text-xs mb-1">聯絡地址</label><input type="text" id="v_g_address" class="form-input"></div>
-                </div>
+            <div class="doc-header">
+                <h1 class="doc-title">平台獨立性、成員權益及<br>法律救濟聲明</h1>
             </div>
-
-            <!-- 3. 計畫資訊與圖片 -->
-            <div class="border rounded-lg p-4 bg-gray-50">
-                <h2 class="font-bold text-gray-800 border-b pb-2 mb-3">3. 計畫與證件</h2>
-                <div class="space-y-3">
-                    <div><label class="block text-xs mb-1">計畫名稱與編號</label><input type="text" id="v_project_name" class="form-input"></div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div><label class="block text-xs mb-1">身分證正面</label><input type="file" id="i_img_front" accept="image/*" class="text-xs"></div>
-                        <div><label class="block text-xs mb-1">身分證反面</label><input type="file" id="i_img_back" accept="image/*" class="text-xs"></div>
-                    </div>
-                </div>
+            <div class="doc-intro">
+                本平台為獨立運作之匿名交流平台，非官方系統。任何權威身分均不得要求本平台關閉或提供使用者資料。本團隊將依法維護權益。
             </div>
-
-            <!-- 4. 內文 -->
-            <div class="border rounded-lg p-4 bg-gray-50">
-                <h2 class="font-bold text-gray-800 border-b pb-2 mb-3">4. 申請書內文</h2>
-                <div class="space-y-4">
-                    <div><label class="block text-sm font-bold mb-1">1. 學經歷</label><textarea id="v_content_1" rows="2" class="form-input"></textarea></div>
-                    <div><label class="block text-sm font-bold mb-1">2. 對計畫了解</label><textarea id="v_content_2" rows="2" class="form-input"></textarea></div>
-                    <div><label class="block text-sm font-bold mb-1">3. 動機及期待</label><textarea id="v_content_3" rows="2" class="form-input"></textarea></div>
-                    <div><label class="block text-sm font-bold mb-1">4. 未來規劃及影響</label><textarea id="v_content_4" rows="2" class="form-input"></textarea></div>
-                    <div class="bg-white p-2 rounded border">
-                        <label class="block text-sm font-bold mb-1">5. 經費需求同意書</label>
-                        <div class="flex gap-4 text-sm">
-                            <label><input type="radio" name="v_funding" value="agree" checked> 同意</label>
-                            <label><input type="radio" name="v_funding" value="disagree"> 不同意</label>
-                        </div>
-                    </div>
-                    <div><label class="block text-sm font-bold mb-1">6. 外語證明 (選填)</label><textarea id="v_content_5" rows="2" class="form-input"></textarea></div>
-                    <div><label class="block text-sm font-bold mb-1">7. 其他證明 (選填)</label><textarea id="v_content_6" rows="2" class="form-input"></textarea></div>
-                </div>
-            </div>
-
-            <!-- 5. 簽名區 -->
-            <div class="border rounded-lg p-4 bg-gray-50 pb-8">
-                <h2 class="font-bold text-gray-800 border-b pb-2 mb-3">5. 本機智慧簽章</h2>
-                <div class="space-y-4">
-                    <div class="bg-white p-3 rounded border flex items-center justify-between shadow-sm">
-                        <span class="font-bold text-sm">申請人簽名</span>
-                        <button onclick="openSignModal('app')" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded hover:bg-indigo-200">點我開啟簽名板</button>
-                    </div>
-                    <div id="wrap_sign_gua" class="hidden bg-white p-3 rounded border items-center justify-between shadow-sm">
-                        <span class="font-bold text-sm">法定代理人簽名</span>
-                        <button onclick="openSignModal('gua')" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded hover:bg-indigo-200">點我開啟簽名板</button>
-                    </div>
-                </div>
+            <div class="accordion-group">
+                <details><summary>一、關於使用者資料</summary><div class="content-body">除法律另有規定，本平台不會向第三方提供識別資料。為保障受害人訴訟權益，系統將保存必要之設備指紋，非經合法程序不外流。</div></details>
+                <details><summary>二、收到檢舉後之處理</summary><div class="content-body">收到檢舉不當然等同於內容確定違法。平台不接受「僅因遭檢舉即必須移除」之推論，將依法進行審查。</div></details>
+                <details><summary>三、關於言論自由</summary><div class="content-body">尊重《憲法》保障之言論自由。單純玩笑、誇飾（嘴砲）非當然違法，但絕不縱容恐嚇、誹謗等明確犯罪行為。</div></details>
+                <details><summary>四、學校不得要求交出權限之事由</summary><div class="content-body">任何學校不得以「影響校譽」、「行政指導」或未經調查之家長反映，要求本平台關閉或交出使用者資料。</div></details>
             </div>
         </div>
 
-        <div class="p-4 bg-white border-t flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] shrink-0 z-30">
-            <button onclick="exportWord()" class="flex-1 bg-white border-2 border-indigo-600 text-indigo-700 font-bold py-3 rounded-lg hover:bg-indigo-50 transition">📥 匯出 Word</button>
-            <button onclick="exportPDF()" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition shadow-md">📥 匯出 PDF</button>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <div id="ig-export-canvas">
+        <div class="quote-icon">❝</div>
+        <div id="ig-export-content"></div>
+        <div id="ig-export-footer">
+            <div id="ig-export-id"></div>
+            <div id="ig-export-watermark">🔍 IG: @slhs_anonymous</div>
         </div>
     </div>
 
-    <!-- ================= 右側：直接預覽與轉檔區 ================= -->
-    <!-- 所見即所得，這個區塊會直接被轉換成 PDF，保證不空白 -->
-    <div class="w-full md:w-7/12 lg:w-2/3 h-full" id="preview-wrapper">
-        <div id="preview-container">
-            <!-- 內容由 JS 動態產生 -->
-        </div>
-    </div>
-
-    <!-- ================= 簽名畫布彈出視窗 ================= -->
-    <div id="sign_modal" class="hidden fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg w-full max-w-lg flex flex-col shadow-2xl overflow-hidden">
-            <div class="bg-indigo-600 text-white px-4 py-3 flex justify-between items-center">
-                <h3 class="font-bold" id="sign_title">請簽名</h3>
-                <button onclick="closeSignModal()" class="text-white font-bold text-xl hover:text-gray-200">&times;</button>
-            </div>
-            <div class="p-4 bg-gray-50">
-                <div id="canvas_wrap" class="w-full h-[300px] bg-white border-2 border-dashed border-gray-400 rounded relative">
-                    <canvas id="sign_canvas" class="absolute inset-0 w-full h-full touch-none z-10 cursor-crosshair"></canvas>
-                    <div class="absolute inset-0 flex items-center justify-center text-gray-200 text-3xl font-bold -rotate-12 select-none z-0">簽名區</div>
-                </div>
-            </div>
-            <div class="px-4 py-3 bg-white border-t flex gap-3">
-                <button onclick="clearCanvas()" class="flex-1 py-2 bg-gray-200 font-bold text-gray-700 rounded hover:bg-gray-300">清除重寫</button>
-                <button onclick="saveSignature()" class="flex-[2] py-2 bg-indigo-600 font-bold text-white rounded hover:bg-indigo-700 shadow">確認儲存</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= 系統核心架構 ================= -->
     <script>
-        // 1. 全域資料狀態
-        const state = {
-            v_name: '', v_id: '', v_birth: '', v_phone: '', v_email: '', v_address: '',
-            v_em_name: '', v_em_relation: '', v_em_phone: '',
-            v_is_guardian: false,
-            v_g_name: '', v_g_relation: '', v_g_id: '', v_g_phone: '', v_g_address: '',
-            v_project_name: '', 
-            v_content_1: '', v_content_2: '', v_content_3: '', v_content_4: '', v_content_5: '', v_content_6: '',
-            v_funding: 'agree',
-            img_front: null, img_back: null, sig_app: null, sig_gua: null
+        const Config = { MAX_CHARS: 500 };
+
+        const Utils = {
+            escapeHTML: (str) => { const div = document.createElement('div'); div.appendChild(document.createTextNode(str)); return div.innerHTML; },
+            generateID: () => 'PID-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+            getTimeAgo: (dateString) => {
+                const diff = Math.floor((new Date() - new Date(dateString)) / 60000);
+                if (diff < 1) return '剛剛';
+                if (diff < 60) return `${diff} 分鐘前`;
+                return `${Math.floor(diff/60)} 小時前`;
+            }
         };
 
-        // 2. 綁定輸入事件
-        const textFields = ['v_name', 'v_id', 'v_birth', 'v_phone', 'v_email', 'v_address', 'v_em_name', 'v_em_relation', 'v_em_phone', 'v_g_name', 'v_g_relation', 'v_g_id', 'v_g_phone', 'v_g_address', 'v_project_name', 'v_content_1', 'v_content_2', 'v_content_3', 'v_content_4', 'v_content_5', 'v_content_6'];
-        
-        textFields.forEach(key => {
-            document.getElementById(key).addEventListener('input', e => {
-                state[key] = e.target.value;
-                renderDocument();
-            });
-        });
-
-        document.getElementById('v_is_guardian').addEventListener('change', e => {
-            state.v_is_guardian = e.target.checked;
-            document.getElementById('wrap_guardian').style.display = e.target.checked ? 'grid' : 'none';
-            document.getElementById('wrap_sign_gua').style.display = e.target.checked ? 'flex' : 'none';
-            renderDocument();
-        });
-
-        document.querySelectorAll('input[name="v_funding"]').forEach(el => {
-            el.addEventListener('change', e => { state.v_funding = e.target.value; renderDocument(); });
-        });
-
-        function bindImage(id, key) {
-            document.getElementById(id).addEventListener('change', e => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = ev => { state[key] = ev.target.result; renderDocument(); };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-        bindImage('i_img_front', 'img_front');
-        bindImage('i_img_back', 'img_back');
-
-        // 3. 核心渲染引擎
-        function renderDocument() {
-            const y = new Date().getFullYear() - 1911;
-            const m = new Date().getMonth() + 1;
-            const d = new Date().getDate();
-
-            const v = (key) => state[key] || '';
-            const h = (key) => state[key] ? state[key].replace(/\n/g, '<br>') : '';
-            const img = (key, text) => state[key] ? `<img src="${state[key]}" style="max-width:100%; max-height:180px; object-fit:contain;" />` : `<span style="color:#999;">${text}</span>`;
-            const sig = (key) => state[key] ? `<img src="${state[key]}" style="max-height:40px; width:auto;" />` : `<span style="color:#999;">請親筆簽名</span>`;
-
-            const chk_g = state.v_is_guardian ? '☑' : '&nbsp;&nbsp;';
-            const chk_agree = state.v_funding === 'agree' ? '☑' : '&nbsp;&nbsp;';
-            const chk_disagree = state.v_funding === 'disagree' ? '☑' : '&nbsp;&nbsp;';
-
-            let html = '';
-
-            // 頁面 1：檢核清單
-            html += `
-                <div class="doc-page">
-                    <div style="text-align: right; font-size: 12pt; margin-bottom: 10px;">附件1</div>
-                    <div style="font-size: 18pt; font-weight: bold; text-align: center; margin-bottom: 20px; line-height: 1.5;">教育部青年發展署<br>青年百億海外圓夢基金計畫海外翱翔組<br>申請檢核清單</div>
-                    <table border="1" cellpadding="8" cellspacing="0">
-                        <tr><th style="width: 15%;">檢核(請打勾)</th><th style="width: 35%;">內容</th><th>說明</th></tr>
-                        <tr><td>[ &nbsp;&nbsp; ]</td><td>申請資料上傳</td><td style="text-align:left;">請至平臺登入填寫。</td></tr>
-                        <tr><td>[ &nbsp;&nbsp; ]</td><td colspan="2" style="font-weight: bold;">申請文件請於報名期間以PDF檔分別上傳至報名專區</td></tr>
-                        <tr><td>[ &nbsp;&nbsp; ]</td><td>(1)參與切結書</td><td style="text-align:left;">附件2</td></tr>
-                        <tr><td>[ &nbsp;&nbsp; ]</td><td>(2)特殊身分證明文件</td><td style="text-align:left;">請檢附相關證明文件。</td></tr>
-                        <tr><td>[ ${chk_g} ]</td><td>(3)法定代理人同意書</td><td style="text-align:left;">附件3，未成年者務必繳交</td></tr>
-                        <tr><td>[ ☑ ]</td><td>(4)計畫申請書</td><td style="text-align:left;">附件4、5</td></tr>
-                    </table>
-                </div>
-                <div class="html2pdf__page-break" style="page-break-before: always; height:0;"></div>
-            `;
-
-            // 頁面 2：切結書
-            html += `
-                <div class="doc-page">
-                    <div style="text-align: right; font-size: 12pt;">附件2</div>
-                    <div style="font-weight: bold; font-size: 12pt; margin-bottom: 10px;">參與切結書（須親筆簽名提供予青年百億海外圓夢基金計畫專案小組。）</div>
-                    <div style="font-size: 16pt; font-weight: bold; text-align: center; margin: 20px 0;">教育部青年發展署<br>青年百億海外圓夢基金計畫海外翱翔組<br>參與切結書</div>
-                    <div style="text-indent: 2em; line-height: 1.5; margin-bottom: 10px; text-align:justify;">
-                        本人申請「115年青年百億海外圓夢基金計畫海外翱翔組」<span style="border-bottom: 1px solid black; padding: 0 5px;">${v('v_project_name')}</span>提案。本人確定所填資料均屬事實，嗣後如經查發現不實情事，願負一切法律責任，並繳回已領取獎勵金，特此切結。
-                    </div>
-                    <div style="text-indent: 2em; line-height: 1.5; margin-bottom: 20px; text-align:justify;">
-                        另同意於審查錄取後，依相關規定辦理，參與並完成計畫。
-                    </div>
-                    <div style="margin-bottom: 20px;">此致<br><span style="padding-left: 2em;">教育部青年發展署</span></div>
-                    
-                    <table border="1" cellpadding="6" cellspacing="0" style="width: 60%; margin: 0 0 20px auto;">
-                        <tr><th style="width: 40%; font-weight: normal;">立切結書人</th><td>${v('v_name')}</td></tr>
-                        <tr><th style="font-weight: normal;">簽章</th><td style="height: 50px;">${sig('sig_app')}</td></tr>
-                    </table>
-                    <div style="text-align: right; margin-bottom: 20px;">中華民國 ${y} 年 ${m} 月 ${d} 日</div>
-
-                    <div style="font-weight: bold; margin-bottom: 5px;">一、申請人資料</div>
-                    <table border="1" cellpadding="6" cellspacing="0">
-                        <tr><th rowspan="2" style="width: 15%; font-weight: normal;">立切結書人</th><th style="font-weight: normal;">姓名</th><th style="font-weight: normal;">身分證字號</th><th style="font-weight: normal;">出生年月日</th><th style="font-weight: normal;">手機號碼</th><th colspan="2" style="font-weight: normal;">戶籍地址</th></tr>
-                        <tr><td style="height: 30px;">${v('v_name')}</td><td>${v('v_id')}</td><td>${v('v_birth')}</td><td>${v('v_phone')}</td><td colspan="2" style="text-align:left;">${v('v_address')}</td></tr>
-                        <tr><th rowspan="2" style="font-weight: normal;">緊急連絡人</th><th style="font-weight: normal;">姓名</th><th style="font-weight: normal;">關係</th><th colspan="4" style="font-weight: normal;">連絡電話</th></tr>
-                        <tr><td style="height: 30px;">${v('v_em_name')}</td><td>${v('v_em_relation')}</td><td colspan="4">${v('v_em_phone')}</td></tr>
-                    </table>
-                    <div style="margin-top: 10px;">計畫編號：<span style="border-bottom: 1px solid black; padding: 0 10px;">${v('v_project_name')}</span></div>
-                </div>
-                <div class="html2pdf__page-break" style="page-break-before: always; height:0;"></div>
-            `;
-
-            // 頁面 3：身分證
-            html += `
-                <div class="doc-page">
-                    <div style="font-weight: bold; font-size: 16pt; margin-bottom: 20px;">二、請提供身分證正反面影本</div>
-                    <table border="1" cellpadding="8" cellspacing="0">
-                        <tr><th style="width: 25%; font-weight: normal;">立切結書人</th><th style="font-weight: normal;">證件正反面影本</th></tr>
-                        <tr>
-                            <td style="font-weight: bold; font-size: 16pt;">${v('v_name')}</td>
-                            <td style="padding: 20px;">
-                                <div style="border: 1px solid black; width: 320px; height: 200px; margin: 0 auto 20px auto; background: #f9f9f9; display:flex; justify-content:center; align-items:center;">
-                                    ${img('img_front', '正面影本放置處')}
-                                </div>
-                                <div style="border: 1px solid black; width: 320px; height: 200px; margin: 0 auto; background: #f9f9f9; display:flex; justify-content:center; align-items:center;">
-                                    ${img('img_back', '反面影本放置處')}
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                    <div style="margin-top: 15px; font-size: 12pt;">附註：本表填妥後請於報名期間以PDF檔上傳。</div>
-                </div>
-                <div class="html2pdf__page-break" style="page-break-before: always; height:0;"></div>
-            `;
-
-            // 頁面 4：法定代理人 (依條件)
-            if (state.v_is_guardian) {
-                html += `
-                    <div class="doc-page">
-                        <div style="text-align: right; font-size: 12pt;">附件3</div>
-                        <div style="font-weight: bold; font-size: 12pt; margin-bottom: 10px;">法定代理人同意書</div>
-                        <div style="font-size: 18pt; font-weight: bold; text-align: center; margin: 30px 0;">教育部青年發展署<br>115年青年百億海外圓夢基金計畫海外翱翔組<br>法定代理人同意書</div>
-                        <div style="text-indent: 2em; line-height: 2; margin-bottom: 30px; text-align:justify;">
-                            本人 <span style="border-bottom: 1px solid black; padding: 0 10px;">${v('v_g_name')}</span> (法定代理人姓名) 為 <span style="border-bottom: 1px solid black; padding: 0 10px;">${v('v_name')}</span> (申請人姓名) (身分證字號：${v('v_id')}) 之法定代理人(關係：${v('v_g_relation')})，茲承諾同意申請人參加「115年百億海外圓夢基金計畫海外翱翔組」，並同意遵守相關規定。
-                        </div>
-                        <div style="text-align: right; margin-bottom: 40px;">此致 教育部青年發展署</div>
-                        
-                        <table class="no-border" style="width: 100%;">
-                            <tr>
-                                <td style="width: 50%; vertical-align: top; line-height: 2; padding-right:10px;">
-                                    <div>法定代理人姓名：<span style="border-bottom: 1px solid black;">${v('v_g_name')}</span></div>
-                                    <div style="min-height: 50px;">簽章：${sig('sig_gua')}</div>
-                                    <div>身分證字號：<span style="border-bottom: 1px solid black;">${v('v_g_id')}</span></div>
-                                    <div>聯絡手機：<span style="border-bottom: 1px solid black;">${v('v_g_phone')}</span></div>
-                                    <div>聯絡地址：<span style="border-bottom: 1px solid black;">${v('v_g_address')}</span></div>
-                                </td>
-                                <td style="width: 50%; vertical-align: top; line-height: 2; padding-left:10px;">
-                                    <div>申請人姓名：<span style="border-bottom: 1px solid black;">${v('v_name')}</span></div>
-                                    <div style="min-height: 50px;">簽章：${sig('sig_app')}</div>
-                                    <div>身分證字號：<span style="border-bottom: 1px solid black;">${v('v_id')}</span></div>
-                                    <div>聯絡手機：<span style="border-bottom: 1px solid black;">${v('v_phone')}</span></div>
-                                    <div>計畫名稱：<span style="border-bottom: 1px solid black;">${v('v_project_name')}</span></div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="html2pdf__page-break" style="page-break-before: always; height:0;"></div>
-                `;
+        const Toast = {
+            show: (msg, type = '') => {
+                const container = document.getElementById('toast-container');
+                const t = document.createElement('div');
+                t.className = `toast ${type}`;
+                t.textContent = msg;
+                container.appendChild(t);
+                setTimeout(() => { t.style.opacity=0; setTimeout(()=>t.remove(), 300); }, 2500);
             }
+        };
 
-            // 頁面 5：封面
-            html += `
-                <div class="doc-page">
-                    <div style="text-align: right; font-size: 12pt; margin-bottom: 3cm;">附件4</div>
-                    <div style="font-size: 18pt; font-weight: bold; text-align:center; margin-bottom: 10px;">教育部青年發展署</div>
-                    <div style="font-size: 18pt; font-weight: bold; text-align:center; margin-bottom: 10px;">青年百億海外圓夢基金計畫</div>
-                    <div style="font-size: 18pt; font-weight: bold; text-align:center; margin-bottom: 30px;">海外翱翔組</div>
-                    <div style="font-size: 26pt; font-weight: bold; text-align:center; margin-bottom: 2.5cm;">計畫申請書</div>
-                    
-                    <table class="no-border" style="width: 80%; margin: 0 auto; font-size: 16pt;">
-                        <tr><td style="width: 40%; text-align: right; padding: 15px;">申請人姓名：</td><td style="border-bottom: 1px solid black !important;">${v('v_name')}</td></tr>
-                        <tr><td style="text-align: right; padding: 15px;">計畫編號與名稱：</td><td style="border-bottom: 1px solid black !important;">${v('v_project_name')}</td></tr>
-                        <tr><td style="text-align: right; padding: 15px;">手機：</td><td style="border-bottom: 1px solid black !important;">${v('v_phone')}</td></tr>
-                        <tr><td style="text-align: right; padding: 15px;">E-mail：</td><td style="border-bottom: 1px solid black !important;">${v('v_email')}</td></tr>
-                    </table>
+        const IgExport = {
+            process: async (id, content) => {
+                Toast.show('📸 正在生成高畫質 IG 圖片...');
+                document.getElementById('ig-export-id').textContent = `#${id}`;
+                const contentEl = document.getElementById('ig-export-content');
+                contentEl.textContent = content;
+                contentEl.style.fontSize = content.length > 150 ? '36px' : (content.length > 300 ? '28px' : '48px');
 
-                    <div style="font-size: 18pt; text-align:center; margin-top: 3cm;">中華民國 ${y} 年 ${m} 月 ${d} 日</div>
-                </div>
-                <div class="html2pdf__page-break" style="page-break-before: always; height:0;"></div>
-            `;
-
-            // 頁面 6：內文 (允許自動生長)
-            html += `
-                <div class="doc-page" style="height: auto; min-height: 297mm;">
-                    <div style="text-align: right; font-size: 12pt;">附件5</div>
-                    <div style="font-size: 18pt; font-weight: bold; margin: 20px 0;">計畫申請書（內文）</div>
-                    
-                    <div style="line-height: 1.8;">
-                        <div style="margin-bottom: 15px;"><b>一、請依照下列項目順序撰寫申請青年之學經歷。</b><br><div style="padding-left: 2em;">${h('v_content_1')}</div></div>
-                        <div style="margin-bottom: 15px;"><b>二、對所申請機關及此項圓夢機會的了解。</b><br><div style="padding-left: 2em;">${h('v_content_2')}</div></div>
-                        <div style="margin-bottom: 15px;"><b>三、申請的原因、動機及期待。</b><br><div style="padding-left: 2em;">${h('v_content_3')}</div></div>
-                        <div style="margin-bottom: 15px;"><b>四、回國後的未來發展規劃及後續行動。</b><br><div style="padding-left: 2em;">${h('v_content_4')}</div></div>
-                        <div style="margin-bottom: 15px;">
-                            <b>五、經費需求同意：</b><br>
-                            <div style="text-indent: 2em; line-height: 1.5; margin: 5px 0 10px 0; text-align: justify;">
-                                依據本計畫平臺圓夢一覽表中公布之簡章中所申請圓夢機會之合作計畫所列經費編列，如獲錄取，將依簡章中之經費編列將獲選之實踐獎勵金撥付予獲選青年或合作單位，如該計畫相關支出由合作單位統一辦理，則請獲選青年填具委託第三方代收獎勵金委託切結書辦理。倘青年不同意依此方式辦理，將納入審核參考。
-                            </div>
-                            <div style="padding-left: 2em;">
-                                [ ${chk_agree} ] 同意上述辦理方式<br>
-                                [ ${chk_disagree} ] 不同意上述辦理方式
-                            </div>
-                        </div>
-                        <div style="margin-bottom: 15px;"><b>六、外語能力證明文件。</b><br><div style="padding-left: 2em;">${h('v_content_5')}</div></div>
-                        <div style="margin-bottom: 15px;"><b>七、其他證明文件。</b><br><div style="padding-left: 2em;">${h('v_content_6')}</div></div>
-                    </div>
-
-                    <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #999; font-size: 12pt; line-height: 1.5;">
-                        <div style="font-weight: bold;">格式說明</div>
-                        <div style="padding-left: 2em; margin-top: 5px;">紙張規格：A4直式橫書<br>頁數：計畫內文15-30頁<br>行距：固定行高24點<br>字型：標楷體<br>編頁碼</div>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('preview-container').innerHTML = html;
-        }
-
-        renderDocument(); // 初次載入渲染
-
-        // ---------------- 4. 匯出邏輯 (絕對不隱藏、絕對有畫面) ----------------
-        function exportPDF() {
-            // 直接抓取在畫面上、絕對存在的 preview-container
-            const element = document.getElementById('preview-container');
-            
-            html2pdf().set({
-                margin: 0,
-                filename: '青年百億計畫申請書.pdf',
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: 'css' }
-            }).from(element).save();
-        }
-
-        function exportWord() {
-            const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-            <head><meta charset='utf-8'><style>
-                @page { size: 21cm 29.7cm; margin: 2.5cm; }
-                body { font-family: '標楷體', DFKai-SB, serif; font-size: 14pt; line-height: 24pt; color: black; }
-                table { border-collapse: collapse; width: 100%; font-size: 14pt; }
-                th, td { border: 1px solid black; padding: 8px; vertical-align: middle; text-align: center; }
-                .no-border td { border: none !important; text-align: left; }
-                .html2pdf__page-break { mso-special-character: line-break; page-break-before: always; height: 0; }
-            </style></head><body>`;
-            
-            const bodyHtml = document.getElementById('preview-container').innerHTML;
-            const blob = new Blob(['\ufeff', header + bodyHtml + '</body></html>'], { type: 'application/msword' });
-            const link = document.createElement('a'); 
-            link.href = URL.createObjectURL(blob); 
-            link.download = '青年百億計畫申請書.doc'; 
-            link.click();
-        }
-
-        // ---------------- 5. 簽名板 (純本機操作，最穩定) ----------------
-        const canvas = document.getElementById('sign_canvas');
-        const ctx = canvas.getContext('2d');
-        let isDrawing = false, currentSignRole = '';
-
-        function resizeCanvas() {
-            const wrap = document.getElementById('canvas_wrap');
-            canvas.width = wrap.clientWidth; canvas.height = wrap.clientHeight;
-            ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = 'black';
-        }
-
-        function getPos(e) {
-            const r = canvas.getBoundingClientRect();
-            const cx = e.touches ? e.touches[0].clientX : e.clientX;
-            const cy = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: cx - r.left, y: cy - r.top };
-        }
-
-        canvas.addEventListener('pointerdown', e => { e.preventDefault(); isDrawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
-        canvas.addEventListener('pointermove', e => { e.preventDefault(); if(!isDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-        canvas.addEventListener('pointerup', () => { isDrawing = false; ctx.closePath(); });
-        canvas.addEventListener('pointerout', () => { isDrawing = false; });
-        
-        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-        
-        window.openSignModal = function(role) {
-            currentSignRole = role;
-            document.getElementById('sign_title').innerText = role === 'app' ? '申請人簽名' : '法定代理人簽名';
-            document.getElementById('sign_modal').style.display = 'flex';
-            setTimeout(resizeCanvas, 100);
-        }
-        window.closeSignModal = function() { document.getElementById('sign_modal').style.display = 'none'; clearCanvas(); }
-
-        window.saveSignature = function() {
-            let top=null, bottom=null, left=null, right=null;
-            const w = canvas.width, h = canvas.height, imgData = ctx.getImageData(0,0,w,h).data;
-            for(let y=0; y<h; y++) {
-                for(let x=0; x<w; x++) {
-                    if(imgData[(y*w+x)*4+3] > 0) {
-                        if(top===null) top=y; bottom=y;
-                        if(left===null || x<left) left=x; if(right===null || x>right) right=x;
-                    }
+                try {
+                    const canvas = await html2canvas(document.getElementById('ig-export-canvas'), { scale: 2, backgroundColor: null });
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL("image/jpeg", 0.9);
+                    link.download = `士商匿名板_${id}.jpg`;
+                    link.click();
+                    Toast.show('✅ 圖片已下載！', 'success');
+                } catch (e) {
+                    Toast.show('生成失敗', 'error');
                 }
             }
-            if(top===null) { alert('請在畫布上簽名！'); return; }
-            
-            const pad = 10; left = Math.max(0, left-pad); top = Math.max(0, top-pad); right = Math.min(w, right+pad); bottom = Math.min(h, bottom+pad);
-            const tc = document.createElement('canvas'); tc.width = right-left; tc.height = bottom-top;
-            tc.getContext('2d').drawImage(canvas, left, top, right-left, bottom-top, 0, 0, right-left, bottom-top);
-            const dataUrl = tc.toDataURL('image/png');
+        };
 
-            if(currentSignRole === 'app') { state.sig_app = dataUrl; }
-            else { state.sig_gua = dataUrl; }
-            
-            renderDocument(); closeSignModal();
-        }
+        const Api = {
+            data: [
+                { id: "PID-X9A2B1", content: "這個匿名板的 UI 也太好看，而且發文真的不用登入耶！", timestamp: new Date(Date.now() - 1200000).toISOString() },
+                { id: "PID-Y7Z8W9", content: "溫馨提醒一下那些往洗手台倒廚餘的\n你們的學分也一起倒進去了喔", timestamp: new Date(Date.now() - 3600000).toISOString() }
+            ],
+            fetch: async () => [...Api.data],
+            post: async (content) => {
+                await new Promise(r => setTimeout(r, 600));
+                const newPost = { id: Utils.generateID(), content, timestamp: new Date().toISOString() };
+                Api.data.unshift(newPost);
+                return newPost;
+            }
+        };
+
+        const App = {
+            isAdmin: false,
+            els: {
+                input: document.getElementById('js-post-input'),
+                counter: document.getElementById('js-char-counter'),
+                submitBtn: document.getElementById('js-btn-submit'),
+                feed: document.getElementById('js-post-list')
+            },
+
+            init: () => {
+                App.els.input.addEventListener('input', App.handleInput);
+                App.els.submitBtn.addEventListener('click', App.handleSubmit);
+                App.els.feed.addEventListener('click', App.handleFeedClick);
+                App.loadPosts();
+            },
+
+            // ✨ 管理員登入邏輯
+            toggleAdmin: () => {
+                if (App.isAdmin) {
+                    App.isAdmin = false;
+                    document.body.classList.remove('is-admin');
+                    Toast.show('已登出管理員模式');
+                    return;
+                }
+                
+                const pwd = prompt('🔒 請輸入管理員密碼 (測試請輸入: admin)');
+                if (pwd === 'admin') {
+                    App.isAdmin = true;
+                    document.body.classList.add('is-admin');
+                    Toast.show('🔓 管理員模式已啟用，可匯出 IG 圖片', 'success');
+                } else if (pwd !== null) {
+                    Toast.show('密碼錯誤', 'error');
+                }
+            },
+
+            switchView: (viewName) => {
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                document.getElementById(`view-${viewName}`).classList.add('active');
+                window.scrollTo(0,0);
+            },
+
+            handleInput: (e) => {
+                const len = e.target.value.length;
+                App.els.counter.textContent = `${len} / ${Config.MAX_CHARS}`;
+                const isValid = len > 0 && len <= Config.MAX_CHARS;
+                App.els.submitBtn.disabled = !isValid;
+                App.els.submitBtn.className = isValid ? 'btn-submit active' : 'btn-submit';
+            },
+
+            handleSubmit: async () => {
+                const content = App.els.input.value.trim();
+                if (!content) return;
+                
+                App.els.submitBtn.disabled = true;
+                App.els.submitBtn.textContent = '發布中...';
+                
+                try {
+                    await Api.post(content);
+                    App.els.input.value = '';
+                    App.handleInput({target: {value: ''}});
+                    Toast.show('🎉 發布成功！', 'success');
+                    App.loadPosts();
+                } catch (e) {
+                    Toast.show('發布失敗', 'error');
+                } finally {
+                    App.els.submitBtn.textContent = '發布';
+                }
+            },
+
+            handleFeedClick: (e) => {
+                const btn = e.target.closest('.btn-action');
+                if (!btn) return;
+                
+                const id = btn.dataset.id;
+                if (btn.classList.contains('dark') && App.isAdmin) {
+                    IgExport.process(id, btn.dataset.content);
+                } else {
+                    Toast.show(`⚠️ 已記錄對於 ${id} 的檢舉案卷`);
+                }
+            },
+
+            loadPosts: async () => {
+                const posts = await Api.fetch();
+                App.els.feed.innerHTML = '';
+                
+                posts.forEach(post => {
+                    const safeContent = Utils.escapeHTML(post.content);
+                    const html = `
+                        <div class="message-card">
+                            <div class="msg-header">
+                                <div class="msg-user">
+                                    <div class="msg-avatar"><div class="avatar-hex"></div></div>
+                                    <div class="msg-name">匿名同學 <span style="font-size:11px; color:#c4b5fd; margin-left:4px;">${post.id}</span></div>
+                                </div>
+                                <div class="msg-time">${Utils.getTimeAgo(post.timestamp)}</div>
+                            </div>
+                            <div class="msg-content">${safeContent}</div>
+                            <div class="msg-actions">
+                                <!-- 加上 admin-only 標籤，一般人看不到 -->
+                                <button class="btn-action dark admin-only" data-id="${post.id}" data-content="${safeContent}">📸 匯出 IG</button>
+                                <button class="btn-action" data-id="${post.id}">⚠️ 檢舉</button>
+                            </div>
+                        </div>
+                    `;
+                    App.els.feed.insertAdjacentHTML('beforeend', html);
+                });
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', App.init);
     </script>
 </body>
 </html>
-```eof
