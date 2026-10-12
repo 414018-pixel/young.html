@@ -108,6 +108,9 @@
         .admin-badge { display: none; background: #fee2e2; color: #dc2626; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fecaca; width: fit-content; }
         .request-pin-badge { display: none; background: #fef3c7; color: #d97706; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fde68a; width: fit-content; }
 
+        /* =========================================
+           權限控制
+           ========================================= */
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: flex !important; }
         body.is-admin .btn-admin-login { color: #5b21b6; font-weight: 600; }
@@ -126,9 +129,10 @@
         .doc-title { font-size: 20px; font-weight: 800; margin-bottom: 12px; line-height: 1.4; }
         .doc-meta { font-size: 12px; color: #737373; margin-bottom: 16px; }
         .doc-intro { background: #f3f0ff; padding: 16px; margin: 0 20px 20px; border-radius: 12px; border: 1px solid #e0d4fc; font-size: 13px; color: #4c1d95; line-height: 1.6; text-align: justify; }
+        
         .accordion-group { padding: 0 20px 40px; display: flex; flex-direction: column; gap: 12px; }
         details { background: #fff; border: 1px solid #e5e5ea; border-radius: 12px; overflow: hidden; }
-        summary { padding: 16px; font-weight: 700; font-size: 14px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; color: #111; }
+        summary { padding: 16px; font-weight: 700; font-size: 14px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; color: #111; gap: 10px; }
         summary::-webkit-details-marker { display: none; }
         summary::after { content: "＋"; color: #aeaeb2; transition: 0.2s; font-size: 16px; }
         details[open] summary::after { transform: rotate(45deg); color: #5b21b6; }
@@ -136,6 +140,17 @@
         .content-body { padding: 16px; font-size: 13.5px; line-height: 1.7; color: #3a3a3c; text-align: justify; }
         .content-body p { margin-bottom: 10px; }
         .highlight-box { background: #fffbe8; border-left: 4px solid #fbbf24; padding: 10px 12px; margin: 10px 0; border-radius: 4px; font-size: 13px; }
+
+        /* ✨ 新增：管理員編輯規範區塊樣式 */
+        .admin-rule-editor {
+            flex-direction: column; gap: 10px; background: #fef2f2; border: 1px dashed #f87171; 
+            border-radius: 12px; padding: 16px; margin: 0 20px 20px;
+        }
+        .admin-rule-editor input, .admin-rule-editor textarea {
+            width: 100%; padding: 10px; border: 1px solid #fca5a5; border-radius: 8px; font-size: 14px; outline: none; font-family: inherit;
+        }
+        .admin-rule-editor textarea { resize: vertical; min-height: 80px; }
+        .btn-add-rule { background: #dc2626; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
         /* =========================================
            5. IG 匯出畫布 (隱藏)
@@ -265,22 +280,30 @@
         </div>
 
         <!-- =========================================
-             法律聲明視圖 (Legal View)
+             法律聲明視圖 (Legal View) - 支援動態新增
              ========================================= -->
         <div id="view-legal" class="view-section">
             <div class="nav-bar">
-                <div class="btn-back" onclick="App.switchView('guide')">〈 返回</div>
+                <div class="btn-back" onclick="App.switchView('home')">〈 返回</div>
                 <div class="nav-title">平台規範與聲明</div>
                 <div class="nav-placeholder"></div>
             </div>
             <div class="doc-header">
-                <h1 class="doc-title">平台獨立性、成員權益及<br>法律救濟聲明</h1>
-                <div class="doc-meta">生效日期：西元 2026 年 9 月 23 日</div>
+                <h1 class="doc-title">平台使用規範及<br>法律責任聲明</h1>
+                <div class="doc-meta">本站點所有規範由管理團隊維護與解釋</div>
             </div>
-            <div class="accordion-group">
-                <details open><summary>一、個人資料保護與調閱限制</summary><div class="content-body"><p>除法律另有規定外，拒絕向不具調查權限之第三方提供識別資料。為保障真實受害人未來訴訟舉證，系統將採集必要之設備指紋，非經檢警機關依法定程序出具調取票，絕不逕行提供。</p></div></details>
-                <details><summary>二、平台免責與檢舉處理機制</summary><div class="content-body"><p>版主從事一般性維護，不因管理身分成為違法言論之共同行為人。收到檢舉僅為程序觸發，不代表確定違法，平台拒絕接受「遭檢舉即必須無條件移除」之片面要求。</p></div></details>
-                <details><summary>三、言論自由保障與違法界線</summary><div class="content-body"><p>單純情緒抒發、玩笑屬意見表達。但若發布內容明確構成公然侮辱或誹謗等實體違法行為，本平台決不縱容，將依法配合有權機關偵辦。</p></div></details>
+            
+            <!-- ✨ 新增：管理員專用的規範編輯區 -->
+            <div class="admin-rule-editor admin-only">
+                <div style="color: #dc2626; font-weight: 800; font-size: 14px;">👑 管理員專區：新增平台規範</div>
+                <input type="text" id="js-rule-title" placeholder="規範標題 (例：六、禁止洗版及惡意洗頻)">
+                <textarea id="js-rule-content" placeholder="規範內容 (支援換行，將會自動排版顯示)"></textarea>
+                <button class="btn-add-rule" onclick="App.addRule()">＋ 發布新條文</button>
+            </div>
+
+            <!-- 動態渲染的規範列表 -->
+            <div class="accordion-group" id="js-legal-list">
+                <!-- 由 JavaScript 負責載入 -->
             </div>
         </div>
 
@@ -343,7 +366,6 @@
                 if (diff < 1440) return `${Math.floor(diff/60)} 小時前`;
                 return `${Math.floor(diff/1440)} 天前`;
             },
-            // ✨ 加強版圖片壓縮機制 (防止 localStorage 爆滿當機)
             compressImage: (file) => {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -351,14 +373,13 @@
                         const img = new Image();
                         img.onload = () => {
                             const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 500; // 更積極的壓縮尺寸，保障網頁穩定
+                            const MAX_WIDTH = 500; 
                             let width = img.width;
                             let height = img.height;
                             if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                             canvas.width = width; canvas.height = height;
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
-                            // 品質 0.4，將圖片縮到極小，防止 QuotaExceededError
                             resolve(canvas.toDataURL('image/jpeg', 0.4)); 
                         };
                         img.onerror = reject;
@@ -418,6 +439,7 @@
             STORAGE_KEY: 'thu_anonymous_posts',
             REPORTS_KEY: 'thu_reported_posts', 
             MY_REPORTS_KEY: 'thu_my_reports',
+            LEGAL_RULES_KEY: 'thu_legal_rules', // ✨ 儲存平台規範的 Key
             
             getUID: () => {
                 let uid = localStorage.getItem(Api.USER_ID_KEY);
@@ -428,14 +450,12 @@
                 return uid;
             },
 
+            // 取得匿名版貼文
             getData: () => {
                 try {
                     const storedData = localStorage.getItem(Api.STORAGE_KEY);
                     if (storedData) return JSON.parse(storedData);
-                } catch(e) {
-                    console.error("無法讀取資料", e);
-                }
-                
+                } catch(e){}
                 const defaultData = [
                     { 
                         id: "PID-X9A2B1", 
@@ -450,6 +470,36 @@
                 ];
                 localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(defaultData));
                 return defaultData;
+            },
+
+            // ✨ 取得平台規範及法律聲明
+            getRules: () => {
+                try {
+                    const storedRules = localStorage.getItem(Api.LEGAL_RULES_KEY);
+                    if (storedRules) return JSON.parse(storedRules);
+                } catch(e){}
+                // 預設的法律條文
+                const defaultRules = [
+                    { id: "R-1", title: "一、個人資料保護與調閱限制", content: "除法律另有規定外，拒絕向不具調查權限之第三方提供識別資料。為保障真實受害人未來訴訟舉證，系統將採集必要之設備指紋，非經檢警機關依法定程序出具調取票，絕不逕行提供。" },
+                    { id: "R-2", title: "二、平台免責與檢舉處理機制", content: "版主從事一般性維護，不因管理身分成為違法言論之共同行為人。收到檢舉僅為程序觸發，不代表確定違法，平台拒絕接受「遭檢舉即必須無條件移除」之片面要求。" },
+                    { id: "R-3", title: "三、言論自由保障與違法界線", content: "單純情緒抒發、玩笑屬意見表達。但若發布內容明確構成公然侮辱或誹謗等實體違法行為，本平台決不縱容，將依法配合有權機關偵辦。" }
+                ];
+                localStorage.setItem(Api.LEGAL_RULES_KEY, JSON.stringify(defaultRules));
+                return defaultRules;
+            },
+
+            // ✨ 管理員新增規範
+            addRule: async (title, content) => {
+                const rules = Api.getRules();
+                rules.push({ id: 'R-' + Date.now(), title: title, content: content });
+                localStorage.setItem(Api.LEGAL_RULES_KEY, JSON.stringify(rules));
+            },
+
+            // ✨ 管理員刪除規範
+            deleteRule: async (id) => {
+                let rules = Api.getRules();
+                rules = rules.filter(r => r.id !== id);
+                localStorage.setItem(Api.LEGAL_RULES_KEY, JSON.stringify(rules));
             },
 
             getReports: () => {
@@ -484,7 +534,6 @@
                 
                 posts.unshift(newPost);
                 
-                // ✨ 防護網：避免圖片太大導致存不進去當機
                 try {
                     localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts)); 
                 } catch (e) {
@@ -543,7 +592,8 @@
                 submitBtn: document.getElementById('js-btn-submit'),
                 feed: document.getElementById('js-post-list'),
                 previewContainer: document.getElementById('js-preview-container'),
-                previewImg: document.getElementById('js-preview-img')
+                previewImg: document.getElementById('js-preview-img'),
+                legalList: document.getElementById('js-legal-list')
             },
 
             init: () => {
@@ -569,6 +619,7 @@
                 });
 
                 App.loadPosts();
+                App.loadRules(); // ✨ 初始化時也載入法律規範
             },
 
             removeImage: () => {
@@ -580,7 +631,7 @@
             },
 
             updateUidDisplay: () => {
-                if (!App.els.uidDisplay) return; // 防呆機制
+                if (!App.els.uidDisplay) return; 
                 if (App.isAdmin) {
                     App.els.uidDisplay.innerHTML = `<span style="color: #dc2626; font-size: 13px;">👑 系統管理員：THHS001</span>`;
                 } else {
@@ -606,6 +657,7 @@
                     }
                     App.updateUidDisplay();
                     App.loadPosts(); 
+                    App.loadRules(); // ✨ 切換權限時刷新規範頁的刪除按鈕
                 } catch (e) {
                     console.error("切換管理員失敗", e);
                 }
@@ -762,6 +814,59 @@
                     });
                 } catch (e) {
                     console.error("渲染貼文時發生錯誤", e);
+                }
+            },
+
+            // ✨ 載入並渲染法律規範清單
+            loadRules: () => {
+                const rules = Api.getRules();
+                App.els.legalList.innerHTML = '';
+                
+                rules.forEach(rule => {
+                    // 將換行符號轉成 <br>
+                    const safeContent = Utils.escapeHTML(rule.content).replace(/\n/g, '<br>');
+                    
+                    // 如果是管理員，顯示刪除按鈕
+                    const deleteRuleBtn = App.isAdmin 
+                        ? `<button class="admin-only" style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:13px; font-weight:bold;" onclick="App.deleteRule('${rule.id}')">🗑️ 刪除此條</button>` 
+                        : '';
+
+                    const html = `
+                        <details open>
+                            <summary>
+                                <span style="flex:1;">${Utils.escapeHTML(rule.title)}</span>
+                                ${deleteRuleBtn}
+                            </summary>
+                            <div class="content-body"><p>${safeContent}</p></div>
+                        </details>
+                    `;
+                    App.els.legalList.insertAdjacentHTML('beforeend', html);
+                });
+            },
+
+            // ✨ 處理新增規範的事件
+            addRule: async () => {
+                const titleInput = document.getElementById('js-rule-title');
+                const contentInput = document.getElementById('js-rule-content');
+                const title = titleInput.value.trim();
+                const content = contentInput.value.trim();
+                
+                if(!title || !content) return Toast.show('請輸入規範標題與內容', 'error');
+                
+                await Api.addRule(title, content);
+                
+                titleInput.value = '';
+                contentInput.value = '';
+                Toast.show('✅ 新規範已發布', 'success');
+                App.loadRules();
+            },
+
+            // ✨ 處理刪除規範的事件
+            deleteRule: async (id) => {
+                if(confirm('確定要刪除這條平台規範嗎？')){
+                    await Api.deleteRule(id);
+                    Toast.show('規範已刪除', 'success');
+                    App.loadRules();
                 }
             }
         };
