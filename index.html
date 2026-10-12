@@ -53,9 +53,26 @@
         .guide-header { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 12px; }
         .guide-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #52525b; margin-bottom: 8px; line-height: 1.5; }
         .guide-link { color: #5b21b6; text-decoration: none; font-weight: 600; cursor: pointer; }
+        .btn-full-guide { width: 100%; background: #f3f0ff; color: #5b21b6; border: none; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 12px; transition: background 0.2s; }
 
         .post-card { background: #fff; border: 1px solid #e5e5ea; border-radius: 24px; margin: 0 20px 30px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .post-input { width: 100%; border: none; outline: none; resize: none; font-size: 16px; min-height: 60px; margin-bottom: 12px; color: #111; }
+        
+        /* ✨ 新增：發文工具列 (顏色、圖片、置頂) ✨ */
+        .post-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f4f4f5; }
+        .tool-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #52525b; font-weight: 500; cursor: pointer; }
+        .tool-item input[type="color"] { width: 24px; height: 24px; padding: 0; border: none; border-radius: 50%; cursor: pointer; outline: none; overflow: hidden; }
+        .tool-item input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        .tool-item input[type="color"]::-webkit-color-swatch { border: 2px solid #e5e5ea; border-radius: 50%; }
+        .tool-item input[type="checkbox"] { accent-color: #5b21b6; width: 16px; height: 16px; cursor: pointer; }
+        .btn-upload { background: #f4f4f5; border: none; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; color: #3f3f46; cursor: pointer; }
+        
+        /* 圖片預覽區 */
+        .img-preview-container { position: relative; display: none; margin-bottom: 12px; }
+        .img-preview-container.active { display: block; }
+        .img-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; border: 1px solid #e5e5ea; }
+        .btn-remove-img { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 12px; }
+
         .post-actions { display: flex; justify-content: space-between; align-items: center; }
         .char-counter { font-size: 12px; color: #aeaeb2; }
         .btn-submit { background: #c4b5fd; color: #fff; border: none; padding: 10px 24px; border-radius: 20px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
@@ -66,8 +83,10 @@
         .feed-divider .line { flex: 1; height: 1px; background: #e5e5ea; margin-left: 12px; }
         .post-list { display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }
         
+        /* 貼文卡片 */
         .message-card { background: #fff; border: 1px solid #e5e5ea; border-radius: 24px; margin: 0 20px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); position: relative; }
-        .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .message-card.pinned { border: 2px solid #fbbf24; background: #fffdf5; }
+        .msg-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
         .msg-user { display: flex; align-items: center; gap: 10px; }
         .msg-avatar { width: 36px; height: 36px; background: #f4f4f5; border-radius: 12px; display: flex; justify-content: center; align-items: center; }
         .avatar-hex { width: 18px; height: 18px; background: #34d399; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
@@ -76,28 +95,37 @@
         .msg-uid.admin-badge-text { color: #dc2626; font-weight: 800; font-size: 12px; }
         .admin-name { color: #dc2626; }
         
+        .msg-meta-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
         .msg-time { font-size: 12px; color: #aeaeb2; font-weight: 500; }
-        .msg-content { font-size: 16px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; word-break: break-word; }
+        
+        /* 置頂標籤與圖片展示 */
+        .pin-badge { background: #fbbf24; color: #78350f; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; display: flex; align-items: center; gap: 4px; }
+        .post-image { width: 100%; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e5e5ea; }
+        .msg-content { font-size: 16px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; word-break: break-word; color: #333; }
         
         .msg-actions { display: flex; gap: 12px; flex-wrap: wrap; }
         .btn-action { flex: 1; min-width: 80px; padding: 12px; border-radius: 16px; border: 1px solid #e5e5ea; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; justify-content: center; gap: 6px; }
         .btn-action.dark { background: #1c1c1e; border: none; color: white; }
         .btn-action.danger { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
-        .btn-action.danger:hover { background: #fee2e2; }
+        .btn-action.success { color: #059669; border-color: #a7f3d0; background: #ecfdf5; }
         
         .admin-badge { display: none; background: #fee2e2; color: #dc2626; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fecaca; width: fit-content; }
+        .request-pin-badge { display: none; background: #fef3c7; color: #d97706; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fde68a; width: fit-content; }
 
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: flex !important; }
         body.is-admin .btn-admin-login { color: #5b21b6; font-weight: 600; }
         body.is-admin .admin-badge.has-reports { display: block; }
+        body.is-admin .request-pin-badge.is-requesting { display: block; }
 
         /* =========================================
-           4. 法律聲明視圖 (Legal View)
+           4. 說明與法律視圖 (Guide & Legal Views)
            ========================================= */
         .nav-bar { position: sticky; top: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e5e5ea; z-index: 100; }
-        .btn-back { color: #5b21b6; font-weight: 600; font-size: 15px; cursor: pointer; }
-        .nav-title { flex: 1; text-align: center; font-weight: 700; font-size: 16px; margin-right: 30px; }
+        .btn-back { color: #5b21b6; font-weight: 600; font-size: 15px; cursor: pointer; width: 60px; }
+        .nav-title { flex: 1; text-align: center; font-weight: 700; font-size: 16px; }
+        .nav-placeholder { width: 60px; } 
+        
         .doc-header { padding: 20px; text-align: center; }
         .doc-title { font-size: 20px; font-weight: 800; margin-bottom: 12px; line-height: 1.4; }
         .doc-meta { font-size: 12px; color: #737373; margin-bottom: 16px; }
@@ -111,89 +139,52 @@
         details[open] summary { border-bottom: 1px solid #e5e5ea; background: #fafafa; }
         .content-body { padding: 16px; font-size: 13.5px; line-height: 1.7; color: #3a3a3c; text-align: justify; }
         .content-body p { margin-bottom: 10px; }
+        .highlight-box { background: #fffbe8; border-left: 4px solid #fbbf24; padding: 10px 12px; margin: 10px 0; border-radius: 4px; font-size: 13px; }
 
         /* =========================================
-           ✨ 5. IG 匯出專用畫布 (完美重現參考圖卡風格) ✨
+           5. IG 匯出畫布 (隱藏)
            ========================================= */
-        #ig-export-canvas { 
-            position: fixed; top: -9999px; left: -9999px; 
-            width: 1080px; height: 1080px; 
-            background-color: #f7f7f9; /* 淺灰背景 */
-            display: flex; justify-content: center; align-items: center; 
-            color: #111; padding: 60px;
-        }
-        
-        .ig-card {
-            background: #fff; width: 100%; height: 100%; border-radius: 60px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.05);
-            padding: 60px; display: flex; flex-direction: column;
-            position: relative;
-        }
-
-        /* 頂部：頭像與帳號 */
+        #ig-export-canvas { position: fixed; top: -9999px; left: -9999px; width: 1080px; height: 1080px; background-color: #f7f7f9; display: flex; justify-content: center; align-items: center; color: #111; padding: 60px; }
+        .ig-card { background: #fff; width: 100%; height: 100%; border-radius: 60px; box-shadow: 0 20px 60px rgba(0,0,0,0.05); padding: 60px; display: flex; flex-direction: column; position: relative; }
         .ig-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
         .ig-user-info { display: flex; align-items: center; gap: 24px; }
-        .ig-avatar-wrapper { 
-            width: 120px; height: 120px; background: #fff; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 4px 20px rgba(91,33,182,0.15);
-            border: 4px solid #f3f0ff; position: relative;
-        }
-        .ig-avatar-logo {
-            font-weight: 900; font-size: 56px; color: #5b21b6; font-family: sans-serif;
-            letter-spacing: -4px;
-        }
+        .ig-avatar-wrapper { width: 120px; height: 120px; background: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 20px rgba(91,33,182,0.15); border: 4px solid #f3f0ff; position: relative; }
+        .ig-avatar-logo { font-weight: 900; font-size: 56px; color: #5b21b6; font-family: sans-serif; letter-spacing: -4px; }
         .ig-user-text { display: flex; flex-direction: column; }
         .ig-user-name { font-size: 42px; font-weight: 800; display: flex; align-items: center; gap: 12px; }
         .ig-verified-badge { width: 32px; height: 32px; background: #c4b5fd; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 20px; }
         .ig-user-handle { font-size: 28px; color: #aeaeb2; margin-top: 4px; }
         .ig-more-icon { color: #c4b5fd; font-size: 50px; letter-spacing: 4px; line-height: 0; padding-bottom: 20px; }
-
-        /* 中間：文字內容區 (虛線框) */
-        .ig-content-box {
-            flex: 1; border: 3px dashed #e0d4fc; border-radius: 40px;
-            display: flex; justify-content: center; align-items: center;
-            padding: 40px 60px; position: relative; margin-bottom: 40px;
-        }
-        #ig-export-content {
-            font-size: 52px; font-weight: bold; line-height: 1.6; text-align: center;
-            white-space: pre-wrap; word-wrap: break-word; color: #333;
-        }
-
-        /* 裝飾元素 */
-        .ig-deco { position: absolute; color: #c4b5fd; }
+        
+        .ig-content-box { flex: 1; border: 3px dashed #e0d4fc; border-radius: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; position: relative; margin-bottom: 40px; overflow: hidden; }
+        #ig-export-image { max-width: 100%; max-height: 350px; object-fit: contain; border-radius: 20px; margin-bottom: 20px; display: none; }
+        #ig-export-content { font-size: 52px; font-weight: bold; line-height: 1.6; text-align: center; white-space: pre-wrap; word-wrap: break-word; color: #333; z-index: 2; }
+        
+        .ig-deco { position: absolute; color: #c4b5fd; z-index: 1; }
         .ig-deco-bubble { top: 60px; right: 80px; font-size: 80px; }
-        .ig-deco-star1 { bottom: 200px; right: -20px; font-size: 40px; }
-        .ig-deco-star2 { top: 100px; left: -20px; font-size: 50px; }
+        .ig-deco-star1 { bottom: 20px; right: 20px; font-size: 40px; }
+        .ig-deco-star2 { top: 20px; left: 20px; font-size: 50px; }
         .ig-deco-sparkle { bottom: 100px; left: 240px; font-size: 60px; }
-
-        /* 底部：互動按鈕與來爆料標籤 */
         .ig-footer { display: flex; flex-direction: column; gap: 30px; }
         .ig-actions-row { display: flex; justify-content: space-between; align-items: center; }
-        
         .ig-hashtag { font-size: 32px; color: #5b21b6; font-weight: bold; border-bottom: 4px solid #c4b5fd; padding-bottom: 4px; }
-        
         .ig-icons { display: flex; gap: 30px; }
         .ig-icon { width: 48px; height: 48px; border: 4px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
         .ig-icon-heart { border-radius: 0; border: none; font-size: 56px; line-height: 1; }
         .ig-icon-comment { border-radius: 50%; border-bottom-left-radius: 0; }
         .ig-icon-share { border: none; font-size: 56px; line-height: 1; transform: scaleX(-1); }
-
-        /* 最底部：來爆料按鈕條 */
-        .ig-bottom-bar { 
-            background: #f3f0ff; border-radius: 100px; height: 100px;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 0 0 40px; overflow: hidden;
-        }
+        .ig-bottom-bar { background: #f3f0ff; border-radius: 100px; height: 100px; display: flex; justify-content: space-between; align-items: center; padding: 0 0 0 40px; overflow: hidden; }
         .ig-bottom-text { font-size: 32px; font-weight: bold; color: #8b5cf6; display: flex; align-items: center; gap: 20px; }
         .ig-bottom-btn { background: #c4b5fd; height: 100%; width: 140px; display: flex; justify-content: center; align-items: center; color: white; font-size: 40px; }
-
     </style>
 </head>
 <body>
 
     <div class="app-container">
         
+        <!-- =========================================
+             首頁視圖 (Home View)
+             ========================================= -->
         <div id="view-home" class="view-section active">
             <div class="top-bar">
                 <div class="privacy">🛡️ 隱私保護與憑證採集啟用</div>
@@ -211,14 +202,40 @@
             </div>
 
             <div class="guide-card">
-                <div class="guide-header">💡 平台使用說明</div>
-                <div class="guide-item">👻 <strong>單一身分：</strong>您的裝置已綁定唯一 UID，保障發言連貫性。</div>
-                <div class="guide-item">🗑️ <strong>管理權限：</strong>可刪除自己貼文；管理員可審查檢舉內容。</div>
+                <div class="guide-header">💡 平台快速指南</div>
+                <div class="guide-item">👻 <strong>單一身分：</strong>您的裝置已綁定唯一 UID，發言更具連貫性。</div>
+                <div class="guide-item">🎨 <strong>豐富排版：</strong>支援上傳照片、自訂文字顏色，並可申請置頂。</div>
                 <div class="guide-item">⚖️ <strong>友善守則：</strong>發文即同意 <span class="guide-link" onclick="App.switchView('legal')">平台法律聲明</span>。</div>
+                <button class="btn-full-guide" onclick="App.switchView('guide')">📖 閱讀完整使用說明</button>
             </div>
 
             <div class="post-card">
-                <div style="font-size: 12px; color: #8b5cf6; font-family: monospace; margin-bottom: 8px; font-weight: bold;" id="js-my-uid-display"></div>
+                <div style="font-size: 12px; color: #8b5cf6; font-family: monospace; margin-bottom: 12px; font-weight: bold;" id="js-my-uid-display"></div>
+                
+                <!-- 新增：功能工具列 (顏色、照片、置頂申請) -->
+                <div class="post-toolbar">
+                    <label class="tool-item" title="選擇文字顏色">
+                        <input type="color" id="js-post-color" value="#333333">
+                        字體顏色
+                    </label>
+                    
+                    <button class="btn-upload" onclick="document.getElementById('js-post-image').click()">
+                        📷 附加照片
+                    </button>
+                    <input type="file" id="js-post-image" accept="image/*" style="display:none;">
+                    
+                    <label class="tool-item" style="margin-left: auto;">
+                        <input type="checkbox" id="js-post-pin">
+                        📌 申請置頂
+                    </label>
+                </div>
+
+                <!-- 新增：照片預覽區 -->
+                <div class="img-preview-container" id="js-preview-container">
+                    <button class="btn-remove-img" onclick="App.removeImage()">✕</button>
+                    <img src="" class="img-preview" id="js-preview-img">
+                </div>
+
                 <textarea id="js-post-input" class="post-input" placeholder="匿名說點什麼吧⋯"></textarea>
                 <div class="post-actions">
                     <span id="js-char-counter" class="char-counter">0 / 500</span>
@@ -229,27 +246,49 @@
             <div class="feed-divider">
                 <span>🛡️ 最新留言</span>
                 <div class="line"></div>
-                <span class="admin-only" style="color: #dc2626;">(管理員模式)</span>
+                <span class="admin-only" style="color: #dc2626;">(管理員審查模式)</span>
             </div>
             
             <div id="js-post-list" class="post-list"></div>
         </div>
 
-        <div id="view-legal" class="view-section">
+        <!-- =========================================
+             完整使用說明視圖 (User Guide View)
+             ========================================= -->
+        <div id="view-guide" class="view-section">
             <div class="nav-bar">
                 <div class="btn-back" onclick="App.switchView('home')">〈 返回</div>
+                <div class="nav-title">平台使用指南</div>
+                <div class="nav-placeholder"></div>
+            </div>
+            <div class="doc-header">
+                <h1 class="doc-title">東海匿名板<br>完整使用指南</h1>
+                <div class="doc-meta">幫助您快速了解平台功能與運作機制</div>
+            </div>
+            <div class="accordion-group">
+                <details open><summary>Q1：我發文真的是匿名的嗎？</summary><div class="content-body"><p><strong>是的，前台絕對匿名。</strong></p><p>系統不會要求登入任何社群帳號，只會發配一組隨機代碼（UID）給您的裝置，以保持討論連貫性。</p></div></details>
+                <details><summary>Q2：如何申請貼文置頂？</summary><div class="content-body"><p>在發文時勾選「📌 申請置頂」，文章發布後，系統管理員後台將會收到申請。<strong>經管理員審核通過後</strong>，您的貼文將會被固定在留言板最上方，並帶有專屬的金色標籤。</p></div></details>
+                <details><summary>Q3：支援上傳圖片嗎？</summary><div class="content-body"><p>可以！點擊發文區的「📷 附加照片」即可上傳圖片。您也可以透過調色盤更改文字顏色，讓您的貼文更具個人風格。</p></div></details>
+                <details><summary>Q4：看到違規文章怎麼辦？</summary><div class="content-body"><p>善用貼文下方的「⚠️ 檢舉」按鈕。管理員將會依據聲明進行審查，若確認違規將會強制刪除。</p></div></details>
+                <details><summary>Q5：發言有什麼法律責任嗎？</summary><div class="content-body"><p>匿名不代表免責。若言論構成恐嚇、誹謗等實體犯罪，本平台將依法配合有權機關之調閱要求。詳情請參閱：<span class="guide-link" onclick="App.switchView('legal')">法律聲明</span>。</p></div></details>
+            </div>
+        </div>
+
+        <!-- =========================================
+             法律聲明視圖 (Legal View)
+             ========================================= -->
+        <div id="view-legal" class="view-section">
+            <div class="nav-bar">
+                <div class="btn-back" onclick="App.switchView('guide')">〈 返回</div>
                 <div class="nav-title">平台規範與聲明</div>
+                <div class="nav-placeholder"></div>
             </div>
             <div class="doc-header">
                 <h1 class="doc-title">平台獨立性、成員權益及<br>法律救濟聲明</h1>
                 <div class="doc-meta">生效日期：西元 2026 年 9 月 23 日</div>
             </div>
-            <div class="doc-intro">
-                <strong>【前言聲明】</strong><br>
-                本平台為獨立運作之匿名交流空間，非隸屬或受任何學校管理之校務系統。本團隊尊重各校校務管理權限，惟同時嚴正聲明：本平台使用者及團隊成員依法所享有之權利，不因任何第三方之身分而受減損。凡涉及對本平台或其成員之重大權益限制者，本團隊均將要求依法行事並保留一切法律救濟權利。
-            </div>
             <div class="accordion-group">
-                <details><summary>一、個人資料保護與調閱限制</summary><div class="content-body"><p>除法律另有規定外，拒絕向不具調查權限之第三方提供識別資料。為保障真實受害人未來訴訟舉證，系統將採集必要之設備指紋，非經檢警機關依法定程序出具調取票，絕不逕行提供。</p></div></details>
+                <details open><summary>一、個人資料保護與調閱限制</summary><div class="content-body"><p>除法律另有規定外，拒絕向不具調查權限之第三方提供識別資料。為保障真實受害人未來訴訟舉證，系統將採集必要之設備指紋，非經檢警機關依法定程序出具調取票，絕不逕行提供。</p></div></details>
                 <details><summary>二、平台免責與檢舉處理機制</summary><div class="content-body"><p>版主從事一般性維護，不因管理身分成為違法言論之共同行為人。收到檢舉僅為程序觸發，不代表確定違法，平台拒絕接受「遭檢舉即必須無條件移除」之片面要求。</p></div></details>
                 <details><summary>三、言論自由保障與違法界線</summary><div class="content-body"><p>單純情緒抒發、玩笑屬意見表達。但若發布內容明確構成公然侮辱或誹謗等實體違法行為，本平台決不縱容，將依法配合有權機關偵辦。</p></div></details>
             </div>
@@ -259,12 +298,10 @@
 
     <div id="toast-container"></div>
 
-    <!-- ✨ 全新設計的 IG 匯出畫布 ✨ -->
+    <!-- IG 匯出畫布 (隱藏) -->
     <div id="ig-export-canvas">
         <div class="ig-card">
-            
             <div class="ig-deco ig-deco-bubble">💭</div>
-            
             <div class="ig-header">
                 <div class="ig-user-info">
                     <div class="ig-avatar-wrapper">
@@ -277,13 +314,12 @@
                 </div>
                 <div class="ig-more-icon">•••</div>
             </div>
-
             <div class="ig-content-box">
                 <div class="ig-deco ig-deco-star1">⭐</div>
                 <div class="ig-deco ig-deco-star2">✦</div>
+                <img id="ig-export-image" src="">
                 <div id="ig-export-content"></div>
             </div>
-
             <div class="ig-footer">
                 <div class="ig-actions-row">
                     <div class="ig-hashtag">#匿名發言</div>
@@ -294,18 +330,18 @@
                         <div class="ig-icon-share">➢</div>
                     </div>
                 </div>
-                
                 <div class="ig-bottom-bar">
                     <div class="ig-bottom-text"><span>🚀</span> 專屬你的匿名空間</div>
                     <div class="ig-bottom-btn">〉</div>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script>
         const Config = { MAX_CHARS: 500 };
+        
+        let currentImageBase64 = null; // 暫存上傳的圖片
 
         const Utils = {
             escapeHTML: (str) => { const div = document.createElement('div'); div.appendChild(document.createTextNode(str)); return div.innerHTML; },
@@ -315,7 +351,30 @@
                 const diff = Math.floor((new Date() - new Date(dateString)) / 60000);
                 if (diff < 1) return '剛剛';
                 if (diff < 60) return `${diff} 分鐘前`;
-                return `${Math.floor(diff/60)} 小時前`;
+                if (diff < 1440) return `${Math.floor(diff/60)} 小時前`;
+                return `${Math.floor(diff/1440)} 天前`;
+            },
+            // 壓縮並轉換圖片為 Base64 (避免 localStorage 爆滿)
+            compressImage: (file) => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 800;
+                            let width = img.width;
+                            let height = img.height;
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                            canvas.width = width; canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            resolve(canvas.toDataURL('image/jpeg', 0.6)); // 品質 0.6 以節省空間
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
             }
         };
 
@@ -331,14 +390,27 @@
         };
 
         const IgExport = {
-            process: async (id, authorId, content) => {
+            process: async (id, authorId, content, textColor, imageSrc) => {
                 Toast.show('📸 正在排版並生成高畫質圖卡...');
                 const contentEl = document.getElementById('ig-export-content');
+                const imageEl = document.getElementById('ig-export-image');
+                
                 contentEl.textContent = content;
-                contentEl.style.fontSize = content.length > 120 ? '42px' : (content.length > 200 ? '36px' : '52px');
+                contentEl.style.color = textColor;
+                
+                // 動態調整字體大小，如果有圖片字體要小一點
+                if (imageSrc) {
+                    imageEl.src = imageSrc;
+                    imageEl.style.display = 'block';
+                    contentEl.style.fontSize = content.length > 50 ? '32px' : '40px';
+                } else {
+                    imageEl.style.display = 'none';
+                    imageEl.src = '';
+                    contentEl.style.fontSize = content.length > 120 ? '42px' : (content.length > 200 ? '36px' : '52px');
+                }
 
                 try {
-                    const canvas = await html2canvas(document.getElementById('ig-export-canvas'), { scale: 2, backgroundColor: null });
+                    const canvas = await html2canvas(document.getElementById('ig-export-canvas'), { scale: 2, backgroundColor: null, useCORS: true });
                     const link = document.createElement('a');
                     link.href = canvas.toDataURL("image/jpeg", 0.9);
                     link.download = `東海匿名_${id}.jpg`;
@@ -370,7 +442,16 @@
                 if (storedData) return JSON.parse(storedData);
                 
                 const defaultData = [
-                    { id: "PID-X9A2B1", authorId: "THHS001", content: "東海匿名板上線囉！這裡由 THHS001 管理團隊親自把關，提供最自由的言論空間。", timestamp: new Date(Date.now() - 1200000).toISOString() }
+                    { 
+                        id: "PID-X9A2B1", 
+                        authorId: "THHS001", 
+                        content: "東海匿名板全新升級！\n現在支援上傳照片、自訂文字顏色，還可以申請文章置頂喔！", 
+                        color: "#5b21b6",
+                        image: null,
+                        isPinned: true, // 預設置頂
+                        requestPin: false,
+                        timestamp: new Date().toISOString() 
+                    }
                 ];
                 localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(defaultData));
                 return defaultData;
@@ -390,7 +471,7 @@
                 return Api.getData();
             },
 
-            post: async (content) => {
+            post: async (content, color, image, requestPin) => {
                 await new Promise(r => setTimeout(r, 600)); 
                 const posts = Api.getData();
                 const currentUid = App.isAdmin ? 'THHS001' : Api.getUID();
@@ -398,7 +479,11 @@
                 const newPost = { 
                     id: Utils.generateSystemID(), 
                     authorId: currentUid,
-                    content: content, 
+                    content: content,
+                    color: color || '#333333',
+                    image: image,
+                    requestPin: requestPin,
+                    isPinned: App.isAdmin ? requestPin : false, // 管理員發文若勾置頂直接生效
                     timestamp: new Date().toISOString() 
                 };
                 
@@ -417,13 +502,32 @@
             report: async (id) => {
                 const myReportedIds = Api.getMyReportedIds();
                 if (myReportedIds.includes(id)) throw new Error('您已經檢舉過此貼文了！');
-
                 const allReports = Api.getReports();
                 allReports[id] = (allReports[id] || 0) + 1;
                 localStorage.setItem(Api.REPORTS_KEY, JSON.stringify(allReports));
-
                 myReportedIds.push(id);
                 localStorage.setItem(Api.MY_REPORTS_KEY, JSON.stringify(myReportedIds));
+            },
+
+            // ✨ 管理員審核通過置頂
+            approvePin: async (id) => {
+                let posts = Api.getData();
+                const post = posts.find(p => p.id === id);
+                if (post) {
+                    post.isPinned = true;
+                    post.requestPin = false; // 清除申請標記
+                    localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts));
+                }
+            },
+            
+            // ✨ 管理員取消置頂
+            unpin: async (id) => {
+                let posts = Api.getData();
+                const post = posts.find(p => p.id === id);
+                if (post) {
+                    post.isPinned = false;
+                    localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts));
+                }
             }
         };
 
@@ -432,9 +536,14 @@
             els: {
                 uidDisplay: document.getElementById('js-my-uid-display'),
                 input: document.getElementById('js-post-input'),
+                colorInput: document.getElementById('js-post-color'),
+                imageInput: document.getElementById('js-post-image'),
+                pinInput: document.getElementById('js-post-pin'),
                 counter: document.getElementById('js-char-counter'),
                 submitBtn: document.getElementById('js-btn-submit'),
-                feed: document.getElementById('js-post-list')
+                feed: document.getElementById('js-post-list'),
+                previewContainer: document.getElementById('js-preview-container'),
+                previewImg: document.getElementById('js-preview-img')
             },
 
             init: () => {
@@ -442,7 +551,27 @@
                 App.els.input.addEventListener('input', App.handleInput);
                 App.els.submitBtn.addEventListener('click', App.handleSubmit);
                 App.els.feed.addEventListener('click', App.handleFeedClick);
+                
+                // 圖片上傳事件
+                App.els.imageInput.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        if (file.size > 5 * 1024 * 1024) return Toast.show('圖片請勿超過 5MB', 'error');
+                        Toast.show('處理圖片中...');
+                        currentImageBase64 = await Utils.compressImage(file);
+                        App.els.previewImg.src = currentImageBase64;
+                        App.els.previewContainer.classList.add('active');
+                    }
+                });
+
                 App.loadPosts();
+            },
+
+            removeImage: () => {
+                currentImageBase64 = null;
+                App.els.imageInput.value = '';
+                App.els.previewImg.src = '';
+                App.els.previewContainer.classList.remove('active');
             },
 
             updateUidDisplay: () => {
@@ -459,7 +588,7 @@
                     document.body.classList.remove('is-admin');
                     Toast.show('已登出管理員模式');
                 } else {
-                    const pwd = prompt('🔒 請輸入管理員密碼');
+                    const pwd = prompt('🔒 請輸入管理員密碼 (輸入 admin 測試)');
                     if (pwd === 'admin') {
                         App.isAdmin = true;
                         document.body.classList.add('is-admin');
@@ -481,22 +610,32 @@
             handleInput: (e) => {
                 const len = e.target.value.length;
                 App.els.counter.textContent = `${len} / ${Config.MAX_CHARS}`;
-                const isValid = len > 0 && len <= Config.MAX_CHARS;
+                // 若有圖片，文字可以為空；若無圖片，文字不能為空
+                const hasImage = currentImageBase64 !== null;
+                const isValid = (len > 0 || hasImage) && len <= Config.MAX_CHARS;
                 App.els.submitBtn.disabled = !isValid;
                 App.els.submitBtn.className = isValid ? 'btn-submit active' : 'btn-submit';
             },
 
             handleSubmit: async () => {
                 const content = App.els.input.value.trim();
-                if (!content) return;
+                if (!content && !currentImageBase64) return;
                 
+                const color = App.els.colorInput.value;
+                const requestPin = App.els.pinInput.checked;
+
                 App.els.submitBtn.disabled = true;
                 App.els.submitBtn.textContent = '發布中...';
                 
                 try {
-                    await Api.post(content);
+                    await Api.post(content, color, currentImageBase64, requestPin);
+                    // 清空表單
                     App.els.input.value = '';
+                    App.els.colorInput.value = '#333333';
+                    App.els.pinInput.checked = false;
+                    App.removeImage();
                     App.handleInput({target: {value: ''}});
+                    
                     Toast.show('🎉 發布成功！', 'success');
                     App.loadPosts();
                 } catch (e) {
@@ -521,7 +660,8 @@
                         App.loadPosts();
                     }
                 } else if (action === 'export' && App.isAdmin) {
-                    IgExport.process(id, authorId, btn.dataset.content);
+                    const post = (await Api.fetch()).find(p => p.id === id);
+                    IgExport.process(id, authorId, post.content, post.color, post.image);
                 } else if (action === 'report') {
                     try {
                         await Api.report(id);
@@ -530,13 +670,29 @@
                     } catch (err) {
                         Toast.show(err.message, 'error');
                     }
+                } else if (action === 'approve-pin' && App.isAdmin) {
+                    await Api.approvePin(id);
+                    Toast.show('📌 已批准置頂', 'success');
+                    App.loadPosts();
+                } else if (action === 'unpin' && App.isAdmin) {
+                    await Api.unpin(id);
+                    Toast.show('取消置頂完成');
+                    App.loadPosts();
                 }
             },
 
             loadPosts: async () => {
-                const posts = await Api.fetch();
+                let posts = await Api.fetch();
                 const myUID = Api.getUID(); 
                 const allReports = Api.getReports(); 
+                
+                // ✨ 排序邏輯：置頂的文章永遠在最上面，其餘依時間排序
+                posts.sort((a, b) => {
+                    if (a.isPinned && !b.isPinned) return -1;
+                    if (!a.isPinned && b.isPinned) return 1;
+                    return new Date(b.timestamp) - new Date(a.timestamp);
+                });
+
                 App.els.feed.innerHTML = '';
                 
                 posts.forEach(post => {
@@ -544,30 +700,57 @@
                     
                     const isMine = (post.authorId === myUID);
                     const canDelete = App.isAdmin || isMine;
-                    const deleteBtnHTML = canDelete ? `<button class="btn-action danger" data-action="delete" data-id="${post.id}">🗑️ 刪除</button>` : '';
+                    
+                    // 按鈕區邏輯
+                    let deleteBtnHTML = canDelete ? `<button class="btn-action danger" data-action="delete" data-id="${post.id}">🗑️ 刪除</button>` : '';
+                    let adminActionsHTML = `<button class="btn-action dark admin-only" data-action="export" data-id="${post.id}" data-author="${post.authorId}">📸 匯出</button>`;
+                    
+                    // 管理員置頂審核按鈕
+                    if (App.isAdmin) {
+                        if (post.requestPin && !post.isPinned) {
+                            adminActionsHTML += `<button class="btn-action success admin-only" data-action="approve-pin" data-id="${post.id}">✅ 准許置頂</button>`;
+                        } else if (post.isPinned) {
+                            adminActionsHTML += `<button class="btn-action admin-only" data-action="unpin" data-id="${post.id}">❌ 取消置頂</button>`;
+                        }
+                    }
 
+                    // 標籤邏輯
                     const reportCount = allReports[post.id] || 0;
                     const reportBadgeHTML = reportCount > 0 ? `<div class="admin-badge has-reports">🚨 遭檢舉 ${reportCount} 次</div>` : '';
+                    const requestPinBadgeHTML = (post.requestPin && !post.isPinned) ? `<div class="request-pin-badge is-requesting">🛎️ 使用者申請置頂</div>` : '';
+                    const pinBadgeHTML = post.isPinned ? `<div class="pin-badge">📌 置頂</div>` : '';
 
+                    // 圖片渲染
+                    const imageHTML = post.image ? `<img src="${post.image}" class="post-image">` : '';
+
+                    // 身分渲染
                     const isSystemAdmin = post.authorId === 'THHS001';
                     const nameHtml = isSystemAdmin
                         ? `<span class="admin-name">👑 系統管理員</span> <span class="msg-uid admin-badge-text">#THHS001</span>`
                         : `匿名同學 <span class="msg-uid">#${post.authorId}</span>`;
 
                     const html = `
-                        <div class="message-card">
+                        <div class="message-card ${post.isPinned ? 'pinned' : ''}">
                             ${reportBadgeHTML}
+                            ${requestPinBadgeHTML}
                             <div class="msg-header">
                                 <div class="msg-user">
                                     <div class="msg-avatar"><div class="avatar-hex"></div></div>
                                     <div class="msg-name">${nameHtml}</div>
                                 </div>
-                                <div class="msg-time">${Utils.getTimeAgo(post.timestamp)}</div>
+                                <div class="msg-meta-right">
+                                    ${pinBadgeHTML}
+                                    <div class="msg-time">${Utils.getTimeAgo(post.timestamp)}</div>
+                                </div>
                             </div>
-                            <div class="msg-content">${safeContent}</div>
+                            
+                            ${imageHTML}
+                            <!-- 套用使用者自訂的字體顏色 -->
+                            <div class="msg-content" style="color: ${post.color || '#333333'};">${safeContent}</div>
+                            
                             <div class="msg-actions">
                                 ${deleteBtnHTML}
-                                <button class="btn-action dark admin-only" data-action="export" data-id="${post.id}" data-author="${post.authorId}" data-content="${safeContent}">📸 匯出</button>
+                                ${adminActionsHTML}
                                 <button class="btn-action" data-action="report" data-id="${post.id}">⚠️ 檢舉</button>
                             </div>
                         </div>
