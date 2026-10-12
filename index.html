@@ -72,11 +72,7 @@
         .msg-avatar { width: 36px; height: 36px; background: #f4f4f5; border-radius: 12px; display: flex; justify-content: center; align-items: center; }
         .avatar-hex { width: 18px; height: 18px; background: #34d399; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
         .msg-name { font-weight: 700; font-size: 15px; display: flex; flex-direction: column; }
-        
-        /* 一般使用者的 ID 樣式 */
         .msg-uid { font-size: 11px; color: #8b5cf6; font-family: monospace; letter-spacing: 0.5px; }
-        
-        /* ✨ 管理員專屬 ID 樣式 */
         .msg-uid.admin-badge-text { color: #dc2626; font-weight: 800; font-size: 12px; }
         .admin-name { color: #dc2626; }
         
@@ -91,7 +87,6 @@
         
         .admin-badge { display: none; background: #fee2e2; color: #dc2626; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fecaca; width: fit-content; }
 
-        /* 權限控制 */
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: flex !important; }
         body.is-admin .btn-admin-login { color: #5b21b6; font-weight: 600; }
@@ -118,14 +113,81 @@
         .content-body p { margin-bottom: 10px; }
 
         /* =========================================
-           5. IG 匯出畫布 (隱藏)
+           ✨ 5. IG 匯出專用畫布 (完美重現參考圖卡風格) ✨
            ========================================= */
-        #ig-export-canvas { position: fixed; top: -9999px; left: -9999px; width: 1080px; height: 1080px; background: linear-gradient(135deg, #1c1c1e 0%, #2d2d30 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 100px; color: white; text-align: center; }
-        #ig-export-canvas .quote-icon { font-size: 80px; color: #8b5cf6; margin-bottom: 20px; }
-        #ig-export-content { font-size: 48px; font-weight: bold; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; max-height: 600px; overflow: hidden; }
-        #ig-export-footer { position: absolute; bottom: 80px; opacity: 0.8; }
-        #ig-export-id { font-size: 32px; font-family: monospace; font-weight: bold; margin-bottom: 10px; color: #34d399; }
-        #ig-export-watermark { font-size: 24px; letter-spacing: 2px; }
+        #ig-export-canvas { 
+            position: fixed; top: -9999px; left: -9999px; 
+            width: 1080px; height: 1080px; 
+            background-color: #f7f7f9; /* 淺灰背景 */
+            display: flex; justify-content: center; align-items: center; 
+            color: #111; padding: 60px;
+        }
+        
+        .ig-card {
+            background: #fff; width: 100%; height: 100%; border-radius: 60px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+            padding: 60px; display: flex; flex-direction: column;
+            position: relative;
+        }
+
+        /* 頂部：頭像與帳號 */
+        .ig-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .ig-user-info { display: flex; align-items: center; gap: 24px; }
+        .ig-avatar-wrapper { 
+            width: 120px; height: 120px; background: #fff; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 20px rgba(91,33,182,0.15);
+            border: 4px solid #f3f0ff; position: relative;
+        }
+        .ig-avatar-logo {
+            font-weight: 900; font-size: 56px; color: #5b21b6; font-family: sans-serif;
+            letter-spacing: -4px;
+        }
+        .ig-user-text { display: flex; flex-direction: column; }
+        .ig-user-name { font-size: 42px; font-weight: 800; display: flex; align-items: center; gap: 12px; }
+        .ig-verified-badge { width: 32px; height: 32px; background: #c4b5fd; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 20px; }
+        .ig-user-handle { font-size: 28px; color: #aeaeb2; margin-top: 4px; }
+        .ig-more-icon { color: #c4b5fd; font-size: 50px; letter-spacing: 4px; line-height: 0; padding-bottom: 20px; }
+
+        /* 中間：文字內容區 (虛線框) */
+        .ig-content-box {
+            flex: 1; border: 3px dashed #e0d4fc; border-radius: 40px;
+            display: flex; justify-content: center; align-items: center;
+            padding: 40px 60px; position: relative; margin-bottom: 40px;
+        }
+        #ig-export-content {
+            font-size: 52px; font-weight: bold; line-height: 1.6; text-align: center;
+            white-space: pre-wrap; word-wrap: break-word; color: #333;
+        }
+
+        /* 裝飾元素 */
+        .ig-deco { position: absolute; color: #c4b5fd; }
+        .ig-deco-bubble { top: 60px; right: 80px; font-size: 80px; }
+        .ig-deco-star1 { bottom: 200px; right: -20px; font-size: 40px; }
+        .ig-deco-star2 { top: 100px; left: -20px; font-size: 50px; }
+        .ig-deco-sparkle { bottom: 100px; left: 240px; font-size: 60px; }
+
+        /* 底部：互動按鈕與來爆料標籤 */
+        .ig-footer { display: flex; flex-direction: column; gap: 30px; }
+        .ig-actions-row { display: flex; justify-content: space-between; align-items: center; }
+        
+        .ig-hashtag { font-size: 32px; color: #5b21b6; font-weight: bold; border-bottom: 4px solid #c4b5fd; padding-bottom: 4px; }
+        
+        .ig-icons { display: flex; gap: 30px; }
+        .ig-icon { width: 48px; height: 48px; border: 4px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+        .ig-icon-heart { border-radius: 0; border: none; font-size: 56px; line-height: 1; }
+        .ig-icon-comment { border-radius: 50%; border-bottom-left-radius: 0; }
+        .ig-icon-share { border: none; font-size: 56px; line-height: 1; transform: scaleX(-1); }
+
+        /* 最底部：來爆料按鈕條 */
+        .ig-bottom-bar { 
+            background: #f3f0ff; border-radius: 100px; height: 100px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 0 0 40px; overflow: hidden;
+        }
+        .ig-bottom-text { font-size: 32px; font-weight: bold; color: #8b5cf6; display: flex; align-items: center; gap: 20px; }
+        .ig-bottom-btn { background: #c4b5fd; height: 100%; width: 140px; display: flex; justify-content: center; align-items: center; color: white; font-size: 40px; }
+
     </style>
 </head>
 <body>
@@ -156,9 +218,7 @@
             </div>
 
             <div class="post-card">
-                <!-- 發言身分顯示區 -->
                 <div style="font-size: 12px; color: #8b5cf6; font-family: monospace; margin-bottom: 8px; font-weight: bold;" id="js-my-uid-display"></div>
-                
                 <textarea id="js-post-input" class="post-input" placeholder="匿名說點什麼吧⋯"></textarea>
                 <div class="post-actions">
                     <span id="js-char-counter" class="char-counter">0 / 500</span>
@@ -175,7 +235,6 @@
             <div id="js-post-list" class="post-list"></div>
         </div>
 
-        <!-- 法律聲明 -->
         <div id="view-legal" class="view-section">
             <div class="nav-bar">
                 <div class="btn-back" onclick="App.switchView('home')">〈 返回</div>
@@ -200,12 +259,48 @@
 
     <div id="toast-container"></div>
 
+    <!-- ✨ 全新設計的 IG 匯出畫布 ✨ -->
     <div id="ig-export-canvas">
-        <div class="quote-icon">❝</div>
-        <div id="ig-export-content"></div>
-        <div id="ig-export-footer">
-            <div id="ig-export-id"></div>
-            <div id="ig-export-watermark">🔍 IG: @thu_anonymous</div>
+        <div class="ig-card">
+            
+            <div class="ig-deco ig-deco-bubble">💭</div>
+            
+            <div class="ig-header">
+                <div class="ig-user-info">
+                    <div class="ig-avatar-wrapper">
+                        <div class="ig-avatar-logo">T</div>
+                    </div>
+                    <div class="ig-user-text">
+                        <div class="ig-user-name">匿名東海 <div class="ig-verified-badge">✓</div></div>
+                        <div class="ig-user-handle">@THU</div>
+                    </div>
+                </div>
+                <div class="ig-more-icon">•••</div>
+            </div>
+
+            <div class="ig-content-box">
+                <div class="ig-deco ig-deco-star1">⭐</div>
+                <div class="ig-deco ig-deco-star2">✦</div>
+                <div id="ig-export-content"></div>
+            </div>
+
+            <div class="ig-footer">
+                <div class="ig-actions-row">
+                    <div class="ig-hashtag">#匿名發言</div>
+                    <div class="ig-deco ig-deco-sparkle">✨</div>
+                    <div class="ig-icons">
+                        <div class="ig-icon-heart">♡</div>
+                        <div class="ig-icon ig-icon-comment"></div>
+                        <div class="ig-icon-share">➢</div>
+                    </div>
+                </div>
+                
+                <div class="ig-bottom-bar">
+                    <div class="ig-bottom-text"><span>🚀</span> 專屬你的匿名空間</div>
+                    <div class="ig-bottom-btn">〉</div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -237,11 +332,10 @@
 
         const IgExport = {
             process: async (id, authorId, content) => {
-                Toast.show('📸 正在生成高畫質 IG 圖片...');
-                document.getElementById('ig-export-id').textContent = `#${authorId}`;
+                Toast.show('📸 正在排版並生成高畫質圖卡...');
                 const contentEl = document.getElementById('ig-export-content');
                 contentEl.textContent = content;
-                contentEl.style.fontSize = content.length > 150 ? '36px' : (content.length > 300 ? '28px' : '48px');
+                contentEl.style.fontSize = content.length > 120 ? '42px' : (content.length > 200 ? '36px' : '52px');
 
                 try {
                     const canvas = await html2canvas(document.getElementById('ig-export-canvas'), { scale: 2, backgroundColor: null });
@@ -249,7 +343,7 @@
                     link.href = canvas.toDataURL("image/jpeg", 0.9);
                     link.download = `東海匿名_${id}.jpg`;
                     link.click();
-                    Toast.show('✅ 圖片已下載！', 'success');
+                    Toast.show('✅ 圖卡已下載！', 'success');
                 } catch (e) {
                     Toast.show('生成失敗', 'error');
                 }
@@ -299,8 +393,6 @@
             post: async (content) => {
                 await new Promise(r => setTimeout(r, 600)); 
                 const posts = Api.getData();
-                
-                // ✨ 判斷：如果是管理員發文，身分強制轉為 THHS001
                 const currentUid = App.isAdmin ? 'THHS001' : Api.getUID();
 
                 const newPost = { 
@@ -324,9 +416,7 @@
 
             report: async (id) => {
                 const myReportedIds = Api.getMyReportedIds();
-                if (myReportedIds.includes(id)) {
-                    throw new Error('您已經檢舉過此貼文了！');
-                }
+                if (myReportedIds.includes(id)) throw new Error('您已經檢舉過此貼文了！');
 
                 const allReports = Api.getReports();
                 allReports[id] = (allReports[id] || 0) + 1;
@@ -355,7 +445,6 @@
                 App.loadPosts();
             },
 
-            // 更新輸入框上方的身分顯示
             updateUidDisplay: () => {
                 if (App.isAdmin) {
                     App.els.uidDisplay.innerHTML = `<span style="color: #dc2626; font-size: 13px;">👑 系統管理員：THHS001</span>`;
@@ -370,7 +459,6 @@
                     document.body.classList.remove('is-admin');
                     Toast.show('已登出管理員模式');
                 } else {
-                    // ✨ 密碼提示已完全移除，僅顯示乾淨的 prompt
                     const pwd = prompt('🔒 請輸入管理員密碼');
                     if (pwd === 'admin') {
                         App.isAdmin = true;
@@ -456,17 +544,11 @@
                     
                     const isMine = (post.authorId === myUID);
                     const canDelete = App.isAdmin || isMine;
-
-                    const deleteBtnHTML = canDelete 
-                        ? `<button class="btn-action danger" data-action="delete" data-id="${post.id}">🗑️ 刪除</button>` 
-                        : '';
+                    const deleteBtnHTML = canDelete ? `<button class="btn-action danger" data-action="delete" data-id="${post.id}">🗑️ 刪除</button>` : '';
 
                     const reportCount = allReports[post.id] || 0;
-                    const reportBadgeHTML = reportCount > 0 
-                        ? `<div class="admin-badge has-reports">🚨 遭檢舉 ${reportCount} 次</div>`
-                        : '';
+                    const reportBadgeHTML = reportCount > 0 ? `<div class="admin-badge has-reports">🚨 遭檢舉 ${reportCount} 次</div>` : '';
 
-                    // ✨ 渲染判斷：如果是管理員發布的文章 (THHS001)，賦予專屬紅字與皇冠
                     const isSystemAdmin = post.authorId === 'THHS001';
                     const nameHtml = isSystemAdmin
                         ? `<span class="admin-name">👑 系統管理員</span> <span class="msg-uid admin-badge-text">#THHS001</span>`
@@ -478,9 +560,7 @@
                             <div class="msg-header">
                                 <div class="msg-user">
                                     <div class="msg-avatar"><div class="avatar-hex"></div></div>
-                                    <div class="msg-name">
-                                        ${nameHtml}
-                                    </div>
+                                    <div class="msg-name">${nameHtml}</div>
                                 </div>
                                 <div class="msg-time">${Utils.getTimeAgo(post.timestamp)}</div>
                             </div>
