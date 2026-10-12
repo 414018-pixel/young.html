@@ -72,25 +72,30 @@
         .msg-avatar { width: 36px; height: 36px; background: #f4f4f5; border-radius: 12px; display: flex; justify-content: center; align-items: center; }
         .avatar-hex { width: 18px; height: 18px; background: #34d399; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
         .msg-name { font-weight: 700; font-size: 15px; display: flex; flex-direction: column; }
+        
+        /* 一般使用者的 ID 樣式 */
         .msg-uid { font-size: 11px; color: #8b5cf6; font-family: monospace; letter-spacing: 0.5px; }
+        
+        /* ✨ 管理員專屬 ID 樣式 */
+        .msg-uid.admin-badge-text { color: #dc2626; font-weight: 800; font-size: 12px; }
+        .admin-name { color: #dc2626; }
+        
         .msg-time { font-size: 12px; color: #aeaeb2; font-weight: 500; }
         .msg-content { font-size: 16px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; word-break: break-word; }
         
-        /* 卡片按鈕與檢舉標籤 */
         .msg-actions { display: flex; gap: 12px; flex-wrap: wrap; }
         .btn-action { flex: 1; min-width: 80px; padding: 12px; border-radius: 16px; border: 1px solid #e5e5ea; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; justify-content: center; gap: 6px; }
         .btn-action.dark { background: #1c1c1e; border: none; color: white; }
         .btn-action.danger { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
         .btn-action.danger:hover { background: #fee2e2; }
         
-        /* 管理員專用警示標籤 */
         .admin-badge { display: none; background: #fee2e2; color: #dc2626; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fecaca; width: fit-content; }
 
         /* 權限控制 */
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: flex !important; }
         body.is-admin .btn-admin-login { color: #5b21b6; font-weight: 600; }
-        body.is-admin .admin-badge.has-reports { display: block; } /* 只有管理員看得見檢舉次數 */
+        body.is-admin .admin-badge.has-reports { display: block; }
 
         /* =========================================
            4. 法律聲明視圖 (Legal View)
@@ -151,8 +156,9 @@
             </div>
 
             <div class="post-card">
-                <!-- 顯示當前使用者的專屬 ID -->
+                <!-- 發言身分顯示區 -->
                 <div style="font-size: 12px; color: #8b5cf6; font-family: monospace; margin-bottom: 8px; font-weight: bold;" id="js-my-uid-display"></div>
+                
                 <textarea id="js-post-input" class="post-input" placeholder="匿名說點什麼吧⋯"></textarea>
                 <div class="post-actions">
                     <span id="js-char-counter" class="char-counter">0 / 500</span>
@@ -169,6 +175,7 @@
             <div id="js-post-list" class="post-list"></div>
         </div>
 
+        <!-- 法律聲明 -->
         <div id="view-legal" class="view-section">
             <div class="nav-bar">
                 <div class="btn-back" onclick="App.switchView('home')">〈 返回</div>
@@ -249,14 +256,12 @@
             }
         };
 
-        // ✨ 核心身分與資料管理 API
         const Api = {
             USER_ID_KEY: 'thu_my_uid',
             STORAGE_KEY: 'thu_anonymous_posts',
-            REPORTS_KEY: 'thu_reported_posts', // 管理員收到的檢舉資料庫
-            MY_REPORTS_KEY: 'thu_my_reports',  // 紀錄「我已經檢舉過的貼文」防止狂點
+            REPORTS_KEY: 'thu_reported_posts', 
+            MY_REPORTS_KEY: 'thu_my_reports',
             
-            // 取得每個使用者的唯一身分 ID (UID)
             getUID: () => {
                 let uid = localStorage.getItem(Api.USER_ID_KEY);
                 if (!uid) {
@@ -271,19 +276,17 @@
                 if (storedData) return JSON.parse(storedData);
                 
                 const defaultData = [
-                    { id: "PID-X9A2B1", authorId: "UID-DEMO01", content: "東海匿名板上線囉！這版面可以自行刪除貼文，太人性化了吧！", timestamp: new Date(Date.now() - 1200000).toISOString() }
+                    { id: "PID-X9A2B1", authorId: "THHS001", content: "東海匿名板上線囉！這裡由 THHS001 管理團隊親自把關，提供最自由的言論空間。", timestamp: new Date(Date.now() - 1200000).toISOString() }
                 ];
                 localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(defaultData));
                 return defaultData;
             },
 
-            // 取得全站的檢舉狀態紀錄 { "PID-xxx": 2, "PID-yyy": 1 }
             getReports: () => {
                 const reports = localStorage.getItem(Api.REPORTS_KEY);
                 return reports ? JSON.parse(reports) : {};
             },
 
-            // 紀錄我點擊過檢舉的文章清單
             getMyReportedIds: () => {
                 const myReports = localStorage.getItem(Api.MY_REPORTS_KEY);
                 return myReports ? JSON.parse(myReports) : [];
@@ -296,9 +299,13 @@
             post: async (content) => {
                 await new Promise(r => setTimeout(r, 600)); 
                 const posts = Api.getData();
+                
+                // ✨ 判斷：如果是管理員發文，身分強制轉為 THHS001
+                const currentUid = App.isAdmin ? 'THHS001' : Api.getUID();
+
                 const newPost = { 
                     id: Utils.generateSystemID(), 
-                    authorId: Api.getUID(), // ✨ 綁定這個使用者的唯一 UID
+                    authorId: currentUid,
                     content: content, 
                     timestamp: new Date().toISOString() 
                 };
@@ -315,19 +322,16 @@
                 localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts));
             },
 
-            // ✨ 發送檢舉到管理員信箱 (更新檢舉次數)
             report: async (id) => {
                 const myReportedIds = Api.getMyReportedIds();
                 if (myReportedIds.includes(id)) {
                     throw new Error('您已經檢舉過此貼文了！');
                 }
 
-                // 更新全站檢舉資料庫
                 const allReports = Api.getReports();
                 allReports[id] = (allReports[id] || 0) + 1;
                 localStorage.setItem(Api.REPORTS_KEY, JSON.stringify(allReports));
 
-                // 標記我已經檢舉過
                 myReportedIds.push(id);
                 localStorage.setItem(Api.MY_REPORTS_KEY, JSON.stringify(myReportedIds));
             }
@@ -344,13 +348,20 @@
             },
 
             init: () => {
-                // 顯示目前使用者的身分 UID
-                App.els.uidDisplay.textContent = `發言身分：${Api.getUID()}`;
-
+                App.updateUidDisplay();
                 App.els.input.addEventListener('input', App.handleInput);
                 App.els.submitBtn.addEventListener('click', App.handleSubmit);
                 App.els.feed.addEventListener('click', App.handleFeedClick);
                 App.loadPosts();
+            },
+
+            // 更新輸入框上方的身分顯示
+            updateUidDisplay: () => {
+                if (App.isAdmin) {
+                    App.els.uidDisplay.innerHTML = `<span style="color: #dc2626; font-size: 13px;">👑 系統管理員：THHS001</span>`;
+                } else {
+                    App.els.uidDisplay.textContent = `發言身分：${Api.getUID()}`;
+                }
             },
 
             toggleAdmin: () => {
@@ -359,7 +370,8 @@
                     document.body.classList.remove('is-admin');
                     Toast.show('已登出管理員模式');
                 } else {
-                    const pwd = prompt('🔒 請輸入管理員密碼 (測試請輸入: admin)');
+                    // ✨ 密碼提示已完全移除，僅顯示乾淨的 prompt
+                    const pwd = prompt('🔒 請輸入管理員密碼');
                     if (pwd === 'admin') {
                         App.isAdmin = true;
                         document.body.classList.add('is-admin');
@@ -368,7 +380,8 @@
                         Toast.show('密碼錯誤', 'error');
                     }
                 }
-                App.loadPosts(); // 重新載入以顯示檢舉標籤與權限按鈕
+                App.updateUidDisplay();
+                App.loadPosts(); 
             },
 
             switchView: (viewName) => {
@@ -425,7 +438,7 @@
                     try {
                         await Api.report(id);
                         Toast.show('⚠️ 檢舉已送交管理員審查', 'success');
-                        App.loadPosts(); // 刷新讓管理員看到檢舉數字增加
+                        App.loadPosts(); 
                     } catch (err) {
                         Toast.show(err.message, 'error');
                     }
@@ -434,14 +447,13 @@
 
             loadPosts: async () => {
                 const posts = await Api.fetch();
-                const myUID = Api.getUID(); // 取得我自己的 UID
-                const allReports = Api.getReports(); // 取得全站的檢舉數據
+                const myUID = Api.getUID(); 
+                const allReports = Api.getReports(); 
                 App.els.feed.innerHTML = '';
                 
                 posts.forEach(post => {
                     const safeContent = Utils.escapeHTML(post.content);
                     
-                    // ✨ 權限判斷：如果是管理員，或者是「自己發布的 (UID 相同)」，就能刪除
                     const isMine = (post.authorId === myUID);
                     const canDelete = App.isAdmin || isMine;
 
@@ -449,11 +461,16 @@
                         ? `<button class="btn-action danger" data-action="delete" data-id="${post.id}">🗑️ 刪除</button>` 
                         : '';
 
-                    // ✨ 檢舉系統：取得這篇的檢舉次數，並判斷是否要顯示警告標籤 (僅管理員可見)
                     const reportCount = allReports[post.id] || 0;
                     const reportBadgeHTML = reportCount > 0 
                         ? `<div class="admin-badge has-reports">🚨 遭檢舉 ${reportCount} 次</div>`
                         : '';
+
+                    // ✨ 渲染判斷：如果是管理員發布的文章 (THHS001)，賦予專屬紅字與皇冠
+                    const isSystemAdmin = post.authorId === 'THHS001';
+                    const nameHtml = isSystemAdmin
+                        ? `<span class="admin-name">👑 系統管理員</span> <span class="msg-uid admin-badge-text">#THHS001</span>`
+                        : `匿名同學 <span class="msg-uid">#${post.authorId}</span>`;
 
                     const html = `
                         <div class="message-card">
@@ -462,9 +479,7 @@
                                 <div class="msg-user">
                                     <div class="msg-avatar"><div class="avatar-hex"></div></div>
                                     <div class="msg-name">
-                                        匿名同學 
-                                        <!-- 改為顯示發布者的 UID -->
-                                        <span class="msg-uid">#${post.authorId}</span>
+                                        ${nameHtml}
                                     </div>
                                 </div>
                                 <div class="msg-time">${Utils.getTimeAgo(post.timestamp)}</div>
