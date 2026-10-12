@@ -62,32 +62,35 @@
         .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-submit.active { background: #8b5cf6; }
 
-        .feed-divider { display: flex; align-items: center; padding: 0 20px; margin-bottom: 20px; font-size: 13px; font-weight: 500; color: #aeaeb2; }
-        .feed-divider::after { content: ""; flex: 1; height: 1px; background: #e5e5ea; margin-left: 12px; }
+        .feed-divider { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; margin-bottom: 20px; font-size: 13px; font-weight: 500; color: #aeaeb2; }
+        .feed-divider .line { flex: 1; height: 1px; background: #e5e5ea; margin-left: 12px; }
         .post-list { display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }
         
-        .message-card { background: #fff; border: 1px solid #e5e5ea; border-radius: 24px; margin: 0 20px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .message-card { background: #fff; border: 1px solid #e5e5ea; border-radius: 24px; margin: 0 20px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); position: relative; }
         .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .msg-user { display: flex; align-items: center; gap: 10px; }
         .msg-avatar { width: 36px; height: 36px; background: #f4f4f5; border-radius: 12px; display: flex; justify-content: center; align-items: center; }
         .avatar-hex { width: 18px; height: 18px; background: #34d399; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
-        .msg-name { font-weight: 700; font-size: 15px; }
+        .msg-name { font-weight: 700; font-size: 15px; display: flex; flex-direction: column; }
+        .msg-uid { font-size: 11px; color: #8b5cf6; font-family: monospace; letter-spacing: 0.5px; }
         .msg-time { font-size: 12px; color: #aeaeb2; font-weight: 500; }
         .msg-content { font-size: 16px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; word-break: break-word; }
         
-        /* 卡片按鈕樣式 */
+        /* 卡片按鈕與檢舉標籤 */
         .msg-actions { display: flex; gap: 12px; flex-wrap: wrap; }
         .btn-action { flex: 1; min-width: 80px; padding: 12px; border-radius: 16px; border: 1px solid #e5e5ea; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; justify-content: center; gap: 6px; }
         .btn-action.dark { background: #1c1c1e; border: none; color: white; }
-        
-        /* ✨ 新增：刪除按鈕樣式 */
         .btn-action.danger { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
         .btn-action.danger:hover { background: #fee2e2; }
+        
+        /* 管理員專用警示標籤 */
+        .admin-badge { display: none; background: #fee2e2; color: #dc2626; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fecaca; width: fit-content; }
 
         /* 權限控制 */
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: flex !important; }
         body.is-admin .btn-admin-login { color: #5b21b6; font-weight: 600; }
+        body.is-admin .admin-badge.has-reports { display: block; } /* 只有管理員看得見檢舉次數 */
 
         /* =========================================
            4. 法律聲明視圖 (Legal View)
@@ -99,7 +102,6 @@
         .doc-title { font-size: 20px; font-weight: 800; margin-bottom: 12px; line-height: 1.4; }
         .doc-meta { font-size: 12px; color: #737373; margin-bottom: 16px; }
         .doc-intro { background: #f3f0ff; padding: 16px; margin: 0 20px 20px; border-radius: 12px; border: 1px solid #e0d4fc; font-size: 13px; color: #4c1d95; line-height: 1.6; text-align: justify; }
-        
         .accordion-group { padding: 0 20px 40px; display: flex; flex-direction: column; gap: 12px; }
         details { background: #fff; border: 1px solid #e5e5ea; border-radius: 12px; overflow: hidden; }
         summary { padding: 16px; font-weight: 700; font-size: 14px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; color: #111; }
@@ -143,12 +145,14 @@
 
             <div class="guide-card">
                 <div class="guide-header">💡 平台使用說明</div>
-                <div class="guide-item">👻 <strong>發文匿名：</strong>系統依法保護真實身分。</div>
-                <div class="guide-item">🗑️ <strong>管理權限：</strong>發布後可於本裝置刪除自己的貼文。</div>
+                <div class="guide-item">👻 <strong>單一身分：</strong>您的裝置已綁定唯一 UID，保障發言連貫性。</div>
+                <div class="guide-item">🗑️ <strong>管理權限：</strong>可刪除自己貼文；管理員可審查檢舉內容。</div>
                 <div class="guide-item">⚖️ <strong>友善守則：</strong>發文即同意 <span class="guide-link" onclick="App.switchView('legal')">平台法律聲明</span>。</div>
             </div>
 
             <div class="post-card">
+                <!-- 顯示當前使用者的專屬 ID -->
+                <div style="font-size: 12px; color: #8b5cf6; font-family: monospace; margin-bottom: 8px; font-weight: bold;" id="js-my-uid-display"></div>
                 <textarea id="js-post-input" class="post-input" placeholder="匿名說點什麼吧⋯"></textarea>
                 <div class="post-actions">
                     <span id="js-char-counter" class="char-counter">0 / 500</span>
@@ -156,12 +160,15 @@
                 </div>
             </div>
 
-            <div class="feed-divider">🛡️ 最新留言</div>
+            <div class="feed-divider">
+                <span>🛡️ 最新留言</span>
+                <div class="line"></div>
+                <span class="admin-only" style="color: #dc2626;">(管理員模式)</span>
+            </div>
             
             <div id="js-post-list" class="post-list"></div>
         </div>
 
-        <!-- 法律聲明視圖 -->
         <div id="view-legal" class="view-section">
             <div class="nav-bar">
                 <div class="btn-back" onclick="App.switchView('home')">〈 返回</div>
@@ -179,8 +186,6 @@
                 <details><summary>一、個人資料保護與調閱限制</summary><div class="content-body"><p>除法律另有規定外，拒絕向不具調查權限之第三方提供識別資料。為保障真實受害人未來訴訟舉證，系統將採集必要之設備指紋，非經檢警機關依法定程序出具調取票，絕不逕行提供。</p></div></details>
                 <details><summary>二、平台免責與檢舉處理機制</summary><div class="content-body"><p>版主從事一般性維護，不因管理身分成為違法言論之共同行為人。收到檢舉僅為程序觸發，不代表確定違法，平台拒絕接受「遭檢舉即必須無條件移除」之片面要求。</p></div></details>
                 <details><summary>三、言論自由保障與違法界線</summary><div class="content-body"><p>單純情緒抒發、玩笑屬意見表達。但若發布內容明確構成公然侮辱或誹謗等實體違法行為，本平台決不縱容，將依法配合有權機關偵辦。</p></div></details>
-                <details><summary>四、拒絕不當行政干預與救濟</summary><div class="content-body"><p>任何學校不得僅以「影響校譽」或「行政指導」要求關閉平台。若團隊成員因合法經營而受校方不利益處分，本團隊將依法協助提起行政爭訟。</p></div></details>
-                <details><summary>五、智慧財產權與第三方服務</summary><div class="content-body"><p>本系統架構屬團隊原創，嚴禁重製。系統未儲存任何音樂檔案，相關配樂串接皆透過合法第三方 API 呈現。</p></div></details>
             </div>
         </div>
 
@@ -202,7 +207,8 @@
 
         const Utils = {
             escapeHTML: (str) => { const div = document.createElement('div'); div.appendChild(document.createTextNode(str)); return div.innerHTML; },
-            generateID: () => 'PID-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+            generateSystemID: () => 'PID-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+            generateUserID: () => 'UID-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
             getTimeAgo: (dateString) => {
                 const diff = Math.floor((new Date() - new Date(dateString)) / 60000);
                 if (diff < 1) return '剛剛';
@@ -223,9 +229,9 @@
         };
 
         const IgExport = {
-            process: async (id, content) => {
+            process: async (id, authorId, content) => {
                 Toast.show('📸 正在生成高畫質 IG 圖片...');
-                document.getElementById('ig-export-id').textContent = `#${id}`;
+                document.getElementById('ig-export-id').textContent = `#${authorId}`;
                 const contentEl = document.getElementById('ig-export-content');
                 contentEl.textContent = content;
                 contentEl.style.fontSize = content.length > 150 ? '36px' : (content.length > 300 ? '28px' : '48px');
@@ -243,33 +249,44 @@
             }
         };
 
+        // ✨ 核心身分與資料管理 API
         const Api = {
+            USER_ID_KEY: 'thu_my_uid',
             STORAGE_KEY: 'thu_anonymous_posts',
-            MY_POSTS_KEY: 'thu_my_posts_ids', // ✨ 紀錄「我發布過的貼文 ID」
+            REPORTS_KEY: 'thu_reported_posts', // 管理員收到的檢舉資料庫
+            MY_REPORTS_KEY: 'thu_my_reports',  // 紀錄「我已經檢舉過的貼文」防止狂點
             
+            // 取得每個使用者的唯一身分 ID (UID)
+            getUID: () => {
+                let uid = localStorage.getItem(Api.USER_ID_KEY);
+                if (!uid) {
+                    uid = Utils.generateUserID();
+                    localStorage.setItem(Api.USER_ID_KEY, uid);
+                }
+                return uid;
+            },
+
             getData: () => {
                 const storedData = localStorage.getItem(Api.STORAGE_KEY);
                 if (storedData) return JSON.parse(storedData);
                 
                 const defaultData = [
-                    { id: "PID-X9A2B1", content: "東海匿名板上線囉！這版面可以自行刪除貼文，太人性化了吧！", timestamp: new Date(Date.now() - 1200000).toISOString() },
-                    { id: "PID-Y7Z8W9", content: "溫馨提醒一下，天氣變涼了，大家記得多穿點衣服喔～", timestamp: new Date(Date.now() - 3600000).toISOString() }
+                    { id: "PID-X9A2B1", authorId: "UID-DEMO01", content: "東海匿名板上線囉！這版面可以自行刪除貼文，太人性化了吧！", timestamp: new Date(Date.now() - 1200000).toISOString() }
                 ];
                 localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(defaultData));
                 return defaultData;
             },
 
-            // ✨ 取得我發布過的 ID 清單
-            getMyPostIds: () => {
-                const myIds = localStorage.getItem(Api.MY_POSTS_KEY);
-                return myIds ? JSON.parse(myIds) : [];
+            // 取得全站的檢舉狀態紀錄 { "PID-xxx": 2, "PID-yyy": 1 }
+            getReports: () => {
+                const reports = localStorage.getItem(Api.REPORTS_KEY);
+                return reports ? JSON.parse(reports) : {};
             },
 
-            // ✨ 將剛發布的 ID 加入我的清單
-            recordMyPost: (id) => {
-                const myIds = Api.getMyPostIds();
-                myIds.push(id);
-                localStorage.setItem(Api.MY_POSTS_KEY, JSON.stringify(myIds));
+            // 紀錄我點擊過檢舉的文章清單
+            getMyReportedIds: () => {
+                const myReports = localStorage.getItem(Api.MY_REPORTS_KEY);
+                return myReports ? JSON.parse(myReports) : [];
             },
 
             fetch: async () => {
@@ -279,28 +296,47 @@
             post: async (content) => {
                 await new Promise(r => setTimeout(r, 600)); 
                 const posts = Api.getData();
-                const newPost = { id: Utils.generateID(), content, timestamp: new Date().toISOString() };
+                const newPost = { 
+                    id: Utils.generateSystemID(), 
+                    authorId: Api.getUID(), // ✨ 綁定這個使用者的唯一 UID
+                    content: content, 
+                    timestamp: new Date().toISOString() 
+                };
                 
                 posts.unshift(newPost);
                 localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts)); 
-                
-                Api.recordMyPost(newPost.id); // 記住這篇是我發的
-                
                 return newPost;
             },
 
-            // ✨ 刪除功能
             delete: async (id) => {
                 await new Promise(r => setTimeout(r, 300));
                 let posts = Api.getData();
                 posts = posts.filter(p => p.id !== id);
                 localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts));
+            },
+
+            // ✨ 發送檢舉到管理員信箱 (更新檢舉次數)
+            report: async (id) => {
+                const myReportedIds = Api.getMyReportedIds();
+                if (myReportedIds.includes(id)) {
+                    throw new Error('您已經檢舉過此貼文了！');
+                }
+
+                // 更新全站檢舉資料庫
+                const allReports = Api.getReports();
+                allReports[id] = (allReports[id] || 0) + 1;
+                localStorage.setItem(Api.REPORTS_KEY, JSON.stringify(allReports));
+
+                // 標記我已經檢舉過
+                myReportedIds.push(id);
+                localStorage.setItem(Api.MY_REPORTS_KEY, JSON.stringify(myReportedIds));
             }
         };
 
         const App = {
             isAdmin: false,
             els: {
+                uidDisplay: document.getElementById('js-my-uid-display'),
                 input: document.getElementById('js-post-input'),
                 counter: document.getElementById('js-char-counter'),
                 submitBtn: document.getElementById('js-btn-submit'),
@@ -308,6 +344,9 @@
             },
 
             init: () => {
+                // 顯示目前使用者的身分 UID
+                App.els.uidDisplay.textContent = `發言身分：${Api.getUID()}`;
+
                 App.els.input.addEventListener('input', App.handleInput);
                 App.els.submitBtn.addEventListener('click', App.handleSubmit);
                 App.els.feed.addEventListener('click', App.handleFeedClick);
@@ -324,12 +363,12 @@
                     if (pwd === 'admin') {
                         App.isAdmin = true;
                         document.body.classList.add('is-admin');
-                        Toast.show('🔓 管理員模式已啟用，獲得最高權限', 'success');
+                        Toast.show('🔓 管理員審查模式已啟用', 'success');
                     } else if (pwd !== null) {
                         Toast.show('密碼錯誤', 'error');
                     }
                 }
-                App.loadPosts(); // 重新載入以刷新按鈕權限
+                App.loadPosts(); // 重新載入以顯示檢舉標籤與權限按鈕
             },
 
             switchView: (viewName) => {
@@ -366,12 +405,12 @@
                 }
             },
 
-            // ✨ 處理卡片上的按鈕點擊事件
             handleFeedClick: async (e) => {
                 const btn = e.target.closest('.btn-action');
                 if (!btn) return;
                 
                 const id = btn.dataset.id;
+                const authorId = btn.dataset.author;
                 const action = btn.dataset.action;
 
                 if (action === 'delete') {
@@ -381,41 +420,59 @@
                         App.loadPosts();
                     }
                 } else if (action === 'export' && App.isAdmin) {
-                    IgExport.process(id, btn.dataset.content);
+                    IgExport.process(id, authorId, btn.dataset.content);
                 } else if (action === 'report') {
-                    Toast.show(`⚠️ 已記錄對於 ${id} 的檢舉案卷`);
+                    try {
+                        await Api.report(id);
+                        Toast.show('⚠️ 檢舉已送交管理員審查', 'success');
+                        App.loadPosts(); // 刷新讓管理員看到檢舉數字增加
+                    } catch (err) {
+                        Toast.show(err.message, 'error');
+                    }
                 }
             },
 
             loadPosts: async () => {
                 const posts = await Api.fetch();
-                const myPostIds = Api.getMyPostIds(); // 取得我發布過的 ID
+                const myUID = Api.getUID(); // 取得我自己的 UID
+                const allReports = Api.getReports(); // 取得全站的檢舉數據
                 App.els.feed.innerHTML = '';
                 
                 posts.forEach(post => {
                     const safeContent = Utils.escapeHTML(post.content);
                     
-                    // ✨ 權限判斷：如果是管理員，或者是「自己發布的貼文」，就能看到刪除按鈕
-                    const isMine = myPostIds.includes(post.id);
+                    // ✨ 權限判斷：如果是管理員，或者是「自己發布的 (UID 相同)」，就能刪除
+                    const isMine = (post.authorId === myUID);
                     const canDelete = App.isAdmin || isMine;
 
                     const deleteBtnHTML = canDelete 
                         ? `<button class="btn-action danger" data-action="delete" data-id="${post.id}">🗑️ 刪除</button>` 
                         : '';
 
+                    // ✨ 檢舉系統：取得這篇的檢舉次數，並判斷是否要顯示警告標籤 (僅管理員可見)
+                    const reportCount = allReports[post.id] || 0;
+                    const reportBadgeHTML = reportCount > 0 
+                        ? `<div class="admin-badge has-reports">🚨 遭檢舉 ${reportCount} 次</div>`
+                        : '';
+
                     const html = `
                         <div class="message-card">
+                            ${reportBadgeHTML}
                             <div class="msg-header">
                                 <div class="msg-user">
                                     <div class="msg-avatar"><div class="avatar-hex"></div></div>
-                                    <div class="msg-name">匿名同學 <span style="font-size:11px; color:#c4b5fd; margin-left:4px;">${post.id}</span></div>
+                                    <div class="msg-name">
+                                        匿名同學 
+                                        <!-- 改為顯示發布者的 UID -->
+                                        <span class="msg-uid">#${post.authorId}</span>
+                                    </div>
                                 </div>
                                 <div class="msg-time">${Utils.getTimeAgo(post.timestamp)}</div>
                             </div>
                             <div class="msg-content">${safeContent}</div>
                             <div class="msg-actions">
                                 ${deleteBtnHTML}
-                                <button class="btn-action dark admin-only" data-action="export" data-id="${post.id}" data-content="${safeContent}">📸 匯出 IG</button>
+                                <button class="btn-action dark admin-only" data-action="export" data-id="${post.id}" data-author="${post.authorId}" data-content="${safeContent}">📸 匯出</button>
                                 <button class="btn-action" data-action="report" data-id="${post.id}">⚠️ 檢舉</button>
                             </div>
                         </div>
