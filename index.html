@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>東海匿名 | 獨立校園交流平台</title>
-    <!-- 引入 html2canvas 負責將 DOM 轉換為 IG 圖片 -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         /* =========================================
@@ -20,13 +19,12 @@
             position: relative; overflow-x: hidden;
         }
 
-        /* 視圖切換 (SPA) */
         .view-section { display: none; animation: fadeIn 0.3s ease; }
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* =========================================
-           2. 共用 UI 元件 (Toast, Loader)
+           2. 共用 UI 元件
            ========================================= */
         #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
         .toast { background: #1c1c1e; color: white; padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
@@ -34,7 +32,7 @@
         .toast.success { background: #10b981; }
 
         /* =========================================
-           3. 首頁視圖 (Home View) 樣式
+           3. 首頁視圖 (Home View)
            ========================================= */
         .top-bar { display: flex; justify-content: space-between; padding: 12px 20px; font-size: 12px; font-weight: 500; color: #737373; }
         .top-bar .privacy { color: #10b981; }
@@ -77,35 +75,43 @@
         .msg-time { font-size: 12px; color: #aeaeb2; font-weight: 500; }
         .msg-content { font-size: 16px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; word-break: break-word; }
         
-        .msg-actions { display: flex; gap: 12px; }
-        .btn-action { flex: 1; padding: 12px; border-radius: 16px; border: 1px solid #e5e5ea; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; justify-content: center; gap: 6px; }
+        /* 卡片按鈕樣式 */
+        .msg-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn-action { flex: 1; min-width: 80px; padding: 12px; border-radius: 16px; border: 1px solid #e5e5ea; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; justify-content: center; gap: 6px; }
+        .btn-action.dark { background: #1c1c1e; border: none; color: white; }
         
-        /* ✨ 權限控制核心 CSS ✨ */
+        /* ✨ 新增：刪除按鈕樣式 */
+        .btn-action.danger { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+        .btn-action.danger:hover { background: #fee2e2; }
+
+        /* 權限控制 */
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: flex !important; }
-        body.is-admin .btn-action.dark { background: #1c1c1e; border: none; color: white; }
         body.is-admin .btn-admin-login { color: #5b21b6; font-weight: 600; }
 
         /* =========================================
-           4. 法律聲明視圖 (Legal View) 樣式
+           4. 法律聲明視圖 (Legal View)
            ========================================= */
         .nav-bar { position: sticky; top: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e5e5ea; z-index: 100; }
         .btn-back { color: #5b21b6; font-weight: 600; font-size: 15px; cursor: pointer; }
         .nav-title { flex: 1; text-align: center; font-weight: 700; font-size: 16px; margin-right: 30px; }
         .doc-header { padding: 20px; text-align: center; }
-        .doc-title { font-size: 20px; font-weight: 800; margin-bottom: 12px; }
-        .doc-intro { background: #f3f0ff; padding: 16px; margin: 0 20px 20px; border-radius: 16px; border: 1px solid #e0d4fc; font-size: 13px; color: #4c1d95; line-height: 1.6; }
+        .doc-title { font-size: 20px; font-weight: 800; margin-bottom: 12px; line-height: 1.4; }
+        .doc-meta { font-size: 12px; color: #737373; margin-bottom: 16px; }
+        .doc-intro { background: #f3f0ff; padding: 16px; margin: 0 20px 20px; border-radius: 12px; border: 1px solid #e0d4fc; font-size: 13px; color: #4c1d95; line-height: 1.6; text-align: justify; }
+        
         .accordion-group { padding: 0 20px 40px; display: flex; flex-direction: column; gap: 12px; }
-        details { background: #fff; border: 1px solid #e5e5ea; border-radius: 16px; overflow: hidden; }
-        summary { padding: 16px; font-weight: 700; font-size: 14px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+        details { background: #fff; border: 1px solid #e5e5ea; border-radius: 12px; overflow: hidden; }
+        summary { padding: 16px; font-weight: 700; font-size: 14px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; color: #111; }
         summary::-webkit-details-marker { display: none; }
-        summary::after { content: "＋"; color: #aeaeb2; transition: 0.2s; }
+        summary::after { content: "＋"; color: #aeaeb2; transition: 0.2s; font-size: 16px; }
         details[open] summary::after { transform: rotate(45deg); color: #5b21b6; }
         details[open] summary { border-bottom: 1px solid #e5e5ea; background: #fafafa; }
-        .content-body { padding: 16px; font-size: 13px; line-height: 1.7; color: #3a3a3c; }
+        .content-body { padding: 16px; font-size: 13.5px; line-height: 1.7; color: #3a3a3c; text-align: justify; }
+        .content-body p { margin-bottom: 10px; }
 
         /* =========================================
-           5. IG 匯出專用隱藏畫布
+           5. IG 匯出畫布 (隱藏)
            ========================================= */
         #ig-export-canvas { position: fixed; top: -9999px; left: -9999px; width: 1080px; height: 1080px; background: linear-gradient(135deg, #1c1c1e 0%, #2d2d30 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 100px; color: white; text-align: center; }
         #ig-export-canvas .quote-icon { font-size: 80px; color: #8b5cf6; margin-bottom: 20px; }
@@ -121,8 +127,7 @@
         
         <div id="view-home" class="view-section active">
             <div class="top-bar">
-                <div class="privacy">🛡️ 隱私保護啟用</div>
-                <!-- 管理員登入開關 -->
+                <div class="privacy">🛡️ 隱私保護與憑證採集啟用</div>
                 <div class="btn-admin-login" onclick="App.toggleAdmin()">🔒 管理員</div>
             </div>
 
@@ -131,15 +136,16 @@
             </div>
 
             <div class="hero">
-                <div class="hero-tag">☼ 前台匿名・友善發言</div>
+                <div class="hero-tag">☼ 前台匿名・法遵審核</div>
                 <h1 class="hero-title">說出你的心聲，<br><span class="highlight">匿名</span>也能被聽見</h1>
                 <p class="hero-subtitle">東海同學專屬的匿名留言板，一起讓校園更好。</p>
             </div>
 
             <div class="guide-card">
                 <div class="guide-header">💡 平台使用說明</div>
-                <div class="guide-item">👻 <strong>發文匿名：</strong>系統自動保護您的真實身分。</div>
-                <div class="guide-item">⚖️ <strong>友善守則：</strong>請遵守法律，切勿發布違法言論。詳閱 <span class="guide-link" onclick="App.switchView('legal')">平台法律救濟聲明</span>。</div>
+                <div class="guide-item">👻 <strong>發文匿名：</strong>系統依法保護真實身分。</div>
+                <div class="guide-item">🗑️ <strong>管理權限：</strong>發布後可於本裝置刪除自己的貼文。</div>
+                <div class="guide-item">⚖️ <strong>友善守則：</strong>發文即同意 <span class="guide-link" onclick="App.switchView('legal')">平台法律聲明</span>。</div>
             </div>
 
             <div class="post-card">
@@ -155,6 +161,7 @@
             <div id="js-post-list" class="post-list"></div>
         </div>
 
+        <!-- 法律聲明視圖 -->
         <div id="view-legal" class="view-section">
             <div class="nav-bar">
                 <div class="btn-back" onclick="App.switchView('home')">〈 返回</div>
@@ -162,15 +169,18 @@
             </div>
             <div class="doc-header">
                 <h1 class="doc-title">平台獨立性、成員權益及<br>法律救濟聲明</h1>
+                <div class="doc-meta">生效日期：西元 2026 年 9 月 23 日</div>
             </div>
             <div class="doc-intro">
-                本平台為獨立運作之匿名交流平台，非官方系統。任何權威身分均不得要求本平台關閉或提供使用者資料。本團隊將依法維護權益。
+                <strong>【前言聲明】</strong><br>
+                本平台為獨立運作之匿名交流空間，非隸屬或受任何學校管理之校務系統。本團隊尊重各校校務管理權限，惟同時嚴正聲明：本平台使用者及團隊成員依法所享有之權利，不因任何第三方之身分而受減損。凡涉及對本平台或其成員之重大權益限制者，本團隊均將要求依法行事並保留一切法律救濟權利。
             </div>
             <div class="accordion-group">
-                <details><summary>一、關於使用者資料</summary><div class="content-body">除法律另有規定，本平台不會向第三方提供識別資料。為保障受害人訴訟權益，系統將保存必要之設備指紋，非經合法程序不外流。</div></details>
-                <details><summary>二、收到檢舉後之處理</summary><div class="content-body">收到檢舉不當然等同於內容確定違法。平台不接受「僅因遭檢舉即必須移除」之推論，將依法進行審查。</div></details>
-                <details><summary>三、關於言論自由</summary><div class="content-body">尊重《憲法》保障之言論自由。單純玩笑、誇飾（嘴砲）非當然違法，但絕不縱容恐嚇、誹謗等明確犯罪行為。</div></details>
-                <details><summary>四、學校不得要求交出權限之事由</summary><div class="content-body">任何學校不得以「影響校譽」、「行政指導」或未經調查之家長反映，要求本平台關閉或交出使用者資料。</div></details>
+                <details><summary>一、個人資料保護與調閱限制</summary><div class="content-body"><p>除法律另有規定外，拒絕向不具調查權限之第三方提供識別資料。為保障真實受害人未來訴訟舉證，系統將採集必要之設備指紋，非經檢警機關依法定程序出具調取票，絕不逕行提供。</p></div></details>
+                <details><summary>二、平台免責與檢舉處理機制</summary><div class="content-body"><p>版主從事一般性維護，不因管理身分成為違法言論之共同行為人。收到檢舉僅為程序觸發，不代表確定違法，平台拒絕接受「遭檢舉即必須無條件移除」之片面要求。</p></div></details>
+                <details><summary>三、言論自由保障與違法界線</summary><div class="content-body"><p>單純情緒抒發、玩笑屬意見表達。但若發布內容明確構成公然侮辱或誹謗等實體違法行為，本平台決不縱容，將依法配合有權機關偵辦。</p></div></details>
+                <details><summary>四、拒絕不當行政干預與救濟</summary><div class="content-body"><p>任何學校不得僅以「影響校譽」或「行政指導」要求關閉平台。若團隊成員因合法經營而受校方不利益處分，本團隊將依法協助提起行政爭訟。</p></div></details>
+                <details><summary>五、智慧財產權與第三方服務</summary><div class="content-body"><p>本系統架構屬團隊原創，嚴禁重製。系統未儲存任何音樂檔案，相關配樂串接皆透過合法第三方 API 呈現。</p></div></details>
             </div>
         </div>
 
@@ -178,7 +188,6 @@
 
     <div id="toast-container"></div>
 
-    <!-- IG 浮水印也已替換為東海相關 -->
     <div id="ig-export-canvas">
         <div class="quote-icon">❝</div>
         <div id="ig-export-content"></div>
@@ -234,21 +243,33 @@
             }
         };
 
-        // ✨ 這是將資料永久存在瀏覽器 (Local Storage) 的核心機制
         const Api = {
             STORAGE_KEY: 'thu_anonymous_posts',
+            MY_POSTS_KEY: 'thu_my_posts_ids', // ✨ 紀錄「我發布過的貼文 ID」
             
             getData: () => {
                 const storedData = localStorage.getItem(Api.STORAGE_KEY);
-                if (storedData) {
-                    return JSON.parse(storedData);
-                }
+                if (storedData) return JSON.parse(storedData);
+                
                 const defaultData = [
-                    { id: "PID-X9A2B1", content: "東海匿名板上線囉！排版也太好看了吧，而且發文真的不用登入耶！", timestamp: new Date(Date.now() - 1200000).toISOString() },
+                    { id: "PID-X9A2B1", content: "東海匿名板上線囉！這版面可以自行刪除貼文，太人性化了吧！", timestamp: new Date(Date.now() - 1200000).toISOString() },
                     { id: "PID-Y7Z8W9", content: "溫馨提醒一下，天氣變涼了，大家記得多穿點衣服喔～", timestamp: new Date(Date.now() - 3600000).toISOString() }
                 ];
                 localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(defaultData));
                 return defaultData;
+            },
+
+            // ✨ 取得我發布過的 ID 清單
+            getMyPostIds: () => {
+                const myIds = localStorage.getItem(Api.MY_POSTS_KEY);
+                return myIds ? JSON.parse(myIds) : [];
+            },
+
+            // ✨ 將剛發布的 ID 加入我的清單
+            recordMyPost: (id) => {
+                const myIds = Api.getMyPostIds();
+                myIds.push(id);
+                localStorage.setItem(Api.MY_POSTS_KEY, JSON.stringify(myIds));
             },
 
             fetch: async () => {
@@ -256,14 +277,24 @@
             },
 
             post: async (content) => {
-                await new Promise(r => setTimeout(r, 600)); // 模擬網路讀取時間
+                await new Promise(r => setTimeout(r, 600)); 
                 const posts = Api.getData();
                 const newPost = { id: Utils.generateID(), content, timestamp: new Date().toISOString() };
                 
                 posts.unshift(newPost);
-                localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts)); // 存回瀏覽器
+                localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts)); 
+                
+                Api.recordMyPost(newPost.id); // 記住這篇是我發的
                 
                 return newPost;
+            },
+
+            // ✨ 刪除功能
+            delete: async (id) => {
+                await new Promise(r => setTimeout(r, 300));
+                let posts = Api.getData();
+                posts = posts.filter(p => p.id !== id);
+                localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts));
             }
         };
 
@@ -288,17 +319,17 @@
                     App.isAdmin = false;
                     document.body.classList.remove('is-admin');
                     Toast.show('已登出管理員模式');
-                    return;
+                } else {
+                    const pwd = prompt('🔒 請輸入管理員密碼 (測試請輸入: admin)');
+                    if (pwd === 'admin') {
+                        App.isAdmin = true;
+                        document.body.classList.add('is-admin');
+                        Toast.show('🔓 管理員模式已啟用，獲得最高權限', 'success');
+                    } else if (pwd !== null) {
+                        Toast.show('密碼錯誤', 'error');
+                    }
                 }
-                
-                const pwd = prompt('🔒 請輸入管理員密碼 (測試請輸入: admin)');
-                if (pwd === 'admin') {
-                    App.isAdmin = true;
-                    document.body.classList.add('is-admin');
-                    Toast.show('🔓 管理員模式已啟用，可匯出 IG 圖片', 'success');
-                } else if (pwd !== null) {
-                    Toast.show('密碼錯誤', 'error');
-                }
+                App.loadPosts(); // 重新載入以刷新按鈕權限
             },
 
             switchView: (viewName) => {
@@ -335,24 +366,43 @@
                 }
             },
 
-            handleFeedClick: (e) => {
+            // ✨ 處理卡片上的按鈕點擊事件
+            handleFeedClick: async (e) => {
                 const btn = e.target.closest('.btn-action');
                 if (!btn) return;
                 
                 const id = btn.dataset.id;
-                if (btn.classList.contains('dark') && App.isAdmin) {
+                const action = btn.dataset.action;
+
+                if (action === 'delete') {
+                    if (confirm('確定要永久刪除這篇貼文嗎？\n(此動作無法復原)')) {
+                        await Api.delete(id);
+                        Toast.show('🗑️ 貼文已刪除', 'success');
+                        App.loadPosts();
+                    }
+                } else if (action === 'export' && App.isAdmin) {
                     IgExport.process(id, btn.dataset.content);
-                } else {
+                } else if (action === 'report') {
                     Toast.show(`⚠️ 已記錄對於 ${id} 的檢舉案卷`);
                 }
             },
 
             loadPosts: async () => {
                 const posts = await Api.fetch();
+                const myPostIds = Api.getMyPostIds(); // 取得我發布過的 ID
                 App.els.feed.innerHTML = '';
                 
                 posts.forEach(post => {
                     const safeContent = Utils.escapeHTML(post.content);
+                    
+                    // ✨ 權限判斷：如果是管理員，或者是「自己發布的貼文」，就能看到刪除按鈕
+                    const isMine = myPostIds.includes(post.id);
+                    const canDelete = App.isAdmin || isMine;
+
+                    const deleteBtnHTML = canDelete 
+                        ? `<button class="btn-action danger" data-action="delete" data-id="${post.id}">🗑️ 刪除</button>` 
+                        : '';
+
                     const html = `
                         <div class="message-card">
                             <div class="msg-header">
@@ -364,9 +414,9 @@
                             </div>
                             <div class="msg-content">${safeContent}</div>
                             <div class="msg-actions">
-                                <!-- 加上 admin-only 標籤，一般人看不到 -->
-                                <button class="btn-action dark admin-only" data-id="${post.id}" data-content="${safeContent}">📸 匯出 IG</button>
-                                <button class="btn-action" data-id="${post.id}">⚠️ 檢舉</button>
+                                ${deleteBtnHTML}
+                                <button class="btn-action dark admin-only" data-action="export" data-id="${post.id}" data-content="${safeContent}">📸 匯出 IG</button>
+                                <button class="btn-action" data-action="report" data-id="${post.id}">⚠️ 檢舉</button>
                             </div>
                         </div>
                     `;
