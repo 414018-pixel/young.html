@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>智庫管家 - AI 庫房零件辨識與後台管理系統</title>
+    <title>智庫管家 Pro - 零件拍照自動建檔與智能歸位</title>
     <style>
         :root {
             --bg-dark: #090d16;
@@ -11,6 +11,7 @@
             --card-inner: #0d131f;
             --accent-cyan: #06b6d4;
             --accent-green: #10b981;
+            --accent-amber: #f59e0b;
             --accent-rose: #f43f5e;
             --text-main: #f8fafc;
             --text-sub: #94a3b8;
@@ -92,7 +93,7 @@
             color: var(--accent-green);
         }
 
-        /* Camera Viewport */
+        /* Camera / Preview Area */
         .cam-frame {
             position: relative;
             margin: 12px 16px 8px;
@@ -104,6 +105,13 @@
         }
 
         #mobileVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        #previewImg {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -149,6 +157,8 @@
             position: absolute;
             bottom: 10px;
             right: 10px;
+            display: flex;
+            gap: 6px;
         }
 
         .tool-btn {
@@ -236,6 +246,8 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
             margin-top: 8px;
+            max-height: 160px;
+            overflow-y: auto;
         }
 
         .mini-cell {
@@ -266,6 +278,7 @@
         .mini-cell.active-drawer {
             background: rgba(16, 185, 129, 0.2);
             border-color: var(--accent-green);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
         }
         .mini-cell.active-drawer .cid {
             color: var(--accent-green);
@@ -298,7 +311,13 @@
             font-size: 0.75rem;
         }
 
+        .action-row-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
         .main-scan-btn {
+            flex: 1;
             background: linear-gradient(135deg, #0284c7, #06b6d4);
             border: none;
             color: #fff;
@@ -309,17 +328,31 @@
             cursor: pointer;
         }
 
-        /* Modal / Dialog */
+        .quick-upload-btn {
+            background: rgba(16, 185, 129, 0.18);
+            border: 1.5px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 0 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Modal Dialogs */
         .modal-backdrop {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(6px);
             z-index: 100;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px;
         }
 
         .modal-panel {
@@ -327,12 +360,14 @@
             border: 1.5px solid var(--border-ui);
             border-radius: 16px;
             width: 100%;
-            max-width: 440px;
-            padding: 22px;
+            max-width: 460px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-header {
@@ -358,25 +393,25 @@
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
         }
 
         .input-group label {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             color: var(--text-sub);
             font-weight: 600;
         }
 
-        .text-input {
+        .text-input, .select-input {
             background: #090d16;
             border: 1px solid var(--border-ui);
             border-radius: 8px;
-            padding: 10px 12px;
+            padding: 9px 12px;
             color: #fff;
             font-size: 0.85rem;
             outline: none;
         }
-        .text-input:focus {
+        .text-input:focus, .select-input:focus {
             border-color: var(--accent-cyan);
         }
 
@@ -391,42 +426,43 @@
             cursor: pointer;
         }
 
-        /* Upload Area */
-        .upload-dropzone {
+        /* Image Upload Box inside Create Modal */
+        .image-drop-area {
             border: 2px dashed var(--accent-cyan);
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 10px;
+            padding: 14px;
             text-align: center;
             background: rgba(6, 182, 212, 0.05);
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
-        .upload-dropzone:hover {
-            background: rgba(6, 182, 212, 0.1);
+        #imgThumbnailPreview {
+            width: 100%;
+            max-height: 130px;
+            object-fit: contain;
+            border-radius: 8px;
+            display: none;
         }
 
-        .db-stat-tag {
+        .auto-tag {
             font-size: 0.72rem;
-            color: var(--accent-green);
-            background: rgba(16, 185, 129, 0.12);
-            padding: 4px 8px;
-            border-radius: 6px;
-            align-self: flex-start;
+            color: var(--accent-amber);
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
     <div class="mobile-shell">
-        <!-- Top Header -->
+        <!-- Top Bar -->
         <header class="app-bar">
             <div class="app-title-group">
                 <h1>智庫管家 <span>Pro</span></h1>
-                <p>AI 自動辨識與零件後台管理</p>
+                <p>AI 自動辨識與零件拍照建檔</p>
             </div>
             <div class="nav-actions">
                 <button class="admin-btn" id="adminToggleBtn" onclick="handleAdminBtnClick()">
@@ -435,9 +471,10 @@
             </div>
         </header>
 
-        <!-- Camera Area -->
+        <!-- Camera / Photo Viewport -->
         <div class="cam-frame">
             <video id="mobileVideo" autoplay playsinline muted></video>
+            <img id="previewImg" alt="零件照片">
             <canvas id="simCanvas" width="480" height="360"></canvas>
 
             <div class="scan-overlay">
@@ -449,7 +486,8 @@
             </div>
 
             <div class="cam-tools">
-                <button class="tool-btn" onclick="toggleRealCam()">📷 切換真鏡頭</button>
+                <button class="tool-btn" onclick="openPhotoUploadModal()">📸 上傳新零件照片</button>
+                <button class="tool-btn" onclick="toggleRealCam()">📷 鏡頭切換</button>
             </div>
         </div>
 
@@ -481,14 +519,18 @@
         <!-- Bottom Actions -->
         <div class="bottom-actions">
             <div class="demo-bar">
-                <span>切換掃描元件：</span>
+                <span>選擇零件檢視：</span>
                 <select class="demo-select" id="partPick" onchange="autoRecognizeAndSpeak(this.value)">
-                    <!-- Dynamically populated from Database -->
                 </select>
             </div>
-            <button class="main-scan-btn" onclick="triggerScanNow()">
-                <span>⚡ 對準零件立即歸位 (自動語音)</span>
-            </button>
+            <div class="action-row-buttons">
+                <button class="main-scan-btn" onclick="triggerScanNow()">
+                    <span>⚡ 立即歸位與自動播報</span>
+                </button>
+                <button class="quick-upload-btn" onclick="openPhotoUploadModal()">
+                    <span>➕ 拍照建檔</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -507,77 +549,118 @@
                 <label>登入密碼 (預設: 123456)</label>
                 <input type="password" class="text-input" id="loginPass" placeholder="請輸入密碼" value="123456">
             </div>
-            <button class="btn-submit" onclick="submitLogin()">立即驗證登入</button>
+            <button class="btn-submit" onclick="submitLogin()">驗證並進入建檔系統</button>
         </div>
     </div>
 
-    <!-- Modal 2: Database Upload & Management Dialog -->
+    <!-- Modal 2: Upload Photo & Auto-Numbering Dialog -->
+    <div class="modal-backdrop" id="uploadModal">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <div class="modal-title">📸 零件拍照上傳 ＆ 自動設編號</div>
+                <button class="close-btn" onclick="closeModal('uploadModal')">✕</button>
+            </div>
+
+            <!-- Upload Photo Dropzone -->
+            <div class="image-drop-area" onclick="document.getElementById('partImageFile').click()">
+                <img id="imgThumbnailPreview" alt="預覽圖">
+                <div id="dropPlaceholder">
+                    <div style="font-size:1.8rem;">📷</div>
+                    <div style="font-weight:700; font-size:0.85rem; color:var(--accent-cyan);">點擊拍照或上傳零件圖片</div>
+                    <div style="font-size:0.7rem; color:var(--text-sub);">支援手機相機現拍或相簿選取 (JPG, PNG)</div>
+                </div>
+                <input type="file" id="partImageFile" accept="image/*" capture="environment" style="display:none;" onchange="handlePartImageSelected(event)">
+            </div>
+
+            <!-- Custom Name -->
+            <div class="input-group">
+                <label>零件自訂名稱 (必填)</label>
+                <input type="text" class="text-input" id="newPartName" placeholder="例如：SG90 伺服馬達 / 0.1uF 陶瓷電容">
+            </div>
+
+            <!-- Select Region / Area -->
+            <div class="input-group">
+                <label>存放區域 (請選擇工場庫房分區)</label>
+                <select class="select-input" id="newPartArea" onchange="calculateAutoBoxNumber()">
+                    <option value="A">A 區 (電阻 / 基礎被動元件櫃)</option>
+                    <option value="B">B 區 (二極體 / LED / 電解電容櫃)</option>
+                    <option value="C">C 區 (IC 晶片 / 感測器模組櫃)</option>
+                    <option value="D">D 區 (繼電器 / 馬達動力元件櫃)</option>
+                </select>
+            </div>
+
+            <!-- Auto Number Box Indicator -->
+            <div class="input-group">
+                <label style="display:flex; justify-content:space-between;">
+                    <span>系統自動分配編號 (建議盒號)</span>
+                    <span class="auto-tag">⚡ 自動依區域序號遞增</span>
+                </label>
+                <input type="text" class="text-input" id="newPartBox" style="color:var(--accent-green); font-weight:800; font-family:monospace;" readonly>
+            </div>
+
+            <!-- Custom Specs / Desc -->
+            <div class="input-group">
+                <label>規格與防呆提醒備註</label>
+                <input type="text" class="text-input" id="newPartDesc" placeholder="例如：工作電壓 5V，注意紅正黑負">
+            </div>
+
+            <button class="btn-submit" onclick="saveNewPartToDB()">💾 完成建檔並同步資料庫</button>
+        </div>
+    </div>
+
+    <!-- Modal 3: Database JSON/CSV Management -->
     <div class="modal-backdrop" id="adminModal">
         <div class="modal-panel">
             <div class="modal-header">
-                <div class="modal-title">🗄️ 庫房零件資料庫管理</div>
+                <div class="modal-title">🗄️ 零件資料庫備份與管理</div>
                 <button class="close-btn" onclick="closeModal('adminModal')">✕</button>
             </div>
+            <div style="font-size:0.75rem; color:var(--accent-green);" id="adminDbStat">目前零件庫共 6 筆資料</div>
             
-            <div class="db-stat-tag" id="adminDbStat">目前零件庫共 6 筆資料</div>
-
-            <!-- Upload Box -->
-            <div class="upload-dropzone" onclick="document.getElementById('dbFileInput').click()">
-                <div style="font-size:2rem;">📤</div>
-                <div style="font-weight:700; font-size:0.9rem;">點擊上傳自訂零件庫 (.JSON / .CSV)</div>
-                <div style="font-size:0.75rem; color:var(--text-sub);">支援快速替換實習工場抽屜編號與零件規格</div>
-                <input type="file" id="dbFileInput" accept=".json,.csv" style="display:none;" onchange="handleFileUpload(event)">
-            </div>
+            <button class="btn-submit" style="background:#0284c7;" onclick="closeModal('adminModal'); openPhotoUploadModal();">
+                📸 新增零件 (上傳圖片自動配號)
+            </button>
 
             <div style="display:flex; justify-content:space-between; gap:10px;">
-                <button class="admin-btn" style="flex:1;" onclick="exportDatabaseJSON()">📥 下載當前備份</button>
-                <button class="admin-btn" style="flex:1; border-color:var(--accent-rose); color:var(--accent-rose);" onclick="resetDefaultDB()">🔄 還原預設值</button>
+                <button class="admin-btn" style="flex:1;" onclick="exportDatabaseJSON()">📥 備份 JSON</button>
+                <button class="admin-btn" style="flex:1; border-color:var(--accent-rose); color:var(--accent-rose);" onclick="resetDefaultDB()">🔄 還原預設</button>
             </div>
-
             <button class="btn-submit" style="background:#334155;" onclick="logoutAdmin()">登出管理員身分</button>
         </div>
     </div>
 
     <script>
-        // Default Component Database
+        // Preset default database
         const DEFAULT_DB = {
-            "resistor_10k": { name: "10kΩ 四環電阻", desc: "色碼：棕 · 黑 · 橙 · 金 (±5%)", box: "A-03", conf: "98.4%", type: "resistor", speech: "辨識完成，10k歐姆電阻，請放入A區3號盒。" },
-            "resistor_220": { name: "220Ω 四環電阻", desc: "色碼：紅 · 紅 · 棕 · 金 (±5%)", box: "A-01", conf: "97.1%", type: "resistor", speech: "辨識完成，220歐姆限流電阻，請放入A區1號盒。" },
-            "led_red": { name: "5mm 紅色 LED", desc: "長正短負 / 順向電壓約 2V", box: "B-02", conf: "99.2%", type: "led", speech: "偵測到紅色發光二極體，長腳為正極，請放入B區2號盒。" },
-            "cap_electrolytic": { name: "100µF 電解電容", desc: "有極性！灰條標示為負極(-)", box: "B-04", conf: "96.5%", type: "cap_elec", speech: "注意！100微法拉電解電容，有正負極區分，請放入B區4號盒。" },
-            "cap_ceramic": { name: "104 陶瓷電容", desc: "無極性 / 容值 0.1µF 去耦電容", box: "C-01", conf: "95.8%", type: "cap_cer", speech: "104陶瓷去耦電容，請歸入C區1號盒。" },
-            "ic_ne555": { name: "NE555 定時 IC", desc: "DIP-8 封裝 / 缺口左側為第1腳", box: "C-03", conf: "98.9%", type: "ic", speech: "NE555定時IC，請注意引腳方向，放入C區3號IC盒。" }
+            "resistor_10k": { name: "10kΩ 四環電阻", desc: "色碼：棕 · 黑 · 橙 · 金 (±5%)", box: "A-03", area: "A", conf: "98.4%", type: "resistor", speech: "辨識完成，10k歐姆電阻，請放入A區3號盒。" },
+            "resistor_220": { name: "220Ω 四環電阻", desc: "色碼：紅 · 紅 · 棕 · 金 (±5%)", box: "A-01", area: "A", conf: "97.1%", type: "resistor", speech: "辨識完成，220歐姆限流電阻，請放入A區1號盒。" },
+            "led_red": { name: "5mm 紅色 LED", desc: "長正短負 / 順向電壓約 2V", box: "B-02", area: "B", conf: "99.2%", type: "led", speech: "偵測到紅色發光二極體，長腳為正極，請放入B區2號盒。" },
+            "cap_electrolytic": { name: "100µF 電解電容", desc: "有極性！灰條標示為負極(-)", box: "B-04", area: "B", conf: "96.5%", type: "cap_elec", speech: "注意！100微法拉電解電容，有正負極區分，請放入B區4號盒。" },
+            "cap_ceramic": { name: "104 陶瓷電容", desc: "無極性 / 容值 0.1µF 去耦電容", box: "C-01", area: "C", conf: "95.8%", type: "cap_cer", speech: "104陶瓷去耦電容，請歸入C區1號盒。" },
+            "ic_ne555": { name: "NE555 定時 IC", desc: "DIP-8 封裝 / 缺口左側為第1腳", box: "C-03", area: "C", conf: "98.9%", type: "ic", speech: "NE555定時IC，請注意引腳方向，放入C區3號IC盒。" }
         };
 
-        const M_BOXES = [
-            { id: "A-01", name: "220Ω" }, { id: "A-02", name: "1kΩ" }, { id: "A-03", name: "10kΩ" }, { id: "A-04", name: "100kΩ" },
-            { id: "B-01", name: "綠LED" }, { id: "B-02", name: "紅LED" }, { id: "B-03", name: "10µF" }, { id: "B-04", name: "100µF" },
-            { id: "C-01", name: "104瓷" }, { id: "C-02", name: "二極體" }, { id: "C-03", name: "555" }, { id: "C-04", name: "電晶體" }
-        ];
-
-        // Load DB from localStorage or default
         let currentDB = JSON.parse(localStorage.getItem("zhiku_custom_db")) || DEFAULT_DB;
         let isAdminLoggedIn = localStorage.getItem("zhiku_admin_logged") === "true";
         let curKey = Object.keys(currentDB)[0] || "resistor_10k";
         let isRealCam = false;
+        let uploadedBase64Img = "";
 
+        // Refresh UI
         function refreshUIState() {
-            // Update admin button UI
             const btn = document.getElementById("adminToggleBtn");
             if (isAdminLoggedIn) {
                 btn.className = "admin-btn logged-in";
-                btn.innerHTML = "⚙️ 零件庫管理 (已登入)";
+                btn.innerHTML = "⚙️ 庫房後台 (已登入)";
             } else {
                 btn.className = "admin-btn";
                 btn.innerHTML = "🔐 管理員登入";
             }
 
-            // Update DB Status
             const total = Object.keys(currentDB).length;
             document.getElementById("dbStatusBadge").textContent = `DB_RECORDS: ${total} 元件已就緒`;
             document.getElementById("adminDbStat").textContent = `目前零件庫共 ${total} 筆資料 (已同步瀏覽器快取)`;
 
-            // Populate selector
             const sel = document.getElementById("partPick");
             sel.innerHTML = "";
             for (let k in currentDB) {
@@ -592,64 +675,123 @@
             sel.value = curKey;
         }
 
-        function initMiniGrid() {
+        // Generate Drawer Grid dynamically based on database boxes
+        function initGrid() {
             const grid = document.getElementById("miniDrawerGrid");
             grid.innerHTML = "";
-            M_BOXES.forEach(b => {
+
+            // Gather all used boxes plus standard coordinates
+            let boxMap = {};
+            for (let k in currentDB) {
+                boxMap[currentDB[k].box] = currentDB[k].name;
+            }
+            // Ensure default baseline exists
+            ["A-01", "A-02", "A-03", "A-04", "B-01", "B-02", "B-03", "B-04", "C-01", "C-02", "C-03", "C-04"].forEach(b => {
+                if (!boxMap[b]) boxMap[b] = "備用空盒";
+            });
+
+            const sortedBoxes = Object.keys(boxMap).sort();
+            sortedBoxes.forEach(bId => {
                 const cell = document.createElement("div");
-                cell.className = "mini-cell" + (b.id === (currentDB[curKey]?.box || "A-03") ? " active-drawer" : "");
-                cell.id = "m-cell-" + b.id;
-                cell.innerHTML = `<span class="cid">${b.id}</span><span class="cname">${b.name}</span>`;
+                cell.className = "mini-cell" + (bId === (currentDB[curKey]?.box || "A-03") ? " active-drawer" : "");
+                cell.id = "m-cell-" + bId;
+                cell.innerHTML = `<span class="cid">${bId}</span><span class="cname">${boxMap[bId]}</span>`;
                 grid.appendChild(cell);
             });
         }
 
-        function drawMobileCanvas(type) {
-            const cvs = document.getElementById("simCanvas");
-            const ctx = cvs.getContext("2d");
-            ctx.clearRect(0, 0, cvs.width, cvs.height);
-            const cx = cvs.width / 2;
-            const cy = cvs.height / 2;
+        // Auto Numbering Calculation
+        function calculateAutoBoxNumber() {
+            const area = document.getElementById("newPartArea").value; // 'A', 'B', 'C', 'D'
+            let maxIndex = 0;
 
-            if (type === "resistor") {
-                ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 4;
-                ctx.beginPath(); ctx.moveTo(cx - 130, cy); ctx.lineTo(cx + 130, cy); ctx.stroke();
-                ctx.fillStyle = "#dcb080";
-                ctx.beginPath(); ctx.roundRect(cx - 60, cy - 20, 120, 40, 8); ctx.fill();
-                const is10k = (curKey === "resistor_10k");
-                const bands = is10k ? ["#5c3a21", "#000000", "#ff7700", "#ffd700"] : ["#d00000", "#d00000", "#5c3a21", "#ffd700"];
-                const offsets = [-38, -16, 8, 38];
-                bands.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(cx + offsets[i], cy - 20, 9, 40); });
-            } else if (type === "led") {
-                ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 3.5;
-                ctx.beginPath(); ctx.moveTo(cx - 10, cy + 25); ctx.lineTo(cx - 10, cy + 100); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(cx + 10, cy + 25); ctx.lineTo(cx + 10, cy + 80); ctx.stroke();
-                ctx.fillStyle = "#ef4444";
-                ctx.beginPath(); ctx.arc(cx, cy - 15, 30, Math.PI, 0, false);
-                ctx.lineTo(cx + 30, cy + 20); ctx.lineTo(cx - 30, cy + 20); ctx.closePath(); ctx.fill();
-            } else if (type === "cap_elec") {
-                ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 3.5;
-                ctx.beginPath(); ctx.moveTo(cx - 12, cy + 35); ctx.lineTo(cx - 12, cy + 95); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(cx + 12, cy + 35); ctx.lineTo(cx + 12, cy + 80); ctx.stroke();
-                ctx.fillStyle = "#1e293b"; ctx.beginPath(); ctx.roundRect(cx - 38, cy - 50, 76, 90, 6); ctx.fill();
-                ctx.fillStyle = "#e2e8f0"; ctx.fillRect(cx + 16, cy - 50, 14, 90);
-                ctx.fillStyle = "#000"; ctx.font = "bold 14px monospace"; ctx.fillText("-", cx + 19, cy);
-            } else if (type === "cap_cer") {
-                ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 3;
-                ctx.beginPath(); ctx.moveTo(cx - 12, cy + 15); ctx.lineTo(cx - 12, cy + 80); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(cx + 12, cy + 15); ctx.lineTo(cx + 12, cy + 80); ctx.stroke();
-                ctx.fillStyle = "#d97706"; ctx.beginPath(); ctx.arc(cx, cy - 10, 36, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = "#000"; ctx.font = "bold 15px monospace"; ctx.fillText("104", cx - 14, cy - 6);
-            } else {
-                ctx.fillStyle = "#111827"; ctx.beginPath(); ctx.roundRect(cx - 65, cy - 40, 130, 80, 5); ctx.fill();
-                ctx.fillStyle = "#cbd5e1";
-                for (let i = 0; i < 4; i++) {
-                    const px = cx - 48 + i * 32;
-                    ctx.fillRect(px, cy - 52, 12, 14);
-                    ctx.fillRect(px, cy + 38, 12, 14);
+            for (let k in currentDB) {
+                const b = currentDB[k].box || "";
+                if (b.startsWith(area + "-")) {
+                    const numPart = parseInt(b.split("-")[1], 10);
+                    if (!isNaN(numPart) && numPart > maxIndex) {
+                        maxIndex = numPart;
+                    }
                 }
-                ctx.fillStyle = "#fff"; ctx.font = "bold 14px monospace"; ctx.fillText("IC CHIP", cx - 30, cy + 5);
             }
+            const nextIndex = maxIndex + 1;
+            const autoCode = `${area}-${nextIndex < 10 ? '0' + nextIndex : nextIndex}`;
+            document.getElementById("newPartBox").value = autoCode;
+        }
+
+        // Open Upload Modal (with admin gate check)
+        function openPhotoUploadModal() {
+            if (!isAdminLoggedIn) {
+                alert("建立新零件需庫房管理員權限，請先登入！(預設: admin / 123456)");
+                document.getElementById("loginModal").style.display = "flex";
+                return;
+            }
+            // Reset fields
+            document.getElementById("newPartName").value = "";
+            document.getElementById("newPartDesc").value = "";
+            document.getElementById("imgThumbnailPreview").style.display = "none";
+            document.getElementById("dropPlaceholder").style.display = "block";
+            uploadedBase64Img = "";
+            calculateAutoBoxNumber();
+            document.getElementById("uploadModal").style.display = "flex";
+        }
+
+        // Image Selection Handler (Converts to Base64)
+        function handlePartImageSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedBase64Img = e.target.result;
+                const thumb = document.getElementById("imgThumbnailPreview");
+                thumb.src = uploadedBase64Img;
+                thumb.style.display = "block";
+                document.getElementById("dropPlaceholder").style.display = "none";
+
+                // Auto suggest name if empty
+                const fileNameClean = file.name.replace(/\.[^/.]+$/, "");
+                const nameInput = document.getElementById("newPartName");
+                if (!nameInput.value.trim() && fileNameClean && !fileNameClean.startsWith("image")) {
+                    nameInput.value = fileNameClean;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Save New Part to Database
+        function saveNewPartToDB() {
+            const name = document.getElementById("newPartName").value.trim();
+            const area = document.getElementById("newPartArea").value;
+            const box = document.getElementById("newPartBox").value;
+            const desc = document.getElementById("newPartDesc").value.trim() || `存放於 ${area} 區之零件`;
+
+            if (!name) {
+                alert("請填寫零件自訂名稱！");
+                return;
+            }
+
+            const newKey = "part_" + Date.now();
+            currentDB[newKey] = {
+                name: name,
+                desc: desc,
+                box: box,
+                area: area,
+                conf: "99.0%",
+                img: uploadedBase64Img || null,
+                speech: `辨識完成，${name}，請放入${area}區${parseInt(box.split("-")[1], 10)}號盒。`
+            };
+
+            // Save to localStorage
+            localStorage.setItem("zhiku_custom_db", JSON.stringify(currentDB));
+            closeModal("uploadModal");
+            refreshUIState();
+            initGrid();
+            autoRecognizeAndSpeak(newKey);
+
+            alert(`✅ 零件【${name}】已成功建檔！
+自動分配盒號：${box}
+語音提示與抽屜位置已同步建立。`);
         }
 
         // Voice speech
@@ -663,15 +805,26 @@
             }
         }
 
-        // Auto recognize & speak
+        // Auto recognize & display
         function autoRecognizeAndSpeak(key) {
             curKey = key;
             const item = currentDB[key];
             if (!item) return;
 
-            if (!isRealCam) drawMobileCanvas(item.type || "ic");
+            const preview = document.getElementById("previewImg");
+            const sim = document.getElementById("simCanvas");
 
-            document.getElementById("mConfBadge").textContent = "CONFIDENCE " + (item.conf || "98.0%");
+            if (item.img) {
+                preview.src = item.img;
+                preview.style.display = "block";
+                sim.style.display = "none";
+            } else {
+                preview.style.display = "none";
+                sim.style.display = "block";
+                if (!isRealCam) drawMobileCanvas(item.type || "ic");
+            }
+
+            document.getElementById("mConfBadge").textContent = "CONFIDENCE " + (item.conf || "98.5%");
             document.getElementById("mPartName").textContent = item.name;
             document.getElementById("mPartDesc").textContent = item.desc;
             document.getElementById("mDrawerId").textContent = item.box;
@@ -680,7 +833,10 @@
 
             document.querySelectorAll(".mini-cell").forEach(el => el.classList.remove("active-drawer"));
             const target = document.getElementById("m-cell-" + item.box);
-            if (target) target.classList.add("active-drawer");
+            if (target) {
+                target.classList.add("active-drawer");
+                target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
 
             speakSpeech(item.speech || `辨識成功，${item.name}，請放入${item.box}號盒。`);
         }
@@ -712,7 +868,7 @@
                 closeModal("loginModal");
                 refreshUIState();
                 alert("驗證成功！已取得庫房管理員權限。");
-                document.getElementById("adminModal").style.display = "flex";
+                openPhotoUploadModal();
             } else {
                 alert("帳號或密碼錯誤！(預設: admin / 123456)");
             }
@@ -723,59 +879,7 @@
             localStorage.removeItem("zhiku_admin_logged");
             closeModal("adminModal");
             refreshUIState();
-            alert("已成功登出管理員身分。");
-        }
-
-        // Database Upload Handlers
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const text = e.target.result;
-                    let parsedData = {};
-
-                    if (file.name.endsWith(".json")) {
-                        parsedData = JSON.parse(text);
-                    } else if (file.name.endsWith(".csv")) {
-                        // Parse CSV (key,name,desc,box,speech)
-                        const lines = text.split("\n");
-                        lines.forEach((line, idx) => {
-                            if (idx === 0 || !line.trim()) return; // Skip header
-                            const cols = line.split(",");
-                            if (cols.length >= 4) {
-                                const k = cols[0].trim();
-                                parsedData[k] = {
-                                    name: cols[1].trim(),
-                                    desc: cols[2].trim(),
-                                    box: cols[3].trim(),
-                                    speech: cols[4] ? cols[4].trim() : `辨識成功，請放入${cols[3].trim()}號盒。`,
-                                    conf: "98.5%",
-                                    type: "ic"
-                                };
-                            }
-                        });
-                    }
-
-                    if (Object.keys(parsedData).length === 0) {
-                        throw new Error("檔案內容格式不正確或為空！");
-                    }
-
-                    currentDB = parsedData;
-                    localStorage.setItem("zhiku_custom_db", JSON.stringify(currentDB));
-                    refreshUIState();
-                    initMiniGrid();
-                    autoRecognizeAndSpeak(Object.keys(currentDB)[0]);
-
-                    alert(`🎉 成功匯入 ${Object.keys(parsedData).length} 筆零件資料！資料庫已即時更新。`);
-                    closeModal("adminModal");
-                } catch (err) {
-                    alert("匯入失敗：" + err.message);
-                }
-            };
-            reader.readAsText(file);
+            alert("已登出管理員身分。");
         }
 
         function exportDatabaseJSON() {
@@ -789,19 +893,56 @@
         }
 
         function resetDefaultDB() {
-            if (confirm("確定要還原為系統預設零件庫嗎？自訂的資料將會被覆蓋。")) {
+            if (confirm("確定還原為系統初始預設庫嗎？自訂上傳的照片與零件將被重置。")) {
                 currentDB = DEFAULT_DB;
                 localStorage.removeItem("zhiku_custom_db");
                 refreshUIState();
-                initMiniGrid();
+                initGrid();
                 autoRecognizeAndSpeak(Object.keys(currentDB)[0]);
-                alert("已成功還原為預設零件資料庫！");
+                alert("已成功還原預設資料庫！");
+                closeModal("adminModal");
+            }
+        }
+
+        function drawMobileCanvas(type) {
+            const cvs = document.getElementById("simCanvas");
+            const ctx = cvs.getContext("2d");
+            ctx.clearRect(0, 0, cvs.width, cvs.height);
+            const cx = cvs.width / 2;
+            const cy = cvs.height / 2;
+
+            if (type === "resistor") {
+                ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.moveTo(cx - 130, cy); ctx.lineTo(cx + 130, cy); ctx.stroke();
+                ctx.fillStyle = "#dcb080";
+                ctx.beginPath(); ctx.roundRect(cx - 60, cy - 20, 120, 40, 8); ctx.fill();
+                const is10k = (curKey === "resistor_10k");
+                const bands = is10k ? ["#5c3a21", "#000000", "#ff7700", "#ffd700"] : ["#d00000", "#d00000", "#5c3a21", "#ffd700"];
+                const offsets = [-38, -16, 8, 38];
+                bands.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(cx + offsets[i], cy - 20, 9, 40); });
+            } else if (type === "led") {
+                ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 3.5;
+                ctx.beginPath(); ctx.moveTo(cx - 10, cy + 25); ctx.lineTo(cx - 10, cy + 100); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx + 10, cy + 25); ctx.lineTo(cx + 10, cy + 80); ctx.stroke();
+                ctx.fillStyle = "#ef4444";
+                ctx.beginPath(); ctx.arc(cx, cy - 15, 30, Math.PI, 0, false);
+                ctx.lineTo(cx + 30, cy + 20); ctx.lineTo(cx - 30, cy + 20); ctx.closePath(); ctx.fill();
+            } else {
+                ctx.fillStyle = "#111827"; ctx.beginPath(); ctx.roundRect(cx - 65, cy - 40, 130, 80, 5); ctx.fill();
+                ctx.fillStyle = "#cbd5e1";
+                for (let i = 0; i < 4; i++) {
+                    const px = cx - 48 + i * 32;
+                    ctx.fillRect(px, cy - 52, 12, 14);
+                    ctx.fillRect(px, cy + 38, 12, 14);
+                }
+                ctx.fillStyle = "#fff"; ctx.font = "bold 14px monospace"; ctx.fillText("IC / MODULE", cx - 44, cy + 5);
             }
         }
 
         async function toggleRealCam() {
             const vid = document.getElementById("mobileVideo");
-            const cvs = document.getElementById("simCanvas");
+            const sim = document.getElementById("simCanvas");
+            const preview = document.getElementById("previewImg");
 
             if (!isRealCam) {
                 try {
@@ -810,7 +951,8 @@
                     });
                     vid.srcObject = stream;
                     vid.style.display = "block";
-                    cvs.style.display = "none";
+                    sim.style.display = "none";
+                    preview.style.display = "none";
                     isRealCam = true;
                 } catch (e) {
                     alert("相機啟用失敗：" + e.message);
@@ -820,16 +962,15 @@
                     vid.srcObject.getTracks().forEach(t => t.stop());
                 }
                 vid.style.display = "none";
-                cvs.style.display = "block";
                 isRealCam = false;
-                drawMobileCanvas(currentDB[curKey]?.type || "ic");
+                autoRecognizeAndSpeak(curKey);
             }
         }
 
         window.onload = function() {
             refreshUIState();
-            initMiniGrid();
-            drawMobileCanvas(currentDB[curKey]?.type || "ic");
+            initGrid();
+            autoRecognizeAndSpeak(curKey);
         };
     </script>
 </body>
