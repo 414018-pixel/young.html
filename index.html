@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>智庫管家 Mobile - AI零件辨識系統</title>
+    <title>智庫管家 Mobile - 自動音声認識システム</title>
     <style>
         :root {
             --bg-dark: #090d16;
@@ -22,7 +20,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -41,11 +39,9 @@
             display: flex;
             flex-direction: column;
             background: var(--bg-dark);
-            position: relative;
             padding-bottom: 24px;
         }
 
-        /* Top Nav */
         .app-bar {
             padding: 14px 18px 10px;
             display: flex;
@@ -62,10 +58,6 @@
         .app-title-group h1 {
             font-size: 1.15rem;
             font-weight: 800;
-            letter-spacing: -0.3px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
         .app-title-group p {
@@ -73,17 +65,19 @@
             color: var(--text-sub);
         }
 
-        .team-chip {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(16, 185, 129, 0.2));
-            border: 1px solid rgba(6, 182, 212, 0.4);
-            padding: 4px 8px;
-            border-radius: 6px;
+        .voice-state-badge {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 4px 10px;
+            border-radius: 999px;
             font-size: 0.72rem;
-            color: var(--accent-cyan);
             font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        /* Camera Viewport */
         .cam-frame {
             position: relative;
             margin: 12px 16px 8px;
@@ -92,7 +86,6 @@
             background: #000;
             aspect-ratio: 4 / 3;
             border: 1.5px solid var(--border-ui);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         #mobileVideo {
@@ -109,7 +102,6 @@
             background: #070b12;
         }
 
-        /* Scanner HUD */
         .scan-overlay {
             position: absolute;
             inset: 16px;
@@ -138,24 +130,10 @@
             100% { top: 92%; opacity: 0.2; }
         }
 
-        .cam-top-badge {
-            align-self: flex-start;
-            background: rgba(0, 0, 0, 0.65);
-            color: var(--accent-cyan);
-            font-size: 0.68rem;
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            border: 1px solid rgba(6, 182, 212, 0.3);
-        }
-
-        /* Floating controls on camera */
         .cam-tools {
             position: absolute;
             bottom: 10px;
             right: 10px;
-            display: flex;
-            gap: 8px;
         }
 
         .tool-btn {
@@ -166,10 +144,8 @@
             border-radius: 8px;
             font-size: 0.72rem;
             cursor: pointer;
-            backdrop-filter: blur(4px);
         }
 
-        /* Main Result Block */
         .info-container {
             padding: 8px 16px;
             display: flex;
@@ -187,24 +163,16 @@
             align-items: center;
         }
 
-        .part-details {
-            flex: 1;
-        }
-
         .conf-badge {
             font-size: 0.7rem;
             color: var(--accent-cyan);
             font-weight: 700;
-            letter-spacing: 0.5px;
-            display: inline-block;
-            margin-bottom: 2px;
         }
 
         .part-name {
             font-size: 1.25rem;
             font-weight: 800;
             color: #ffffff;
-            line-height: 1.2;
         }
 
         .part-desc {
@@ -213,7 +181,6 @@
             margin-top: 4px;
         }
 
-        /* Target Drawer Big Indicator */
         .drawer-box-indicator {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.15));
             border: 2px solid var(--accent-green);
@@ -221,7 +188,6 @@
             padding: 10px 14px;
             text-align: center;
             min-width: 90px;
-            box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
         }
 
         .drawer-box-label {
@@ -235,10 +201,8 @@
             font-weight: 900;
             color: #fff;
             font-family: monospace;
-            line-height: 1.1;
         }
 
-        /* Drawer Mini Matrix */
         .matrix-section {
             background: var(--card-inner);
             border: 1px solid var(--border-ui);
@@ -246,18 +210,11 @@
             padding: 12px;
         }
 
-        .matrix-head {
-            font-size: 0.76rem;
-            color: var(--text-sub);
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-
         .drawer-grid-mini {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
+            margin-top: 8px;
         }
 
         .mini-cell {
@@ -266,7 +223,6 @@
             border-radius: 6px;
             padding: 6px 4px;
             text-align: center;
-            transition: all 0.2s;
         }
 
         .mini-cell .cid {
@@ -279,22 +235,17 @@
         .mini-cell .cname {
             font-size: 0.62rem;
             color: #e2e8f0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             display: block;
         }
 
         .mini-cell.active-drawer {
             background: rgba(16, 185, 129, 0.2);
             border-color: var(--accent-green);
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
         }
         .mini-cell.active-drawer .cid {
             color: var(--accent-green);
         }
 
-        /* Bottom Floating Bar */
         .bottom-actions {
             margin-top: auto;
             padding: 12px 16px 0;
@@ -304,18 +255,13 @@
         }
 
         .main-scan-btn {
-            background: linear-gradient(135deg, #0284c7, #06b6d4);
+            background: linear-gradient(135deg, #059669, #10b981);
             border: none;
             color: #fff;
             padding: 14px;
             border-radius: 12px;
             font-size: 0.95rem;
             font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.35);
             cursor: pointer;
         }
 
@@ -334,104 +280,97 @@
             color: #fff;
             padding: 6px 10px;
             border-radius: 8px;
-            font-size: 0.75rem;
-            outline: none;
         }
     </style>
 </head>
 <body>
 
     <div class="mobile-shell">
-        <!-- Top Nav -->
         <header class="app-bar">
             <div class="app-title-group">
                 <h1>智庫管家 <span>Mobile</span></h1>
-                <p>AI 零件即時辨識與智能歸位</p>
+                <p>AI 自動スキャン＆音声案内</p>
             </div>
-            <div class="team-chip">
-                明星三缺一 ｜ 資訊組
+            <div class="voice-state-badge" id="voiceStateBadge">
+                ● 自動音声: ON
             </div>
         </header>
 
-        <!-- Camera Area -->
         <div class="cam-frame">
             <video id="mobileVideo" autoplay playsinline muted></video>
             <canvas id="simCanvas" width="480" height="360"></canvas>
 
             <div class="scan-overlay">
-                <div class="cam-top-badge">FPS 30.2 ｜ 38ms ｜ TF.JS</div>
+                <div style="font-size:0.7rem; color:var(--accent-cyan); font-family:monospace;">AUTO_SCAN: ACTIVE</div>
                 <div class="scan-laser-line"></div>
-                <div class="cam-top-badge" style="align-self:flex-end;">TARGET_LOCKED</div>
+                <div style="font-size:0.7rem; color:var(--accent-green); font-family:monospace; align-self:flex-end;">VOICE_READY</div>
             </div>
 
             <div class="cam-tools">
-                <button class="tool-btn" onclick="toggleRealCam()">📷 切換真鏡頭</button>
+                <button class="tool-btn" onclick="toggleRealCam()">📷 カメラ切替</button>
             </div>
         </div>
 
-        <!-- Result Container -->
         <div class="info-container">
-            <!-- Part card -->
             <div class="result-card">
                 <div class="part-details">
                     <span class="conf-badge" id="mConfBadge">CONFIDENCE 98.4%</span>
                     <h2 class="part-name" id="mPartName">10kΩ 四環電阻</h2>
-                    <p class="part-desc" id="mPartDesc">色碼：棕 · 黑 · 橙 · 金 (±5%)</p>
-                    <p style="font-size:0.75rem; color:#38bdf8; margin-top:6px;" id="mVoiceHint">🔊 語音：「請放入 A 區 3 號盒」</p>
+                    <p class="part-desc" id="mPartDesc">色コード：茶・黒・橙・金 (±5%)</p>
+                    <p style="font-size:0.75rem; color:#38bdf8; margin-top:6px;" id="mVoiceHint">🔊 案内中...</p>
                 </div>
                 <div class="drawer-box-indicator">
-                    <div class="drawer-box-label">建議盒號</div>
+                    <div class="drawer-box-label">収納ボックス</div>
                     <div class="drawer-box-id" id="mDrawerId">A-03</div>
                 </div>
             </div>
 
-            <!-- Mini Grid -->
             <div class="matrix-section">
-                <div class="matrix-head">
-                    <span>🗄️ 實習工場零件櫃座標矩陣 (A / B / C 區)</span>
-                    <span style="color:var(--accent-green);">🟢 導引中</span>
+                <div style="font-size:0.75rem; color:var(--text-sub); display:flex; justify-content:space-between;">
+                    <span>🗄️ 引き出しラック位置案内</span>
+                    <span style="color:var(--accent-green);">🟢 点滅中</span>
                 </div>
                 <div class="drawer-grid-mini" id="miniDrawerGrid"></div>
             </div>
         </div>
 
-        <!-- Action Bar -->
         <div class="bottom-actions">
             <div class="demo-bar">
-                <span>切換展示元件：</span>
-                <select class="demo-select" id="partPick" onchange="switchMobilePart(this.value)">
-                    <option value="resistor_10k">10kΩ 電阻 ➜ A-03</option>
-                    <option value="resistor_220">220Ω 電阻 ➜ A-01</option>
-                    <option value="led_red">紅色 LED ➜ B-02</option>
-                    <option value="cap_electrolytic">100µF 電解電容 ➜ B-04</option>
-                    <option value="cap_ceramic">104 陶瓷電容 ➜ C-01</option>
-                    <option value="ic_ne555">NE555 定時 IC ➜ C-03</option>
+                <span>テスト部品切替：</span>
+                <select class="demo-select" id="partPick" onchange="autoRecognizeAndSpeak(this.value)">
+                    <option value="resistor_10k">10kΩ 抵抗 ➜ A-03</option>
+                    <option value="resistor_220">220Ω 抵抗 ➜ A-01</option>
+                    <option value="led_red">赤色 LED ➜ B-02</option>
+                    <option value="cap_electrolytic">100µF 電解コンデンサ ➜ B-04</option>
+                    <option value="cap_ceramic">104 セラミックコンデンサ ➜ C-01</option>
+                    <option value="ic_ne555">NE555 タイマーIC ➜ C-03</option>
                 </select>
             </div>
-            <button class="main-scan-btn" onclick="triggerMobileScan()">
-                <span>⚡ 對準零件立即歸位 (語音播報)</span>
+            <button class="main-scan-btn" onclick="triggerAutoVoiceStart()">
+                <span>🔊 自動音声スキャンを開始（画面タップ）</span>
             </button>
         </div>
     </div>
 
     <script>
         const M_DATA = {
-            "resistor_10k": { name: "10kΩ 四環電阻", desc: "色碼：棕 · 黑 · 橙 · 金 (±5%)", box: "A-03", conf: "98.4%", type: "resistor", speech: "辨識完成，10k歐姆電阻，請放入A區3號盒。" },
-            "resistor_220": { name: "220Ω 四環電阻", desc: "色碼：紅 · 紅 · 棕 · 金 (±5%)", box: "A-01", conf: "97.1%", type: "resistor", speech: "辨識完成，220歐姆限流電阻，請放入A區1號盒。" },
-            "led_red": { name: "5mm 紅色 LED", desc: "長正短負 / 順向電壓約 2V", box: "B-02", conf: "99.2%", type: "led", speech: "偵測到紅色發光二極體，長腳為正極，請放入B區2號盒。" },
-            "cap_electrolytic": { name: "100µF 電解電容", desc: "有極性！灰條標示為負極(-)", box: "B-04", conf: "96.5%", type: "cap_elec", speech: "注意！100微法拉電解電容，有正負極區分，請放入B區4號盒。" },
-            "cap_ceramic": { name: "104 陶瓷電容", desc: "無極性 / 容值 0.1µF 去耦電容", box: "C-01", conf: "95.8%", type: "cap_cer", speech: "104陶瓷去耦電容，請歸入C區1號盒。" },
-            "ic_ne555": { name: "NE555 定時 IC", desc: "DIP-8 封裝 / 缺口左側為第1腳", box: "C-03", conf: "98.9%", type: "ic", speech: "NE555定時IC，請注意引腳方向，放入C區3號IC盒。" }
+            "resistor_10k": { name: "10kΩ 四環電阻", desc: "色碼：棕 · 黑 · 橙 · 金 (±5%)", box: "A-03", conf: "98.4%", type: "resistor", speech: "認識完了。10kオーム抵抗です。A区3番ボックスへ収納してください。" },
+            "resistor_220": { name: "220Ω 四環電阻", desc: "色碼：紅 · 紅 · 棕 · 金 (±5%)", box: "A-01", conf: "97.1%", type: "resistor", speech: "認識完了。220オーム電流制限抵抗です。A区1番ボックスへ収納してください。" },
+            "led_red": { name: "5mm 赤色LED", desc: "長い足がアノード(+) / 順方向電圧 2V", box: "B-02", conf: "99.2%", type: "led", speech: "赤色LEDを検出しました。長い足がプラスです。B区2番ボックスへ収納してください。" },
+            "cap_electrolytic": { name: "100µF 電解電容", desc: "極性あり！白いライン側がマイナス(-)", box: "B-04", conf: "96.5%", type: "cap_elec", speech: "注意。100マイクロファラッド電解コンデンサです。極性に注意しB区4番ボックスへ収納してください。" },
+            "cap_ceramic": { name: "104 セラミック電容", desc: "極性なし / 容量 0.1µF", box: "C-01", conf: "95.8%", type: "cap_cer", speech: "104セラミックコンデンサです。C区1番ボックスへ収納してください。" },
+            "ic_ne555": { name: "NE555 タイマーIC", desc: "DIP-8パッケージ / 切り欠き左が1番ピン", box: "C-03", conf: "98.9%", type: "ic", speech: "NE555タイマーICです。足の曲がりに注意し、C区3番ボックスへ収納してください。" }
         };
 
         const M_BOXES = [
             { id: "A-01", name: "220Ω" }, { id: "A-02", name: "1kΩ" }, { id: "A-03", name: "10kΩ" }, { id: "A-04", name: "100kΩ" },
-            { id: "B-01", name: "綠LED" }, { id: "B-02", name: "紅LED" }, { id: "B-03", name: "10µF" }, { id: "B-04", name: "100µF" },
-            { id: "C-01", name: "104瓷" }, { id: "C-02", name: "二極體" }, { id: "C-03", name: "555" }, { id: "C-04", name: "電晶體" }
+            { id: "B-01", name: "緑LED" }, { id: "B-02", name: "赤LED" }, { id: "B-03", name: "10µF" }, { id: "B-04", name: "100µF" },
+            { id: "C-01", name: "104磁" }, { id: "C-02", name: "ダイオード" }, { id: "C-03", name: "555" }, { id: "C-04", name: "Tr" }
         ];
 
         let curKey = "resistor_10k";
         let isRealCam = false;
+        let lastSpokenKey = "";
 
         function initMiniGrid() {
             const grid = document.getElementById("miniDrawerGrid");
@@ -449,14 +388,8 @@
             const cvs = document.getElementById("simCanvas");
             const ctx = cvs.getContext("2d");
             ctx.clearRect(0, 0, cvs.width, cvs.height);
-
             const cx = cvs.width / 2;
             const cy = cvs.height / 2;
-
-            // Background subtle grid
-            ctx.strokeStyle = "#131c2a";
-            for (let x = 0; x < cvs.width; x += 24) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cvs.height); ctx.stroke(); }
-            for (let y = 0; y < cvs.height; y += 24) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cvs.width, y); ctx.stroke(); }
 
             if (type === "resistor") {
                 ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 4;
@@ -499,7 +432,19 @@
             }
         }
 
-        function switchMobilePart(key) {
+        // 自動音声読み上げ実行関数
+        function speakSpeech(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // 前の読み上げを中断
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'ja-JP'; // 中国語で読み上げる場合は 'zh-TW'
+                utter.rate = 1.05;
+                window.speechSynthesis.speak(utter);
+            }
+        }
+
+        // 部品認識と自動アナウンスの連携
+        function autoRecognizeAndSpeak(key) {
             curKey = key;
             const item = M_DATA[key];
             if (!item) return;
@@ -510,24 +455,19 @@
             document.getElementById("mPartName").textContent = item.name;
             document.getElementById("mPartDesc").textContent = item.desc;
             document.getElementById("mDrawerId").textContent = item.box;
-            document.getElementById("mVoiceHint").textContent = `🔊 語音：「請放入 ${item.box[0]} 區 ${parseInt(item.box.slice(2))} 號盒」`;
+            document.getElementById("mVoiceHint").textContent = `🔊 案内：「${item.box} へ収納」`;
 
             document.querySelectorAll(".mini-cell").forEach(el => el.classList.remove("active-drawer"));
             const target = document.getElementById("m-cell-" + item.box);
             if (target) target.classList.add("active-drawer");
+
+            // スキャン結果が変わるたびに自動でアナウンス
+            speakSpeech(item.speech);
+            lastSpokenKey = key;
         }
 
-        function triggerMobileScan() {
-            const item = M_DATA[curKey];
-            if (!item) return;
-
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utter = new SpeechSynthesisUtterance(item.speech);
-                utter.lang = 'zh-TW';
-                utter.rate = 1.0;
-                window.speechSynthesis.speak(utter);
-            }
+        function triggerAutoVoiceStart() {
+            autoRecognizeAndSpeak(curKey);
         }
 
         async function toggleRealCam() {
@@ -544,7 +484,7 @@
                     cvs.style.display = "none";
                     isRealCam = true;
                 } catch (e) {
-                    alert("無法啟動相機 (請確保在 HTTPS 環境或允許鏡頭權限)：" + e.message);
+                    alert("カメラを起動できませんでした：" + e.message);
                 }
             } else {
                 if (vid.srcObject) {
@@ -559,7 +499,7 @@
 
         window.onload = function() {
             initMiniGrid();
-            switchMobilePart("resistor_10k");
+            drawMobileCanvas(M_DATA[curKey].type);
         };
     </script>
 </body>
