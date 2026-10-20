@@ -2,887 +2,565 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>東海匿名 | 獨立校園交流平台</title>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>智庫管家 Mobile - AI零件辨識系統</title>
     <style>
-        /* =========================================
-           1. 基礎設定與手機版框架
-           ========================================= */
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: #f7f7f9; display: flex; justify-content: center; min-height: 100vh; color: #111; }
-        
-        .app-container { 
-            width: 100%; max-width: 480px; background-color: #ffffff; 
-            background-image: linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-            background-size: 20px 20px; box-shadow: 0 0 20px rgba(0,0,0,0.05); min-height: 100vh;
-            position: relative; overflow-x: hidden;
+        :root {
+            --bg-dark: #090d16;
+            --panel-bg: #151d2e;
+            --card-inner: #0d131f;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border-ui: #222f46;
         }
 
-        .view-section { display: none; animation: fadeIn 0.3s ease; }
-        .view-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        /* =========================================
-           2. 共用 UI 元件
-           ========================================= */
-        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 400px;}
-        .toast { background: #1c1c1e; color: white; padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; }
-        .toast.error { background: #ef4444; }
-        .toast.success { background: #10b981; }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
 
-        /* =========================================
-           3. 首頁視圖 (Home View)
-           ========================================= */
-        .top-bar { display: flex; justify-content: space-between; padding: 12px 20px; font-size: 12px; font-weight: 500; color: #737373; }
-        .top-bar .privacy { color: #10b981; }
-        .btn-admin-login { cursor: pointer; color: #aeaeb2; transition: color 0.2s; display: flex; align-items: center; gap: 4px; }
-        .btn-admin-login:hover { color: #5b21b6; }
-        
-        .header { text-align: center; padding: 10px 0; }
-        .logo-badge { display: inline-flex; align-items: center; gap: 8px; background: #1c1c1e; color: #fff; padding: 8px 20px; border-radius: 20px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .logo-icon { width: 16px; height: 16px; border-radius: 4px; border: 2px solid #fff; }
-
-        .hero { text-align: center; padding: 20px 20px; }
-        .hero-tag { display: inline-block; background: #f3f0ff; color: #5b21b6; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 16px; border: 1px solid #e0d4fc; }
-        .hero-title { font-size: 34px; font-weight: 800; line-height: 1.2; letter-spacing: -1px; margin-bottom: 12px; }
-        .hero-title .highlight { color: #5b21b6; }
-        .hero-subtitle { font-size: 14px; color: #737373; line-height: 1.5; }
-
-        .guide-card { background: #fafafa; border: 1.5px dashed #d4d4d8; border-radius: 20px; margin: 0 20px 24px; padding: 16px 20px; }
-        .guide-header { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 12px; }
-        .guide-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #52525b; margin-bottom: 8px; line-height: 1.5; }
-        .guide-link { color: #5b21b6; text-decoration: none; font-weight: 600; cursor: pointer; }
-        .btn-full-guide { width: 100%; background: #f3f0ff; color: #5b21b6; border: none; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 12px; transition: background 0.2s; }
-
-        .post-card { background: #fff; border: 1px solid #e5e5ea; border-radius: 24px; margin: 0 20px 30px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-        .post-input { width: 100%; border: none; outline: none; resize: none; font-size: 16px; min-height: 60px; margin-bottom: 12px; color: #111; }
-        
-        .post-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f4f4f5; }
-        .tool-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #52525b; font-weight: 500; cursor: pointer; }
-        .tool-item input[type="color"] { width: 24px; height: 24px; padding: 0; border: none; border-radius: 50%; cursor: pointer; outline: none; overflow: hidden; }
-        .tool-item input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        .tool-item input[type="color"]::-webkit-color-swatch { border: 2px solid #e5e5ea; border-radius: 50%; }
-        .tool-item input[type="checkbox"] { accent-color: #5b21b6; width: 16px; height: 16px; cursor: pointer; }
-        .btn-upload { background: #f4f4f5; border: none; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; color: #3f3f46; cursor: pointer; }
-        
-        .img-preview-container { position: relative; display: none; margin-bottom: 12px; }
-        .img-preview-container.active { display: block; }
-        .img-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; border: 1px solid #e5e5ea; }
-        .btn-remove-img { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 12px; }
-
-        .post-actions { display: flex; justify-content: space-between; align-items: center; }
-        .char-counter { font-size: 12px; color: #aeaeb2; }
-        .btn-submit { background: #c4b5fd; color: #fff; border: none; padding: 10px 24px; border-radius: 20px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-submit.active { background: #8b5cf6; }
-
-        .feed-divider { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; margin-bottom: 20px; font-size: 13px; font-weight: 500; color: #aeaeb2; }
-        .feed-divider .line { flex: 1; height: 1px; background: #e5e5ea; margin-left: 12px; }
-        .post-list { display: flex; flex-direction: column; gap: 16px; padding-bottom: 80px; } 
-        
-        .message-card { background: #fff; border: 1px solid #e5e5ea; border-radius: 24px; margin: 0 20px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); position: relative; }
-        .message-card.pinned { border: 2px solid #fbbf24; background: #fffdf5; }
-        .msg-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-        .msg-user { display: flex; align-items: center; gap: 10px; }
-        .msg-avatar { width: 36px; height: 36px; background: #f4f4f5; border-radius: 12px; display: flex; justify-content: center; align-items: center; }
-        .avatar-hex { width: 18px; height: 18px; background: #34d399; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
-        .msg-name { font-weight: 700; font-size: 15px; display: flex; flex-direction: column; }
-        .msg-uid { font-size: 11px; color: #8b5cf6; font-family: monospace; letter-spacing: 0.5px; }
-        .msg-uid.admin-badge-text { color: #dc2626; font-weight: 800; font-size: 12px; }
-        .admin-name { color: #dc2626; }
-        
-        .msg-meta-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-        .msg-time { font-size: 12px; color: #aeaeb2; font-weight: 500; }
-        
-        .pin-badge { background: #fbbf24; color: #78350f; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; display: flex; align-items: center; gap: 4px; }
-        .post-image { width: 100%; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e5e5ea; }
-        .msg-content { font-size: 16px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; word-break: break-word; color: #333; }
-        
-        .msg-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-        .btn-action { flex: 1; min-width: 80px; padding: 12px; border-radius: 16px; border: 1px solid #e5e5ea; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; justify-content: center; gap: 6px; }
-        .btn-action.dark { background: #1c1c1e; border: none; color: white; }
-        .btn-action.danger { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
-        .btn-action.success { color: #059669; border-color: #a7f3d0; background: #ecfdf5; }
-        
-        .admin-badge { display: none; background: #fee2e2; color: #dc2626; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fecaca; width: fit-content; }
-        .request-pin-badge { display: none; background: #fef3c7; color: #d97706; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #fde68a; width: fit-content; }
-
-        /* =========================================
-           權限控制
-           ========================================= */
-        .admin-only { display: none !important; }
-        body.is-admin .admin-only { display: flex !important; }
-        body.is-admin .btn-admin-login { color: #5b21b6; font-weight: 600; }
-        body.is-admin .admin-badge.has-reports { display: block; }
-        body.is-admin .request-pin-badge.is-requesting { display: block; }
-
-        /* =========================================
-           4. 說明與法律視圖
-           ========================================= */
-        .nav-bar { position: sticky; top: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e5e5ea; z-index: 100; }
-        .btn-back { color: #5b21b6; font-weight: 600; font-size: 15px; cursor: pointer; width: 60px; }
-        .nav-title { flex: 1; text-align: center; font-weight: 700; font-size: 16px; }
-        .nav-placeholder { width: 60px; } 
-        
-        .doc-header { padding: 20px; text-align: center; }
-        .doc-title { font-size: 20px; font-weight: 800; margin-bottom: 12px; line-height: 1.4; }
-        .doc-meta { font-size: 12px; color: #737373; margin-bottom: 16px; }
-        .doc-intro { background: #f3f0ff; padding: 16px; margin: 0 20px 20px; border-radius: 12px; border: 1px solid #e0d4fc; font-size: 13px; color: #4c1d95; line-height: 1.6; text-align: justify; }
-        
-        .accordion-group { padding: 0 20px 40px; display: flex; flex-direction: column; gap: 12px; }
-        details { background: #fff; border: 1px solid #e5e5ea; border-radius: 12px; overflow: hidden; }
-        summary { padding: 16px; font-weight: 700; font-size: 14px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; color: #111; gap: 10px; }
-        summary::-webkit-details-marker { display: none; }
-        summary::after { content: "＋"; color: #aeaeb2; transition: 0.2s; font-size: 16px; }
-        details[open] summary::after { transform: rotate(45deg); color: #5b21b6; }
-        details[open] summary { border-bottom: 1px solid #e5e5ea; background: #fafafa; }
-        .content-body { padding: 16px; font-size: 13.5px; line-height: 1.7; color: #3a3a3c; text-align: justify; }
-        .content-body p { margin-bottom: 10px; }
-        .highlight-box { background: #fffbe8; border-left: 4px solid #fbbf24; padding: 10px 12px; margin: 10px 0; border-radius: 4px; font-size: 13px; }
-
-        /* ✨ 強化版：管理員編輯規範區塊樣式 ✨ */
-        .admin-rule-editor {
-            flex-direction: column; gap: 12px; background: #fff5f5; border: 2px dashed #ef4444; 
-            border-radius: 16px; padding: 20px; margin: 0 20px 24px;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+        .mobile-shell {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-dark);
             position: relative;
+            padding-bottom: 24px;
         }
-        /* 左上角浮動標籤 */
-        .admin-rule-editor::before {
-            content: "👑 管理員權限解鎖";
-            position: absolute; top: -12px; left: 20px; background: #ef4444; color: white;
-            font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 12px;
-        }
-        .admin-editor-title { color: #b91c1c; font-weight: 800; font-size: 16px; margin-bottom: 4px; margin-top: 8px; }
-        .admin-editor-desc { font-size: 13px; color: #dc2626; margin-bottom: 12px; line-height: 1.5; }
-        
-        .admin-rule-editor input, .admin-rule-editor textarea {
-            width: 100%; padding: 12px; border: 2px solid #fca5a5; border-radius: 8px; font-size: 14px; outline: none; font-family: inherit; transition: border 0.3s;
-        }
-        .admin-rule-editor input:focus, .admin-rule-editor textarea:focus { border-color: #ef4444; }
-        .admin-rule-editor textarea { resize: vertical; min-height: 100px; }
-        
-        .btn-add-rule { background: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 15px; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
-        .btn-add-rule:hover { background: #dc2626; }
 
-        /* =========================================
-           5. IG 匯出畫布 (隱藏)
-           ========================================= */
-        #ig-export-canvas { position: fixed; top: -9999px; left: -9999px; width: 1080px; height: 1080px; background-color: #f7f7f9; display: flex; justify-content: center; align-items: center; color: #111; padding: 60px; }
-        .ig-card { background: #fff; width: 100%; height: 100%; border-radius: 60px; box-shadow: 0 20px 60px rgba(0,0,0,0.05); padding: 60px; display: flex; flex-direction: column; position: relative; }
-        .ig-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-        .ig-user-info { display: flex; align-items: center; gap: 24px; }
-        .ig-avatar-wrapper { width: 120px; height: 120px; background: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 20px rgba(91,33,182,0.15); border: 4px solid #f3f0ff; position: relative; }
-        .ig-avatar-logo { font-weight: 900; font-size: 56px; color: #5b21b6; font-family: sans-serif; letter-spacing: -4px; }
-        .ig-user-text { display: flex; flex-direction: column; }
-        .ig-user-name { font-size: 42px; font-weight: 800; display: flex; align-items: center; gap: 12px; }
-        .ig-verified-badge { width: 32px; height: 32px; background: #c4b5fd; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 20px; }
-        .ig-user-handle { font-size: 28px; color: #aeaeb2; margin-top: 4px; }
-        .ig-more-icon { color: #c4b5fd; font-size: 50px; letter-spacing: 4px; line-height: 0; padding-bottom: 20px; }
-        
-        .ig-content-box { flex: 1; border: 3px dashed #e0d4fc; border-radius: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; position: relative; margin-bottom: 40px; overflow: hidden; }
-        #ig-export-image { max-width: 100%; max-height: 350px; object-fit: contain; border-radius: 20px; margin-bottom: 20px; display: none; }
-        #ig-export-content { font-size: 52px; font-weight: bold; line-height: 1.6; text-align: center; white-space: pre-wrap; word-wrap: break-word; color: #333; z-index: 2; }
-        
-        .ig-deco { position: absolute; color: #c4b5fd; z-index: 1; }
-        .ig-deco-bubble { top: 60px; right: 80px; font-size: 80px; }
-        .ig-deco-star1 { bottom: 20px; right: 20px; font-size: 40px; }
-        .ig-deco-star2 { top: 20px; left: 20px; font-size: 50px; }
-        .ig-deco-sparkle { bottom: 100px; left: 240px; font-size: 60px; }
-        .ig-footer { display: flex; flex-direction: column; gap: 30px; }
-        .ig-actions-row { display: flex; justify-content: space-between; align-items: center; }
-        .ig-hashtag { font-size: 32px; color: #5b21b6; font-weight: bold; border-bottom: 4px solid #c4b5fd; padding-bottom: 4px; }
-        .ig-icons { display: flex; gap: 30px; }
-        .ig-icon { width: 48px; height: 48px; border: 4px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
-        .ig-icon-heart { border-radius: 0; border: none; font-size: 56px; line-height: 1; }
-        .ig-icon-comment { border-radius: 50%; border-bottom-left-radius: 0; }
-        .ig-icon-share { border: none; font-size: 56px; line-height: 1; transform: scaleX(-1); }
-        .ig-bottom-bar { background: #f3f0ff; border-radius: 100px; height: 100px; display: flex; justify-content: space-between; align-items: center; padding: 0 0 0 40px; overflow: hidden; }
-        .ig-bottom-text { font-size: 32px; font-weight: bold; color: #8b5cf6; display: flex; align-items: center; gap: 20px; }
-        .ig-bottom-btn { background: #c4b5fd; height: 100%; width: 140px; display: flex; justify-content: center; align-items: center; color: white; font-size: 40px; }
+        /* Top Nav */
+        .app-bar {
+            padding: 14px 18px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-ui);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .app-title-group h1 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .app-title-group p {
+            font-size: 0.72rem;
+            color: var(--text-sub);
+        }
+
+        .team-chip {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(16, 185, 129, 0.2));
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        /* Camera Viewport */
+        .cam-frame {
+            position: relative;
+            margin: 12px 16px 8px;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 4 / 3;
+            border: 1.5px solid var(--border-ui);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        #mobileVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        #simCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #070b12;
+        }
+
+        /* Scanner HUD */
+        .scan-overlay {
+            position: absolute;
+            inset: 16px;
+            border: 1.5px dashed rgba(6, 182, 212, 0.5);
+            border-radius: 12px;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+        }
+
+        .scan-laser-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-cyan);
+            box-shadow: 0 0 12px var(--accent-cyan);
+            animation: moveLaser 2.2s infinite ease-in-out alternate;
+        }
+
+        @keyframes moveLaser {
+            0% { top: 8%; opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { top: 92%; opacity: 0.2; }
+        }
+
+        .cam-top-badge {
+            align-self: flex-start;
+            background: rgba(0, 0, 0, 0.65);
+            color: var(--accent-cyan);
+            font-size: 0.68rem;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        /* Floating controls on camera */
+        .cam-tools {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .tool-btn {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-ui);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Main Result Block */
+        .info-container {
+            padding: 8px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .result-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-ui);
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .part-details {
+            flex: 1;
+        }
+
+        .conf-badge {
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            margin-bottom: 2px;
+        }
+
+        .part-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .part-desc {
+            font-size: 0.78rem;
+            color: var(--text-sub);
+            margin-top: 4px;
+        }
+
+        /* Target Drawer Big Indicator */
+        .drawer-box-indicator {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.15));
+            border: 2px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 10px 14px;
+            text-align: center;
+            min-width: 90px;
+            box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+        }
+
+        .drawer-box-label {
+            font-size: 0.65rem;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        .drawer-box-id {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #fff;
+            font-family: monospace;
+            line-height: 1.1;
+        }
+
+        /* Drawer Mini Matrix */
+        .matrix-section {
+            background: var(--card-inner);
+            border: 1px solid var(--border-ui);
+            border-radius: 14px;
+            padding: 12px;
+        }
+
+        .matrix-head {
+            font-size: 0.76rem;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .drawer-grid-mini {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .mini-cell {
+            background: #141c2c;
+            border: 1px solid var(--border-ui);
+            border-radius: 6px;
+            padding: 6px 4px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .mini-cell .cid {
+            font-size: 0.68rem;
+            font-family: monospace;
+            font-weight: 700;
+            color: var(--text-sub);
+        }
+
+        .mini-cell .cname {
+            font-size: 0.62rem;
+            color: #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .mini-cell.active-drawer {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--accent-green);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        }
+        .mini-cell.active-drawer .cid {
+            color: var(--accent-green);
+        }
+
+        /* Bottom Floating Bar */
+        .bottom-actions {
+            margin-top: auto;
+            padding: 12px 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .main-scan-btn {
+            background: linear-gradient(135deg, #0284c7, #06b6d4);
+            border: none;
+            color: #fff;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.35);
+            cursor: pointer;
+        }
+
+        .demo-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+        }
+
+        .demo-select {
+            flex: 1;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-ui);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            outline: none;
+        }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        
-        <!-- =========================================
-             首頁視圖 (Home View)
-             ========================================= -->
-        <div id="view-home" class="view-section active">
-            <div class="top-bar">
-                <div class="privacy">🛡️ 隱私保護與憑證採集啟用</div>
-                <div class="btn-admin-login" onclick="App.toggleAdmin()">🔒 管理員</div>
+    <div class="mobile-shell">
+        <!-- Top Nav -->
+        <header class="app-bar">
+            <div class="app-title-group">
+                <h1>智庫管家 <span>Mobile</span></h1>
+                <p>AI 零件即時辨識與智能歸位</p>
+            </div>
+            <div class="team-chip">
+                明星三缺一 ｜ 資訊組
+            </div>
+        </header>
+
+        <!-- Camera Area -->
+        <div class="cam-frame">
+            <video id="mobileVideo" autoplay playsinline muted></video>
+            <canvas id="simCanvas" width="480" height="360"></canvas>
+
+            <div class="scan-overlay">
+                <div class="cam-top-badge">FPS 30.2 ｜ 38ms ｜ TF.JS</div>
+                <div class="scan-laser-line"></div>
+                <div class="cam-top-badge" style="align-self:flex-end;">TARGET_LOCKED</div>
             </div>
 
-            <div class="header">
-                <div class="logo-badge"><div class="logo-icon"></div>東海匿名</div>
-            </div>
-
-            <div class="hero">
-                <div class="hero-tag">☼ 前台匿名・法遵審核</div>
-                <h1 class="hero-title">說出你的心聲，<br><span class="highlight">匿名</span>也能被聽見</h1>
-                <p class="hero-subtitle">東海同學專屬的匿名留言板，一起讓校園更好。</p>
-            </div>
-
-            <div class="guide-card">
-                <div class="guide-header">💡 平台快速指南</div>
-                <div class="guide-item">👻 <strong>單一身分：</strong>您的裝置已綁定唯一 UID，發言更具連貫性。</div>
-                <div class="guide-item">🎨 <strong>豐富排版：</strong>支援上傳照片、自訂文字顏色，並可申請置頂。</div>
-                <div class="guide-item">⚖️ <strong>友善守則：</strong>發文即同意 <span class="guide-link" onclick="App.switchView('legal')">平台法律聲明</span>。</div>
-                
-                <!-- ✨ 新增：管理員專屬提示 ✨ -->
-                <div class="guide-item admin-only" style="color: #dc2626;">👑 <strong>管理員：</strong>您可以前往 <span class="guide-link" onclick="App.switchView('legal')" style="color: #dc2626; text-decoration: underline;">平台法律聲明</span> 動態新增或刪除規範條文。</div>
-                
-                <button class="btn-full-guide" onclick="App.switchView('guide')">📖 閱讀完整使用說明</button>
-            </div>
-
-            <div class="post-card">
-                <div style="font-size: 12px; color: #8b5cf6; font-family: monospace; margin-bottom: 12px; font-weight: bold;" id="js-my-uid-display"></div>
-                
-                <div class="post-toolbar">
-                    <label class="tool-item" title="選擇文字顏色">
-                        <input type="color" id="js-post-color" value="#333333">
-                        字體顏色
-                    </label>
-                    <button class="btn-upload" onclick="document.getElementById('js-post-image').click()">📷 附加照片</button>
-                    <input type="file" id="js-post-image" accept="image/*" style="display:none;">
-                    <label class="tool-item" style="margin-left: auto;">
-                        <input type="checkbox" id="js-post-pin">
-                        📌 申請置頂
-                    </label>
-                </div>
-
-                <div class="img-preview-container" id="js-preview-container">
-                    <button class="btn-remove-img" onclick="App.removeImage()">✕</button>
-                    <img src="" class="img-preview" id="js-preview-img">
-                </div>
-
-                <textarea id="js-post-input" class="post-input" placeholder="匿名說點什麼吧⋯"></textarea>
-                <div class="post-actions">
-                    <span id="js-char-counter" class="char-counter">0 / 500</span>
-                    <button id="js-btn-submit" class="btn-submit" disabled>發布</button>
-                </div>
-            </div>
-
-            <div class="feed-divider">
-                <span>🛡️ 最新留言</span>
-                <div class="line"></div>
-                <span class="admin-only" style="color: #dc2626;">(管理員審查模式)</span>
-            </div>
-            
-            <div id="js-post-list" class="post-list"></div>
-        </div>
-
-        <!-- =========================================
-             完整使用說明視圖 (User Guide View)
-             ========================================= -->
-        <div id="view-guide" class="view-section">
-            <div class="nav-bar">
-                <div class="btn-back" onclick="App.switchView('home')">〈 返回</div>
-                <div class="nav-title">平台使用指南</div>
-                <div class="nav-placeholder"></div>
-            </div>
-            <div class="doc-header">
-                <h1 class="doc-title">東海匿名板<br>完整使用指南</h1>
-                <div class="doc-meta">幫助您快速了解平台功能與運作機制</div>
-            </div>
-            <div class="accordion-group">
-                <details open><summary>Q1：我發文真的是匿名的嗎？</summary><div class="content-body"><p><strong>是的，前台絕對匿名。</strong></p><p>系統不會要求登入任何社群帳號，只會發配一組隨機代碼（UID）給您的裝置，以保持討論連貫性。</p></div></details>
-                <details><summary>Q2：如何申請貼文置頂？</summary><div class="content-body"><p>在發文時勾選「📌 申請置頂」，文章發布後，系統管理員後台將會收到申請。<strong>經管理員審核通過後</strong>，您的貼文將會被固定在留言板最上方，並帶有專屬的金色標籤。</p></div></details>
-                <details><summary>Q3：支援上傳圖片嗎？</summary><div class="content-body"><p>可以！點擊發文區的「📷 附加照片」即可上傳圖片。您也可以透過調色盤更改文字顏色，讓您的貼文更具個人風格。</p></div></details>
-                <details><summary>Q4：看到違規文章怎麼辦？</summary><div class="content-body"><p>善用貼文下方的「⚠️ 檢舉」按鈕。管理員將會依據聲明進行審查，若確認違規將會強制刪除。</p></div></details>
-                <details><summary>Q5：發言有什麼法律責任嗎？</summary><div class="content-body"><p>匿名不代表免責。若言論構成恐嚇、誹謗等實體犯罪，本平台將依法配合有權機關之調閱要求。詳情請參閱：<span class="guide-link" onclick="App.switchView('legal')">法律聲明</span>。</p></div></details>
+            <div class="cam-tools">
+                <button class="tool-btn" onclick="toggleRealCam()">📷 切換真鏡頭</button>
             </div>
         </div>
 
-        <!-- =========================================
-             法律聲明視圖 (Legal View) - 支援動態新增
-             ========================================= -->
-        <div id="view-legal" class="view-section">
-            <div class="nav-bar">
-                <div class="btn-back" onclick="App.switchView('home')">〈 返回</div>
-                <div class="nav-title">平台規範與聲明</div>
-                <div class="nav-placeholder"></div>
-            </div>
-            <div class="doc-header">
-                <h1 class="doc-title">平台使用規範及<br>法律責任聲明</h1>
-                <div class="doc-meta">本站點所有規範由管理團隊維護與解釋</div>
-            </div>
-            
-            <!-- ✨ 強化版：管理員專用的規範編輯區 ✨ -->
-            <div class="admin-rule-editor admin-only">
-                <div class="admin-editor-title">新增平台規範與法律責任</div>
-                <div class="admin-editor-desc">
-                    💡 <strong>新手管理員指南：</strong><br>
-                    在下方輸入標題與內容，點擊發布後，新規範會立刻顯示在所有使用者的畫面上。您也可以點擊各條文右上角的「🗑️ 刪除」來移除過時的規範。
+        <!-- Result Container -->
+        <div class="info-container">
+            <!-- Part card -->
+            <div class="result-card">
+                <div class="part-details">
+                    <span class="conf-badge" id="mConfBadge">CONFIDENCE 98.4%</span>
+                    <h2 class="part-name" id="mPartName">10kΩ 四環電阻</h2>
+                    <p class="part-desc" id="mPartDesc">色碼：棕 · 黑 · 橙 · 金 (±5%)</p>
+                    <p style="font-size:0.75rem; color:#38bdf8; margin-top:6px;" id="mVoiceHint">🔊 語音：「請放入 A 區 3 號盒」</p>
                 </div>
-                <input type="text" id="js-rule-title" placeholder="👉 請輸入規範標題 (例：六、禁止洗版及惡意洗頻)">
-                <textarea id="js-rule-content" placeholder="👉 請輸入規範內容 (支援換行，系統將會自動排版顯示)"></textarea>
-                <button class="btn-add-rule" onclick="App.addRule()">＋ 立即發布新條文</button>
+                <div class="drawer-box-indicator">
+                    <div class="drawer-box-label">建議盒號</div>
+                    <div class="drawer-box-id" id="mDrawerId">A-03</div>
+                </div>
             </div>
 
-            <!-- 動態渲染的規範列表 -->
-            <div class="accordion-group" id="js-legal-list">
-                <!-- 由 JavaScript 負責載入 -->
+            <!-- Mini Grid -->
+            <div class="matrix-section">
+                <div class="matrix-head">
+                    <span>🗄️ 實習工場零件櫃座標矩陣 (A / B / C 區)</span>
+                    <span style="color:var(--accent-green);">🟢 導引中</span>
+                </div>
+                <div class="drawer-grid-mini" id="miniDrawerGrid"></div>
             </div>
         </div>
 
-    </div>
-
-    <div id="toast-container"></div>
-
-    <!-- IG 匯出畫布 (隱藏) -->
-    <div id="ig-export-canvas">
-        <div class="ig-card">
-            <div class="ig-deco ig-deco-bubble">💭</div>
-            <div class="ig-header">
-                <div class="ig-user-info">
-                    <div class="ig-avatar-wrapper">
-                        <div class="ig-avatar-logo">T</div>
-                    </div>
-                    <div class="ig-user-text">
-                        <div class="ig-user-name">匿名東海 <div class="ig-verified-badge">✓</div></div>
-                        <div class="ig-user-handle">@THU</div>
-                    </div>
-                </div>
-                <div class="ig-more-icon">•••</div>
+        <!-- Action Bar -->
+        <div class="bottom-actions">
+            <div class="demo-bar">
+                <span>切換展示元件：</span>
+                <select class="demo-select" id="partPick" onchange="switchMobilePart(this.value)">
+                    <option value="resistor_10k">10kΩ 電阻 ➜ A-03</option>
+                    <option value="resistor_220">220Ω 電阻 ➜ A-01</option>
+                    <option value="led_red">紅色 LED ➜ B-02</option>
+                    <option value="cap_electrolytic">100µF 電解電容 ➜ B-04</option>
+                    <option value="cap_ceramic">104 陶瓷電容 ➜ C-01</option>
+                    <option value="ic_ne555">NE555 定時 IC ➜ C-03</option>
+                </select>
             </div>
-            <div class="ig-content-box">
-                <div class="ig-deco ig-deco-star1">⭐</div>
-                <div class="ig-deco ig-deco-star2">✦</div>
-                <img id="ig-export-image" src="">
-                <div id="ig-export-content"></div>
-            </div>
-            <div class="ig-footer">
-                <div class="ig-actions-row">
-                    <div class="ig-hashtag">#匿名發言</div>
-                    <div class="ig-deco ig-deco-sparkle">✨</div>
-                    <div class="ig-icons">
-                        <div class="ig-icon-heart">♡</div>
-                        <div class="ig-icon ig-icon-comment"></div>
-                        <div class="ig-icon-share">➢</div>
-                    </div>
-                </div>
-                <div class="ig-bottom-bar">
-                    <div class="ig-bottom-text"><span>🚀</span> 專屬你的匿名空間</div>
-                    <div class="ig-bottom-btn">〉</div>
-                </div>
-            </div>
+            <button class="main-scan-btn" onclick="triggerMobileScan()">
+                <span>⚡ 對準零件立即歸位 (語音播報)</span>
+            </button>
         </div>
     </div>
 
     <script>
-        const Config = { MAX_CHARS: 500 };
-        let currentImageBase64 = null; 
-
-        const Utils = {
-            escapeHTML: (str) => { const div = document.createElement('div'); div.appendChild(document.createTextNode(str)); return div.innerHTML; },
-            generateSystemID: () => 'PID-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
-            generateUserID: () => 'UID-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
-            getTimeAgo: (dateString) => {
-                const diff = Math.floor((new Date() - new Date(dateString)) / 60000);
-                if (diff < 1) return '剛剛';
-                if (diff < 60) return `${diff} 分鐘前`;
-                if (diff < 1440) return `${Math.floor(diff/60)} 小時前`;
-                return `${Math.floor(diff/1440)} 天前`;
-            },
-            compressImage: (file) => {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 500; 
-                            let width = img.width;
-                            let height = img.height;
-                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                            canvas.width = width; canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, width, height);
-                            resolve(canvas.toDataURL('image/jpeg', 0.4)); 
-                        };
-                        img.onerror = reject;
-                        img.src = e.target.result;
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
-            }
+        const M_DATA = {
+            "resistor_10k": { name: "10kΩ 四環電阻", desc: "色碼：棕 · 黑 · 橙 · 金 (±5%)", box: "A-03", conf: "98.4%", type: "resistor", speech: "辨識完成，10k歐姆電阻，請放入A區3號盒。" },
+            "resistor_220": { name: "220Ω 四環電阻", desc: "色碼：紅 · 紅 · 棕 · 金 (±5%)", box: "A-01", conf: "97.1%", type: "resistor", speech: "辨識完成，220歐姆限流電阻，請放入A區1號盒。" },
+            "led_red": { name: "5mm 紅色 LED", desc: "長正短負 / 順向電壓約 2V", box: "B-02", conf: "99.2%", type: "led", speech: "偵測到紅色發光二極體，長腳為正極，請放入B區2號盒。" },
+            "cap_electrolytic": { name: "100µF 電解電容", desc: "有極性！灰條標示為負極(-)", box: "B-04", conf: "96.5%", type: "cap_elec", speech: "注意！100微法拉電解電容，有正負極區分，請放入B區4號盒。" },
+            "cap_ceramic": { name: "104 陶瓷電容", desc: "無極性 / 容值 0.1µF 去耦電容", box: "C-01", conf: "95.8%", type: "cap_cer", speech: "104陶瓷去耦電容，請歸入C區1號盒。" },
+            "ic_ne555": { name: "NE555 定時 IC", desc: "DIP-8 封裝 / 缺口左側為第1腳", box: "C-03", conf: "98.9%", type: "ic", speech: "NE555定時IC，請注意引腳方向，放入C區3號IC盒。" }
         };
 
-        const Toast = {
-            show: (msg, type = '') => {
-                const container = document.getElementById('toast-container');
-                const t = document.createElement('div');
-                t.className = `toast ${type}`;
-                t.textContent = msg;
-                container.appendChild(t);
-                setTimeout(() => { t.style.opacity=0; setTimeout(()=>t.remove(), 300); }, 2500);
+        const M_BOXES = [
+            { id: "A-01", name: "220Ω" }, { id: "A-02", name: "1kΩ" }, { id: "A-03", name: "10kΩ" }, { id: "A-04", name: "100kΩ" },
+            { id: "B-01", name: "綠LED" }, { id: "B-02", name: "紅LED" }, { id: "B-03", name: "10µF" }, { id: "B-04", name: "100µF" },
+            { id: "C-01", name: "104瓷" }, { id: "C-02", name: "二極體" }, { id: "C-03", name: "555" }, { id: "C-04", name: "電晶體" }
+        ];
+
+        let curKey = "resistor_10k";
+        let isRealCam = false;
+
+        function initMiniGrid() {
+            const grid = document.getElementById("miniDrawerGrid");
+            grid.innerHTML = "";
+            M_BOXES.forEach(b => {
+                const cell = document.createElement("div");
+                cell.className = "mini-cell" + (b.id === "A-03" ? " active-drawer" : "");
+                cell.id = "m-cell-" + b.id;
+                cell.innerHTML = `<span class="cid">${b.id}</span><span class="cname">${b.name}</span>`;
+                grid.appendChild(cell);
+            });
+        }
+
+        function drawMobileCanvas(type) {
+            const cvs = document.getElementById("simCanvas");
+            const ctx = cvs.getContext("2d");
+            ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+            const cx = cvs.width / 2;
+            const cy = cvs.height / 2;
+
+            // Background subtle grid
+            ctx.strokeStyle = "#131c2a";
+            for (let x = 0; x < cvs.width; x += 24) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cvs.height); ctx.stroke(); }
+            for (let y = 0; y < cvs.height; y += 24) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cvs.width, y); ctx.stroke(); }
+
+            if (type === "resistor") {
+                ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.moveTo(cx - 130, cy); ctx.lineTo(cx + 130, cy); ctx.stroke();
+                ctx.fillStyle = "#dcb080";
+                ctx.beginPath(); ctx.roundRect(cx - 60, cy - 20, 120, 40, 8); ctx.fill();
+                const is10k = (curKey === "resistor_10k");
+                const bands = is10k ? ["#5c3a21", "#000000", "#ff7700", "#ffd700"] : ["#d00000", "#d00000", "#5c3a21", "#ffd700"];
+                const offsets = [-38, -16, 8, 38];
+                bands.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(cx + offsets[i], cy - 20, 9, 40); });
+            } else if (type === "led") {
+                ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 3.5;
+                ctx.beginPath(); ctx.moveTo(cx - 10, cy + 25); ctx.lineTo(cx - 10, cy + 100); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx + 10, cy + 25); ctx.lineTo(cx + 10, cy + 80); ctx.stroke();
+                ctx.fillStyle = "#ef4444";
+                ctx.beginPath(); ctx.arc(cx, cy - 15, 30, Math.PI, 0, false);
+                ctx.lineTo(cx + 30, cy + 20); ctx.lineTo(cx - 30, cy + 20); ctx.closePath(); ctx.fill();
+            } else if (type === "cap_elec") {
+                ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 3.5;
+                ctx.beginPath(); ctx.moveTo(cx - 12, cy + 35); ctx.lineTo(cx - 12, cy + 95); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx + 12, cy + 35); ctx.lineTo(cx + 12, cy + 80); ctx.stroke();
+                ctx.fillStyle = "#1e293b"; ctx.beginPath(); ctx.roundRect(cx - 38, cy - 50, 76, 90, 6); ctx.fill();
+                ctx.fillStyle = "#e2e8f0"; ctx.fillRect(cx + 16, cy - 50, 14, 90);
+                ctx.fillStyle = "#000"; ctx.font = "bold 14px monospace"; ctx.fillText("-", cx + 19, cy);
+            } else if (type === "cap_cer") {
+                ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(cx - 12, cy + 15); ctx.lineTo(cx - 12, cy + 80); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx + 12, cy + 15); ctx.lineTo(cx + 12, cy + 80); ctx.stroke();
+                ctx.fillStyle = "#d97706"; ctx.beginPath(); ctx.arc(cx, cy - 10, 36, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = "#000"; ctx.font = "bold 15px monospace"; ctx.fillText("104", cx - 14, cy - 6);
+            } else if (type === "ic") {
+                ctx.fillStyle = "#111827"; ctx.beginPath(); ctx.roundRect(cx - 65, cy - 40, 130, 80, 5); ctx.fill();
+                ctx.fillStyle = "#cbd5e1";
+                for (let i = 0; i < 4; i++) {
+                    const px = cx - 48 + i * 32;
+                    ctx.fillRect(px, cy - 52, 12, 14);
+                    ctx.fillRect(px, cy + 38, 12, 14);
+                }
+                ctx.fillStyle = "#fff"; ctx.font = "bold 14px monospace"; ctx.fillText("NE555", cx - 22, cy + 5);
             }
-        };
+        }
 
-        const IgExport = {
-            process: async (id, authorId, content, textColor, imageSrc) => {
-                Toast.show('📸 正在排版並生成高畫質圖卡...');
-                const contentEl = document.getElementById('ig-export-content');
-                const imageEl = document.getElementById('ig-export-image');
-                
-                contentEl.textContent = content;
-                contentEl.style.color = textColor;
-                
-                if (imageSrc) {
-                    imageEl.src = imageSrc;
-                    imageEl.style.display = 'block';
-                    contentEl.style.fontSize = content.length > 50 ? '32px' : '40px';
-                } else {
-                    imageEl.style.display = 'none';
-                    imageEl.src = '';
-                    contentEl.style.fontSize = content.length > 120 ? '42px' : (content.length > 200 ? '36px' : '52px');
-                }
+        function switchMobilePart(key) {
+            curKey = key;
+            const item = M_DATA[key];
+            if (!item) return;
 
-                try {
-                    const canvas = await html2canvas(document.getElementById('ig-export-canvas'), { scale: 2, backgroundColor: null, useCORS: true });
-                    const link = document.createElement('a');
-                    link.href = canvas.toDataURL("image/jpeg", 0.9);
-                    link.download = `東海匿名_${id}.jpg`;
-                    link.click();
-                    Toast.show('✅ 圖卡已下載！', 'success');
-                } catch (e) {
-                    Toast.show('生成失敗', 'error');
-                }
+            if (!isRealCam) drawMobileCanvas(item.type);
+
+            document.getElementById("mConfBadge").textContent = "CONFIDENCE " + item.conf;
+            document.getElementById("mPartName").textContent = item.name;
+            document.getElementById("mPartDesc").textContent = item.desc;
+            document.getElementById("mDrawerId").textContent = item.box;
+            document.getElementById("mVoiceHint").textContent = `🔊 語音：「請放入 ${item.box[0]} 區 ${parseInt(item.box.slice(2))} 號盒」`;
+
+            document.querySelectorAll(".mini-cell").forEach(el => el.classList.remove("active-drawer"));
+            const target = document.getElementById("m-cell-" + item.box);
+            if (target) target.classList.add("active-drawer");
+        }
+
+        function triggerMobileScan() {
+            const item = M_DATA[curKey];
+            if (!item) return;
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(item.speech);
+                utter.lang = 'zh-TW';
+                utter.rate = 1.0;
+                window.speechSynthesis.speak(utter);
             }
-        };
+        }
 
-        const Api = {
-            USER_ID_KEY: 'thu_my_uid',
-            STORAGE_KEY: 'thu_anonymous_posts',
-            REPORTS_KEY: 'thu_reported_posts', 
-            MY_REPORTS_KEY: 'thu_my_reports',
-            LEGAL_RULES_KEY: 'thu_legal_rules',
-            
-            getUID: () => {
-                let uid = localStorage.getItem(Api.USER_ID_KEY);
-                if (!uid) {
-                    uid = Utils.generateUserID();
-                    localStorage.setItem(Api.USER_ID_KEY, uid);
-                }
-                return uid;
-            },
+        async function toggleRealCam() {
+            const vid = document.getElementById("mobileVideo");
+            const cvs = document.getElementById("simCanvas");
 
-            getData: () => {
+            if (!isRealCam) {
                 try {
-                    const storedData = localStorage.getItem(Api.STORAGE_KEY);
-                    if (storedData) return JSON.parse(storedData);
-                } catch(e){}
-                const defaultData = [
-                    { 
-                        id: "PID-X9A2B1", 
-                        authorId: "THHS001", 
-                        content: "東海匿名板全新升級！\n現在支援上傳照片、自訂文字顏色，還可以申請文章置頂喔！", 
-                        color: "#5b21b6",
-                        image: null,
-                        isPinned: true, 
-                        requestPin: false,
-                        timestamp: new Date().toISOString() 
-                    }
-                ];
-                localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(defaultData));
-                return defaultData;
-            },
-
-            getRules: () => {
-                try {
-                    const storedRules = localStorage.getItem(Api.LEGAL_RULES_KEY);
-                    if (storedRules) return JSON.parse(storedRules);
-                } catch(e){}
-                const defaultRules = [
-                    { id: "R-1", title: "一、個人資料保護與調閱限制", content: "除法律另有規定外，拒絕向不具調查權限之第三方提供識別資料。為保障真實受害人未來訴訟舉證，系統將採集必要之設備指紋，非經檢警機關依法定程序出具調取票，絕不逕行提供。" },
-                    { id: "R-2", title: "二、平台免責與檢舉處理機制", content: "版主從事一般性維護，不因管理身分成為違法言論之共同行為人。收到檢舉僅為程序觸發，不代表確定違法，平台拒絕接受「遭檢舉即必須無條件移除」之片面要求。" },
-                    { id: "R-3", title: "三、言論自由保障與違法界線", content: "單純情緒抒發、玩笑屬意見表達。但若發布內容明確構成公然侮辱或誹謗等實體違法行為，本平台決不縱容，將依法配合有權機關偵辦。" }
-                ];
-                localStorage.setItem(Api.LEGAL_RULES_KEY, JSON.stringify(defaultRules));
-                return defaultRules;
-            },
-
-            addRule: async (title, content) => {
-                const rules = Api.getRules();
-                rules.push({ id: 'R-' + Date.now(), title: title, content: content });
-                localStorage.setItem(Api.LEGAL_RULES_KEY, JSON.stringify(rules));
-            },
-
-            deleteRule: async (id) => {
-                let rules = Api.getRules();
-                rules = rules.filter(r => r.id !== id);
-                localStorage.setItem(Api.LEGAL_RULES_KEY, JSON.stringify(rules));
-            },
-
-            getReports: () => {
-                const reports = localStorage.getItem(Api.REPORTS_KEY);
-                return reports ? JSON.parse(reports) : {};
-            },
-
-            getMyReportedIds: () => {
-                const myReports = localStorage.getItem(Api.MY_REPORTS_KEY);
-                return myReports ? JSON.parse(myReports) : [];
-            },
-
-            fetch: async () => {
-                return Api.getData();
-            },
-
-            post: async (content, color, image, requestPin) => {
-                await new Promise(r => setTimeout(r, 600)); 
-                const posts = Api.getData();
-                const currentUid = App.isAdmin ? 'THHS001' : Api.getUID();
-
-                const newPost = { 
-                    id: Utils.generateSystemID(), 
-                    authorId: currentUid,
-                    content: content,
-                    color: color || '#333333',
-                    image: image,
-                    requestPin: requestPin,
-                    isPinned: App.isAdmin ? requestPin : false, 
-                    timestamp: new Date().toISOString() 
-                };
-                
-                posts.unshift(newPost);
-                
-                try {
-                    localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts)); 
-                } catch (e) {
-                    throw new Error('儲存空間已滿，請刪除部分含有圖片的舊貼文，或上傳更小的圖片。');
-                }
-                
-                return newPost;
-            },
-
-            delete: async (id) => {
-                await new Promise(r => setTimeout(r, 300));
-                let posts = Api.getData();
-                posts = posts.filter(p => p.id !== id);
-                localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts));
-            },
-
-            report: async (id) => {
-                const myReportedIds = Api.getMyReportedIds();
-                if (myReportedIds.includes(id)) throw new Error('您已經檢舉過此貼文了！');
-                const allReports = Api.getReports();
-                allReports[id] = (allReports[id] || 0) + 1;
-                localStorage.setItem(Api.REPORTS_KEY, JSON.stringify(allReports));
-                myReportedIds.push(id);
-                localStorage.setItem(Api.MY_REPORTS_KEY, JSON.stringify(myReportedIds));
-            },
-
-            approvePin: async (id) => {
-                let posts = Api.getData();
-                const post = posts.find(p => p.id === id);
-                if (post) {
-                    post.isPinned = true;
-                    post.requestPin = false;
-                    localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts));
-                }
-            },
-            
-            unpin: async (id) => {
-                let posts = Api.getData();
-                const post = posts.find(p => p.id === id);
-                if (post) {
-                    post.isPinned = false;
-                    localStorage.setItem(Api.STORAGE_KEY, JSON.stringify(posts));
-                }
-            }
-        };
-
-        const App = {
-            isAdmin: false,
-            els: {
-                uidDisplay: document.getElementById('js-my-uid-display'),
-                input: document.getElementById('js-post-input'),
-                colorInput: document.getElementById('js-post-color'),
-                imageInput: document.getElementById('js-post-image'),
-                pinInput: document.getElementById('js-post-pin'),
-                counter: document.getElementById('js-char-counter'),
-                submitBtn: document.getElementById('js-btn-submit'),
-                feed: document.getElementById('js-post-list'),
-                previewContainer: document.getElementById('js-preview-container'),
-                previewImg: document.getElementById('js-preview-img'),
-                legalList: document.getElementById('js-legal-list')
-            },
-
-            init: () => {
-                if(App.els.uidDisplay) App.updateUidDisplay();
-                
-                App.els.input.addEventListener('input', App.handleInput);
-                App.els.submitBtn.addEventListener('click', App.handleSubmit);
-                App.els.feed.addEventListener('click', App.handleFeedClick);
-                
-                App.els.imageInput.addEventListener('change', async (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        Toast.show('處理圖片中...');
-                        try {
-                            currentImageBase64 = await Utils.compressImage(file);
-                            App.els.previewImg.src = currentImageBase64;
-                            App.els.previewContainer.classList.add('active');
-                            App.handleInput({target: {value: App.els.input.value}}); 
-                        } catch (err) {
-                            Toast.show('圖片處理失敗', 'error');
-                        }
-                    }
-                });
-
-                App.loadPosts();
-                App.loadRules();
-            },
-
-            removeImage: () => {
-                currentImageBase64 = null;
-                App.els.imageInput.value = '';
-                App.els.previewImg.src = '';
-                App.els.previewContainer.classList.remove('active');
-                App.handleInput({target: {value: App.els.input.value}});
-            },
-
-            updateUidDisplay: () => {
-                if (!App.els.uidDisplay) return; 
-                if (App.isAdmin) {
-                    App.els.uidDisplay.innerHTML = `<span style="color: #dc2626; font-size: 13px;">👑 系統管理員：THHS001</span>`;
-                } else {
-                    App.els.uidDisplay.textContent = `發言身分：${Api.getUID()}`;
-                }
-            },
-
-            toggleAdmin: () => {
-                try {
-                    if (App.isAdmin) {
-                        App.isAdmin = false;
-                        document.body.classList.remove('is-admin');
-                        Toast.show('已登出管理員模式');
-                    } else {
-                        const pwd = prompt('🔒 請輸入管理員密碼');
-                        if (pwd === 'admin') {
-                            App.isAdmin = true;
-                            document.body.classList.add('is-admin');
-                            Toast.show('🔓 管理員審查模式已啟用', 'success');
-                        } else if (pwd !== null) {
-                            Toast.show('密碼錯誤', 'error');
-                        }
-                    }
-                    App.updateUidDisplay();
-                    App.loadPosts(); 
-                    App.loadRules(); 
-                } catch (e) {
-                    console.error("切換管理員失敗", e);
-                }
-            },
-
-            switchView: (viewName) => {
-                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-                const view = document.getElementById(`view-${viewName}`);
-                if (view) view.classList.add('active');
-                window.scrollTo(0,0);
-            },
-
-            handleInput: (e) => {
-                const len = e.target.value.length;
-                App.els.counter.textContent = `${len} / ${Config.MAX_CHARS}`;
-                const hasImage = currentImageBase64 !== null;
-                const isValid = (len > 0 || hasImage) && len <= Config.MAX_CHARS;
-                App.els.submitBtn.disabled = !isValid;
-                App.els.submitBtn.className = isValid ? 'btn-submit active' : 'btn-submit';
-            },
-
-            handleSubmit: async () => {
-                const content = App.els.input.value.trim();
-                if (!content && !currentImageBase64) return;
-                
-                const color = App.els.colorInput.value;
-                const requestPin = App.els.pinInput.checked;
-
-                App.els.submitBtn.disabled = true;
-                App.els.submitBtn.textContent = '發布中...';
-                
-                try {
-                    await Api.post(content, color, currentImageBase64, requestPin);
-                    App.els.input.value = '';
-                    App.els.colorInput.value = '#333333';
-                    App.els.pinInput.checked = false;
-                    App.removeImage();
-                    App.handleInput({target: {value: ''}});
-                    
-                    Toast.show('🎉 發布成功！', 'success');
-                    App.loadPosts();
-                } catch (e) {
-                    Toast.show(e.message || '發布失敗', 'error');
-                } finally {
-                    App.els.submitBtn.textContent = '發布';
-                }
-            },
-
-            handleFeedClick: async (e) => {
-                const btn = e.target.closest('.btn-action');
-                if (!btn) return;
-                
-                const id = btn.dataset.id;
-                const authorId = btn.dataset.author;
-                const action = btn.dataset.action;
-
-                try {
-                    if (action === 'delete') {
-                        if (confirm('確定要永久刪除這篇貼文嗎？\n(此動作無法復原)')) {
-                            await Api.delete(id);
-                            Toast.show('🗑️ 貼文已刪除', 'success');
-                            App.loadPosts();
-                        }
-                    } else if (action === 'export' && App.isAdmin) {
-                        const post = (await Api.fetch()).find(p => p.id === id);
-                        if (post) IgExport.process(id, authorId, post.content, post.color, post.image);
-                    } else if (action === 'report') {
-                        await Api.report(id);
-                        Toast.show('⚠️ 檢舉已送交管理員審查', 'success');
-                        App.loadPosts(); 
-                    } else if (action === 'approve-pin' && App.isAdmin) {
-                        await Api.approvePin(id);
-                        Toast.show('📌 已批准置頂', 'success');
-                        App.loadPosts();
-                    } else if (action === 'unpin' && App.isAdmin) {
-                        await Api.unpin(id);
-                        Toast.show('取消置頂完成');
-                        App.loadPosts();
-                    }
-                } catch (err) {
-                    Toast.show(err.message, 'error');
-                }
-            },
-
-            loadPosts: async () => {
-                try {
-                    let posts = await Api.fetch();
-                    const myUID = Api.getUID(); 
-                    const allReports = Api.getReports(); 
-                    
-                    posts.sort((a, b) => {
-                        if (a.isPinned && !b.isPinned) return -1;
-                        if (!a.isPinned && b.isPinned) return 1;
-                        return new Date(b.timestamp) - new Date(a.timestamp);
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: "environment" }
                     });
-
-                    App.els.feed.innerHTML = '';
-                    
-                    posts.forEach(post => {
-                        const safeContent = Utils.escapeHTML(post.content);
-                        
-                        const isMine = (post.authorId === myUID);
-                        const canDelete = App.isAdmin || isMine;
-                        
-                        let deleteBtnHTML = canDelete ? `<button class="btn-action danger" data-action="delete" data-id="${post.id}">🗑️ 刪除</button>` : '';
-                        let adminActionsHTML = `<button class="btn-action dark admin-only" data-action="export" data-id="${post.id}" data-author="${post.authorId}">📸 匯出</button>`;
-                        
-                        if (App.isAdmin) {
-                            if (post.requestPin && !post.isPinned) {
-                                adminActionsHTML += `<button class="btn-action success admin-only" data-action="approve-pin" data-id="${post.id}">✅ 准許置頂</button>`;
-                            } else if (post.isPinned) {
-                                adminActionsHTML += `<button class="btn-action admin-only" data-action="unpin" data-id="${post.id}">❌ 取消置頂</button>`;
-                            }
-                        }
-
-                        const reportCount = allReports[post.id] || 0;
-                        const reportBadgeHTML = reportCount > 0 ? `<div class="admin-badge has-reports">🚨 遭檢舉 ${reportCount} 次</div>` : '';
-                        const requestPinBadgeHTML = (post.requestPin && !post.isPinned) ? `<div class="request-pin-badge is-requesting">🛎️ 使用者申請置頂</div>` : '';
-                        const pinBadgeHTML = post.isPinned ? `<div class="pin-badge">📌 置頂</div>` : '';
-
-                        const imageHTML = post.image ? `<img src="${post.image}" class="post-image">` : '';
-
-                        const isSystemAdmin = post.authorId === 'THHS001';
-                        const nameHtml = isSystemAdmin
-                            ? `<span class="admin-name">👑 系統管理員</span> <span class="msg-uid admin-badge-text">#THHS001</span>`
-                            : `匿名同學 <span class="msg-uid">#${post.authorId}</span>`;
-
-                        const html = `
-                            <div class="message-card ${post.isPinned ? 'pinned' : ''}">
-                                ${reportBadgeHTML}
-                                ${requestPinBadgeHTML}
-                                <div class="msg-header">
-                                    <div class="msg-user">
-                                        <div class="msg-avatar"><div class="avatar-hex"></div></div>
-                                        <div class="msg-name">${nameHtml}</div>
-                                    </div>
-                                    <div class="msg-meta-right">
-                                        ${pinBadgeHTML}
-                                        <div class="msg-time">${Utils.getTimeAgo(post.timestamp)}</div>
-                                    </div>
-                                </div>
-                                
-                                ${imageHTML}
-                                <div class="msg-content" style="color: ${post.color || '#333333'};">${safeContent}</div>
-                                
-                                <div class="msg-actions">
-                                    ${deleteBtnHTML}
-                                    ${adminActionsHTML}
-                                    <button class="btn-action" data-action="report" data-id="${post.id}">⚠️ 檢舉</button>
-                                </div>
-                            </div>
-                        `;
-                        App.els.feed.insertAdjacentHTML('beforeend', html);
-                    });
+                    vid.srcObject = stream;
+                    vid.style.display = "block";
+                    cvs.style.display = "none";
+                    isRealCam = true;
                 } catch (e) {
-                    console.error("渲染貼文時發生錯誤", e);
+                    alert("無法啟動相機 (請確保在 HTTPS 環境或允許鏡頭權限)：" + e.message);
                 }
-            },
-
-            loadRules: () => {
-                const rules = Api.getRules();
-                App.els.legalList.innerHTML = '';
-                
-                rules.forEach(rule => {
-                    const safeContent = Utils.escapeHTML(rule.content).replace(/\n/g, '<br>');
-                    const deleteRuleBtn = App.isAdmin 
-                        ? `<button class="admin-only" style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:13px; font-weight:bold;" onclick="App.deleteRule('${rule.id}')">🗑️ 刪除此條</button>` 
-                        : '';
-
-                    const html = `
-                        <details open>
-                            <summary>
-                                <span style="flex:1;">${Utils.escapeHTML(rule.title)}</span>
-                                ${deleteRuleBtn}
-                            </summary>
-                            <div class="content-body"><p>${safeContent}</p></div>
-                        </details>
-                    `;
-                    App.els.legalList.insertAdjacentHTML('beforeend', html);
-                });
-            },
-
-            addRule: async () => {
-                const titleInput = document.getElementById('js-rule-title');
-                const contentInput = document.getElementById('js-rule-content');
-                const title = titleInput.value.trim();
-                const content = contentInput.value.trim();
-                
-                if(!title || !content) return Toast.show('請輸入規範標題與內容', 'error');
-                
-                await Api.addRule(title, content);
-                
-                titleInput.value = '';
-                contentInput.value = '';
-                Toast.show('✅ 新規範已發布', 'success');
-                App.loadRules();
-            },
-
-            deleteRule: async (id) => {
-                if(confirm('確定要刪除這條平台規範嗎？')){
-                    await Api.deleteRule(id);
-                    Toast.show('規範已刪除', 'success');
-                    App.loadRules();
+            } else {
+                if (vid.srcObject) {
+                    vid.srcObject.getTracks().forEach(t => t.stop());
                 }
+                vid.style.display = "none";
+                cvs.style.display = "block";
+                isRealCam = false;
+                drawMobileCanvas(M_DATA[curKey].type);
             }
-        };
+        }
 
-        document.addEventListener('DOMContentLoaded', App.init);
+        window.onload = function() {
+            initMiniGrid();
+            switchMobilePart("resistor_10k");
+        };
     </script>
 </body>
 </html>
