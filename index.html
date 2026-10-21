@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>連鎖點餐與 POS 系統 (核心修復穩定版)</title>
+<title>連鎖點餐與 POS 系統 (分店密碼變更與App化)</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
 <style>
 :root{
@@ -273,7 +273,7 @@ const ui={
   newCoupon:{code:'',desc:'',type:'amt',v:10,min:0},
   inputPin:'',
   newStaff:{name:'',role:'staff'},
-  newStoreName:'', newStorePin:''
+  newStoreName:'', newStorePin:'', newStorePinEdit:''
 };
 
 const cur=()=>S.staff[ui.op]||S.staff[0];
@@ -287,7 +287,6 @@ function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTi
 function lineDesc(l){const a=[];Object.keys(l.sel||{}).forEach(g=>{(l.sel[g]||[]).forEach(n=>a.push(n));});return a.join('・');}
 function catIdx(cat){const cs=[...new Set(S.menu.map(m=>m.cat))];return Math.max(0,cs.indexOf(cat))%4;}
 
-// 確保桌位陣列同步
 function syncTables(){
   const n=S.settings.tables;
   for(let i=1;i<=n;i++)if(!S.tables[i])S.tables[i]='free';
@@ -299,7 +298,7 @@ function saveStore(){
     localStorage.setItem(LS_REGISTRY, JSON.stringify(registry));
     localStorage.setItem(LS_CURRENT, currentPin);
   }catch(e){ 
-    toast('儲存失敗！可能是圖片檔案過大超過容量限制，請刪除部分大圖片。');
+    toast('儲存失敗！可能是圖片檔案過大超過容量限制');
     console.error("Save Error:", e);
   }
 }
@@ -567,10 +566,24 @@ function aSettings(){
     '<label class="f">外送服務範圍<input id="s-range" class="inp" data-bind="S.settings.deliveryRange" data-save value="'+esc(s.deliveryRange)+'"></label>'+
     '<div class="grid2">'+num('maxActive','接單上限數','單')+num('prep','預估製作時間','分鐘')+num('deliveryMin','外送起送最低金額','元')+num('deliveryFee','外送運費','元')+num('tables','內用總桌數','桌')+'</div></div>';
   
+  // 分店與變更密碼管理專區
   h += '<div class="card" style="margin-top:14px"><h2 style="font:700 18px var(--f-disp);margin-bottom:8px">連鎖分店與密碼管理</h2>'+
     '<table><thead><tr><th>分店名稱</th><th>專屬登入密碼 (PIN)</th><th>操作</th></tr></thead><tbody>'+
-    Object.keys(registry).map(p=>`<tr><td>${esc(registry[p])} ${p===currentPin?'<span class="badge">目前管理中</span>':''}</td><td>${p}</td><td>${p!==currentPin?`<button class="btn sm" data-act="switchAdminStore" data-pin="${p}">切換至此店</button>`:''}</td></tr>`).join('')+
+    Object.keys(registry).map(p=>`<tr>'+
+      '<td>${esc(registry[p])} ${p===currentPin?'<span class="badge">目前管理中</span>':''}</td>'+
+      '<td>${p}</td>'+
+      '<td>'+
+        (p!==currentPin?`<button class="btn sm" data-act="switchAdminStore" data-pin="${p}">切換至此店</button>`:'')+
+      '</td>'+
+    '</tr>`).join('')+
     '</tbody></table>'+
+    
+    // 變更目前分店密碼區塊
+    '<div class="grid2" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">'+
+    '<label class="f">變更目前店家密碼 (PIN)<div class="row"><input id="ns-edit-pin" class="inp" data-bind="ui.newStorePinEdit" value="'+esc(ui.newStorePinEdit||currentPin)+'" placeholder="新密碼"><button class="btn pri sm" data-act="updateStorePin">更新密碼</button></div></label>'+
+    '</div>'+
+
+    // 新增分店區塊
     '<div class="grid2" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">'+
     '<label class="f">新分店名稱<input id="ns-name" class="inp" data-bind="ui.newStoreName" value="'+esc(ui.newStoreName||'')+'" placeholder="例如：中山分店"></label>'+
     '<label class="f">自訂店家密碼<input id="ns-pin" class="inp" data-bind="ui.newStorePin" value="'+esc(ui.newStorePin||'')+'" placeholder="輸入數字密碼，如：8888"></label>'+
@@ -703,9 +716,7 @@ function setPath(path,v){
   root[parts[0]]=v;
 }
 
-// 核心指令綁定字典 (完整恢復版)
 const H={
-  // 1. 登入與視圖切換
   openPinModal:()=>{ ui.inputPin=''; ui.modal={type:'pin'}; },
   submitPin:()=>{ 
     const p = ui.inputPin.trim();
@@ -719,7 +730,6 @@ const H={
   mclose:el=>{ui.modal=null;},
   dismiss:()=>{ui.last=null;},
 
-  // 2. 前台點餐與購物車
   cat:el=>{ui.cat=el.dataset.v;},
   add:el=>{
     const it=S.menu.find(m=>m.id===el.dataset.id);if(!it||it.out)return;
@@ -743,7 +753,6 @@ const H={
   placeCustomer:()=>placeOrder(false),
   placeCounter:()=>placeOrder(true),
 
-  // 3. 後台櫃台與訂單管理
   cnew:()=>{ui.cview='new';ui.co.pay='cash';},
   cback:()=>{ui.cview='list';ui.cartOpen=false;},
   ofilter:el=>{ui.ofilter=el.dataset.v;},
@@ -763,7 +772,6 @@ const H={
     saveStore();ui.modal=null;
   },
 
-  // 4. 桌位動態管理
   tableInc:()=>{
     if(!can('settings')) return toast('缺乏管理權限');
     if(S.settings.tables >= 100) return toast('已達上限');
@@ -781,7 +789,7 @@ const H={
     const t=el.dataset.t; tableOrders(t).forEach(o=>{if(o.pay.s==='unpaid'){o.pay={s:'paid',m:'cash'};}o.closed=true;});
     S.tables[t]='dirty';logit(t+' 號桌結帳離席');saveStore();
   },
-  clean:el=>{S.tables[el.dataset.t]='free';logit(el.dataset.t+' 號桌清潔完成');saveStore();},
+  clean:el=>{S.tables[el.dataset.t]='free';logit(t+' 號桌清潔完成');saveStore();},
   moveopen:el=>{ui.modal={type:'move',t:el.dataset.t};},
   movedo:el=>{
     const a=el.dataset.t,b=el.dataset.to;
@@ -789,7 +797,6 @@ const H={
     S.tables[b]='dining';S.tables[a]='free'; logit(a+' 號桌移至 '+b+' 號桌');saveStore();ui.modal=null;
   },
 
-  // 5. 菜單與規格管理 (持久化)
   atab:el=>{ui.atab=el.dataset.v;ui.edit=null;},
   toggleout:el=>{const m=S.menu.find(x=>x.id===el.dataset.id);m.out=!m.out;logit(m.name+(m.out?' 停售':' 供應'));saveStore();},
   medit:el=>{
@@ -809,7 +816,6 @@ const H={
   },
   eddel:()=>{ S.menu=S.menu.filter(x=>x.id!==ui.edit.id);saveStore();ui.edit=null;toast('🗑️ 品項已刪除'); },
   
-  // 客製化規格選項
   quickGroupModal: () => { if(!can('price')) return toast('缺乏權限'); ui.modal = {type:'quickGroup'}; },
   quickGroupSave: () => {
     if(!can('price')) return toast('缺乏權限');
@@ -834,7 +840,7 @@ const H={
     logit('刪除規格：'+gName); saveStore(); toast('已刪除規格');
   },
 
-  // 6. 店家與密碼管理
+  // 店家與密碼變更管理
   addStore: () => {
     const name = (ui.newStoreName || '').trim(); const pin = (ui.newStorePin || '').trim();
     if(!name || !pin) return toast('請填寫分店名稱與密碼');
@@ -842,11 +848,27 @@ const H={
     registry[pin] = name; const newData = seed(name); localStorage.setItem('pos-data-'+pin, JSON.stringify(newData));
     ui.newStoreName = ''; ui.newStorePin = ''; saveStore(); toast('✅ 已新增店家：' + name);
   },
+  updateStorePin: () => {
+    const newPin = (ui.newStorePinEdit || '').trim();
+    if(!newPin) return toast('密碼不可為空');
+    if(newPin === currentPin) return toast('新密碼與目前密碼相同');
+    if(registry[newPin]) return toast('此密碼已被其他店家使用');
+    
+    // 轉移資料
+    registry[newPin] = registry[currentPin];
+    delete registry[currentPin];
+    const storeData = localStorage.getItem('pos-data-'+currentPin);
+    localStorage.setItem('pos-data-'+newPin, storeData);
+    localStorage.removeItem('pos-data-'+currentPin);
+    
+    currentPin = newPin;
+    saveStore();
+    toast('✅ 店家密碼已成功變更為：' + newPin);
+  },
   switchAdminStore: el => {
     currentPin = el.dataset.pin; S = loadStore(currentPin); ui.cart = []; saveStore(); toast('🔄 已切換：' + registry[currentPin]);
   },
 
-  // 7. 優惠與員工管理
   ctoggle:el=>{const c=S.coupons[Number(el.dataset.i)];c.on=!c.on;logit('優惠碼 '+(c.on?'啟用':'停用'));saveStore();},
   cadd:()=>{
     const n=ui.newCoupon,code=n.code.trim().toUpperCase();
@@ -869,7 +891,6 @@ const H={
     S.staff.splice(idx,1); if(ui.op>=S.staff.length) ui.op=0; logit('刪除員工'); saveStore(); toast('已刪除員工');
   },
 
-  // 8. 列印功能 (依照使用者自訂尺寸)
   printopen: el => { ui.modal = { type: 'print', no: Number(el.dataset.no) }; },
   doprint: el => {
     const no = Number(el.dataset.no), ptype = el.dataset.ptype, o = S.orders.find(x => x.no === no), pz = $('#print-zone');
@@ -901,7 +922,6 @@ const H={
   }
 };
 
-// 處理商品圖片上傳 (自動壓縮防當機)
 document.addEventListener('change', e => {
   if (e.target.id === 'ed-img-file') {
     const file = e.target.files[0];
@@ -930,7 +950,6 @@ document.addEventListener('change', e => {
   }
 });
 
-// 全局點擊與輸入事件委派
 document.addEventListener('click',e=>{
   try {
     const el=e.target.closest('[data-act]');if(!el)return;
