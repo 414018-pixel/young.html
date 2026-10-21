@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>連鎖點餐與 POS 系統 (含客製規格與尺寸自訂)</title>
+<title>連鎖點餐與 POS 系統 (防當機優化版)</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
 <style>
 :root{
@@ -287,12 +287,16 @@ function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTi
 function lineDesc(l){const a=[];Object.keys(l.sel||{}).forEach(g=>{(l.sel[g]||[]).forEach(n=>a.push(n));});return a.join('・');}
 function catIdx(cat){const cs=[...new Set(S.menu.map(m=>m.cat))];return Math.max(0,cs.indexOf(cat))%4;}
 
+// ★防當機關鍵：移除出錯圖檔或避免寫入失敗時破壞資料庫
 function saveStore(){
   try{
     localStorage.setItem('pos-data-'+currentPin, JSON.stringify(S));
     localStorage.setItem(LS_REGISTRY, JSON.stringify(registry));
     localStorage.setItem(LS_CURRENT, currentPin);
-  }catch(e){ toast('儲存失敗，可能因圖片檔案過大超過容量限制'); }
+  }catch(e){ 
+    toast('儲存失敗！可能是圖片檔案過大超過容量限制，請刪除部分大圖片。');
+    console.error("Save Error:", e);
+  }
 }
 
 function calc(cart,co){
@@ -534,7 +538,7 @@ function editForm(){
     '<label class="f">品名<input id="ed-name" class="inp" data-bind="edit.name" value="'+esc(e.name)+'"></label>'+
     '<label class="f">分類<input id="ed-cat" class="inp" list="cats" data-bind="edit.cat" value="'+esc(e.cat)+'"><datalist id="cats">'+cats.map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist></label>'+
     '<label class="f">單價（元）<input id="ed-price" class="inp" type="number" min="0" data-bind="edit.price" data-num value="'+esc(e.price)+'"></label></div>'+
-    '<label class="f">商品圖片上傳 (建議 1MB 以下)<div class="row">'+
+    '<label class="f">商品圖片上傳 (自動壓縮防當機)<div class="row">'+
     '<input type="file" id="ed-img-file" accept="image/*" class="inp" style="padding:4px;flex:1">'+
     (e.img?`<img src="${e.img}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;"><button class="btn sm danger" data-act="rmimg">移除圖片</button>`:'')+
     '</div></label>'+
@@ -727,7 +731,7 @@ const H={
     const name = (ui.newStoreName || '').trim();
     const pin = (ui.newStorePin || '').trim();
     if(!name || !pin) return toast('請填寫完整分店名稱與密碼');
-    if(registry[pin]) return toast('此密碼已被其他店家使用，請更換數字');
+    if(registry[pin]) return toast('此密碼已被使用，請更換數字');
     registry[pin] = name;
     const newData = seed(name);
     localStorage.setItem('pos-data-'+pin, JSON.stringify(newData));
@@ -924,16 +928,33 @@ const H={
   }
 };
 
-// 處理商品圖片上傳
+// 處理商品圖片上傳 (自動壓縮防當機)
 document.addEventListener('change', e => {
   if (e.target.id === 'ed-img-file') {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = ev => {
-        if(!ui.edit) ui.edit = {};
-        ui.edit.img = ev.target.result;
-        render();
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 300;
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+          } else {
+            if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+          }
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7); 
+          if(!ui.edit) ui.edit = {};
+          ui.edit.img = dataUrl;
+          render();
+        };
+        img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
     }
