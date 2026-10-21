@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>連鎖點餐與 POS 系統 (防當機優化版)</title>
+<title>連鎖點餐與 POS 系統 (核心修復穩定版)</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
 <style>
 :root{
@@ -287,7 +287,12 @@ function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTi
 function lineDesc(l){const a=[];Object.keys(l.sel||{}).forEach(g=>{(l.sel[g]||[]).forEach(n=>a.push(n));});return a.join('・');}
 function catIdx(cat){const cs=[...new Set(S.menu.map(m=>m.cat))];return Math.max(0,cs.indexOf(cat))%4;}
 
-// ★防當機關鍵：移除出錯圖檔或避免寫入失敗時破壞資料庫
+// 確保桌位陣列同步
+function syncTables(){
+  const n=S.settings.tables;
+  for(let i=1;i<=n;i++)if(!S.tables[i])S.tables[i]='free';
+}
+
 function saveStore(){
   try{
     localStorage.setItem('pos-data-'+currentPin, JSON.stringify(S));
@@ -651,10 +656,18 @@ function modalHtml(){
       '<button class="btn pri" style="min-height:46px" data-act="madd">加入購物車 '+money(price)+'</button></div></div></div>';
   }
   if(m.type==='pay'){
-    return '<div class="modal" data-act="mclose"><div class="mp" data-stop><h2>訂單結帳收款 #'+m.no+'</h2><div class="row">'+['cash','mobile','card'].map(k=>'<button class="btn" data-act="paydo" data-no="'+m.no+'" data-m="'+k+'">'+PM[k]+'</button>').join('')+'</div><button class="btn" style="width:100%" data-act="mclose">取消</button></div></div>';
+    return '<div class="modal" data-act="mclose"><div class="mp" data-stop><h2>訂單結帳收款 #'+m.no+'</h2><div class="row">'+['cash','mobile','card'].map(k=>'<button class="btn" data-act="paydo" data-no="'+m.no+'" data-m="'+k+'">'+PM[k]+'</button>').join('')+'</div><button class="btn" style="width:100%;margin-top:10px;" data-act="mclose">取消</button></div></div>';
   }
   if(m.type==='confirm'){
     return '<div class="modal" data-act="mclose"><div class="mp" data-stop><h2>'+esc(m.text)+'</h2><div class="row"><button class="btn danger" data-act="askyes">確定</button><button class="btn" data-act="mclose">返回</button></div></div></div>';
+  }
+  if(m.type==='move'){
+    const free=[],dine=[];
+    for(let i=1;i<=S.settings.tables;i++){if(String(i)===String(m.t))continue;if((S.tables[i]||'free')==='free')free.push(i);else if(S.tables[i]==='dining')dine.push(i);}
+    return '<div class="modal" data-act="mclose"><div class="mp" data-stop><h2>'+m.t+' 號桌 換桌／併桌作業</h2>'+
+      '<div class="og"><b>更換至空桌</b><div class="chips">'+(free.map(i=>'<button class="chip" data-act="movedo" data-t="'+m.t+'" data-to="'+i+'">'+i+' 號桌</button>').join('')||'<span class="hint">目前無空桌</span>')+'</div></div>'+
+      '<div class="og"><b>併入其他用餐中桌位</b><div class="chips">'+(dine.map(i=>'<button class="chip" data-act="movedo" data-t="'+m.t+'" data-to="'+i+'">'+i+' 號桌</button>').join('')||'<span class="hint">無其他用餐中桌位</span>')+'</div></div>'+
+      '<button class="btn" style="width:100%;margin-top:10px;" data-act="mclose">取消</button></div></div>';
   }
   return '';
 }
@@ -690,23 +703,47 @@ function setPath(path,v){
   root[parts[0]]=v;
 }
 
+// 核心指令綁定字典 (完整恢復版)
 const H={
+  // 1. 登入與視圖切換
   openPinModal:()=>{ ui.inputPin=''; ui.modal={type:'pin'}; },
   submitPin:()=>{ 
     const p = ui.inputPin.trim();
     if(registry[p]){
-      currentPin = p;
-      S = loadStore(currentPin);
-      ui.mode='merchant'; ui.modal=null; 
-      saveStore();
+      currentPin = p; S = loadStore(currentPin); ui.mode='merchant'; ui.modal=null; saveStore();
       toast('🔓 驗證成功，進入 '+registry[p]+' 後台'); 
-    }else{
-      toast('❌ 密碼錯誤，或該店家不存在');
-    }
+    }else toast('❌ 密碼錯誤，或該店家不存在');
   },
   logoutMerchant:()=>{ ui.mode='customer'; toast('🔒 已離線，返回前台'); },
   mtab:el=>{ui.tab=el.dataset.v;},
   mclose:el=>{ui.modal=null;},
+  dismiss:()=>{ui.last=null;},
+
+  // 2. 前台點餐與購物車
+  cat:el=>{ui.cat=el.dataset.v;},
+  add:el=>{
+    const it=S.menu.find(m=>m.id===el.dataset.id);if(!it||it.out)return;
+    if(!it.opts.length){addToCart(it,{},1,'');toast('已加入 '+it.name);return;}
+    const sel={};
+    it.opts.forEach(g=>{ const G=S.groups[g]; if(G&&G.req&&G.ch.length) sel[g]=[G.ch[0][0]]; });
+    ui.modal={type:'item',id:it.id,sel,qty:1,note:''};
+  },
+  optpick:el=>{
+    const m=ui.modal,g=el.dataset.g,c=el.dataset.c,G=S.groups[g];
+    if(G.multi){const a=m.sel[g]||[];m.sel[g]=a.includes(c)?a.filter(x=>x!==c):a.concat(c);}
+    else m.sel[g]=[c];
+  },
+  mqty:el=>{ui.modal.qty=Math.max(1,ui.modal.qty+Number(el.dataset.d));},
+  madd:()=>{const m=ui.modal,it=S.menu.find(x=>x.id===m.id);addToCart(it,m.sel,m.qty,m.note.trim());ui.modal=null;toast('已加入 '+it.name);},
+  cartopen:()=>{ui.cartOpen=true;},
+  cartclose:()=>{ui.cartOpen=false;},
+  cqty:el=>{const l=ui.cart[Number(el.dataset.i)];l.qty+=Number(el.dataset.d);if(l.qty<=0)ui.cart.splice(Number(el.dataset.i),1);},
+  crm:el=>{ui.cart.splice(Number(el.dataset.i),1);},
+  settype:el=>{ui.co.type=el.dataset.v;},
+  placeCustomer:()=>placeOrder(false),
+  placeCounter:()=>placeOrder(true),
+
+  // 3. 後台櫃台與訂單管理
   cnew:()=>{ui.cview='new';ui.co.pay='cash';},
   cback:()=>{ui.cview='list';ui.cartOpen=false;},
   ofilter:el=>{ui.ofilter=el.dataset.v;},
@@ -726,26 +763,35 @@ const H={
     saveStore();ui.modal=null;
   },
 
-  // ===== 分店與店家管理 =====
-  addStore: () => {
-    const name = (ui.newStoreName || '').trim();
-    const pin = (ui.newStorePin || '').trim();
-    if(!name || !pin) return toast('請填寫完整分店名稱與密碼');
-    if(registry[pin]) return toast('此密碼已被使用，請更換數字');
-    registry[pin] = name;
-    const newData = seed(name);
-    localStorage.setItem('pos-data-'+pin, JSON.stringify(newData));
-    ui.newStoreName = ''; ui.newStorePin = '';
-    saveStore();
-    toast('✅ 已成功新增店家：' + name);
+  // 4. 桌位動態管理
+  tableInc:()=>{
+    if(!can('settings')) return toast('缺乏管理權限');
+    if(S.settings.tables >= 100) return toast('已達上限');
+    S.settings.tables++; syncTables(); logit('增加桌位'); saveStore();
   },
-  switchAdminStore: el => {
-    currentPin = el.dataset.pin; S = loadStore(currentPin); ui.cart = []; saveStore(); toast('🔄 已切換至管理：' + registry[currentPin]);
+  tableDec:()=>{
+    if(!can('settings')) return toast('缺乏管理權限');
+    if(S.settings.tables <= 1) return toast('需保留 1 個桌位');
+    if(S.tables[S.settings.tables] === 'dining') return toast('最後一桌用餐中無法移除');
+    S.settings.tables--; syncTables(); logit('減少桌位'); saveStore();
+  },
+  seat:el=>{S.tables[el.dataset.t]='dining';logit(el.dataset.t+' 號桌入座');saveStore();},
+  addto:el=>{ui.co.type='dine';ui.co.table=el.dataset.t;ui.co.pay='later';ui.cview='new';ui.tab='counter';toast('為 '+el.dataset.t+' 號桌加點');},
+  leave:el=>{
+    const t=el.dataset.t; tableOrders(t).forEach(o=>{if(o.pay.s==='unpaid'){o.pay={s:'paid',m:'cash'};}o.closed=true;});
+    S.tables[t]='dirty';logit(t+' 號桌結帳離席');saveStore();
+  },
+  clean:el=>{S.tables[el.dataset.t]='free';logit(el.dataset.t+' 號桌清潔完成');saveStore();},
+  moveopen:el=>{ui.modal={type:'move',t:el.dataset.t};},
+  movedo:el=>{
+    const a=el.dataset.t,b=el.dataset.to;
+    S.orders.forEach(o=>{if(o.type==='dine'&&String(o.table)===String(a)&&!o.closed)o.table=String(b);});
+    S.tables[b]='dining';S.tables[a]='free'; logit(a+' 號桌移至 '+b+' 號桌');saveStore();ui.modal=null;
   },
 
-  // ===== 菜單編輯與客製規格選項 (持久保存) =====
+  // 5. 菜單與規格管理 (持久化)
   atab:el=>{ui.atab=el.dataset.v;ui.edit=null;},
-  toggleout:el=>{const m=S.menu.find(x=>x.id===el.dataset.id);m.out=!m.out;logit(m.name+(m.out?' 設定為停售':' 恢復供應'));saveStore();},
+  toggleout:el=>{const m=S.menu.find(x=>x.id===el.dataset.id);m.out=!m.out;logit(m.name+(m.out?' 停售':' 供應'));saveStore();},
   medit:el=>{
     const id=el.dataset.id;
     if(id){const m=S.menu.find(x=>x.id===id);ui.edit={id,name:m.name,cat:m.cat,price:m.price,desc:m.desc,opts:m.opts.slice(),img:m.img||''};}
@@ -761,96 +807,77 @@ const H={
     else{const m={id:'m'+Date.now(),name:e.name.trim(),cat:e.cat.trim(),price:e.price,desc:e.desc,opts:e.opts.slice(),out:false,img:e.img};S.menu.push(m);}
     saveStore();ui.edit=null;toast('✅ 儲存成功');
   },
-  eddel:()=>{
-    S.menu=S.menu.filter(x=>x.id!==ui.edit.id);saveStore();ui.edit=null;toast('🗑️ 品項已刪除');
-  },
+  eddel:()=>{ S.menu=S.menu.filter(x=>x.id!==ui.edit.id);saveStore();ui.edit=null;toast('🗑️ 品項已刪除'); },
   
-  // 新增客製化規格選項
-  quickGroupModal: () => {
-    if(!can('price')) return toast('缺乏權限');
-    ui.modal = {type:'quickGroup'};
-  },
+  // 客製化規格選項
+  quickGroupModal: () => { if(!can('price')) return toast('缺乏權限'); ui.modal = {type:'quickGroup'}; },
   quickGroupSave: () => {
     if(!can('price')) return toast('缺乏權限');
     const label = ($('#qg-label')?$('#qg-label').value:'').trim();
     const multi = $('#qg-multi')?$('#qg-multi').value==='true':false;
     const req = $('#qg-req')?$('#qg-req').value==='true':true;
     const chStr = ($('#qg-ch')?$('#qg-ch').value:'').trim();
-
-    if(!label) return toast('請輸入規格名稱');
-    if(!chStr) return toast('請輸入選項與加價設定');
-
+    if(!label || !chStr) return toast('名稱與選項不可為空');
     const ch = [];
     chStr.split(',').forEach(item=>{
-      const parts = item.split(':');
-      if(parts.length >= 1){
-        const name = parts[0].trim();
-        const price = parts[1] ? Number(parts[1]) || 0 : 0;
-        if(name) ch.push([name, price]);
-      }
+      const parts = item.split(':'); if(parts.length >= 1 && parts[0].trim()){ ch.push([parts[0].trim(), parts[1] ? Number(parts[1]) || 0 : 0]); }
     });
-    if(!ch.length) return toast('請填寫至少一個有效選項');
-
-    const gKey = 'g_' + Date.now();
-    S.groups[gKey] = { label, req, multi, ch };
-    if(ui.edit && ui.edit.opts && !ui.edit.opts.includes(gKey)){
-      ui.edit.opts.push(gKey);
-    }
-    logit('新增客製規格：'+label);
-    saveStore();
-    ui.modal = null;
-    toast('✅ 已成功新增永久規格：「'+label+'」並自動綁定');
+    if(!ch.length) return toast('無效的選項設定');
+    const gKey = 'g_' + Date.now(); S.groups[gKey] = { label, req, multi, ch };
+    if(ui.edit && ui.edit.opts && !ui.edit.opts.includes(gKey)){ ui.edit.opts.push(gKey); }
+    logit('新增規格：'+label); saveStore(); ui.modal = null; toast('✅ 已新增永久規格並綁定');
   },
   groupDel: el => {
     if(!can('price')) return toast('缺乏權限');
-    const gKey = el.dataset.g;
-    const gName = S.groups[gKey] ? S.groups[gKey].label : gKey;
-    delete S.groups[gKey];
-    S.menu.forEach(m=>{ m.opts = m.opts.filter(x=>x!==gKey); });
-    logit('刪除客製規格：'+gName);
-    saveStore();
-    toast('已永久刪除規格：'+gName);
+    const gKey = el.dataset.g; const gName = S.groups[gKey] ? S.groups[gKey].label : gKey;
+    delete S.groups[gKey]; S.menu.forEach(m=>{ m.opts = m.opts.filter(x=>x!==gKey); });
+    logit('刪除規格：'+gName); saveStore(); toast('已刪除規格');
   },
 
-  // ===== 點餐相關 =====
-  add:el=>{
-    const it=S.menu.find(m=>m.id===el.dataset.id);if(!it||it.out)return;
-    if(!it.opts.length){addToCart(it,{},1,'');toast('已加入 '+it.name);return;}
-    const sel={};
-    it.opts.forEach(g=>{ const G=S.groups[g]; if(G&&G.req&&G.ch.length) sel[g]=[G.ch[0][0]]; });
-    ui.modal={type:'item',id:it.id,sel,qty:1,note:''};
+  // 6. 店家與密碼管理
+  addStore: () => {
+    const name = (ui.newStoreName || '').trim(); const pin = (ui.newStorePin || '').trim();
+    if(!name || !pin) return toast('請填寫分店名稱與密碼');
+    if(registry[pin]) return toast('此密碼已被使用');
+    registry[pin] = name; const newData = seed(name); localStorage.setItem('pos-data-'+pin, JSON.stringify(newData));
+    ui.newStoreName = ''; ui.newStorePin = ''; saveStore(); toast('✅ 已新增店家：' + name);
   },
-  optpick:el=>{
-    const m=ui.modal,g=el.dataset.g,c=el.dataset.c,G=S.groups[g];
-    if(G.multi){const a=m.sel[g]||[];m.sel[g]=a.includes(c)?a.filter(x=>x!==c):a.concat(c);}
-    else m.sel[g]=[c];
+  switchAdminStore: el => {
+    currentPin = el.dataset.pin; S = loadStore(currentPin); ui.cart = []; saveStore(); toast('🔄 已切換：' + registry[currentPin]);
   },
-  mqty:el=>{ui.modal.qty=Math.max(1,ui.modal.qty+Number(el.dataset.d));},
-  madd:()=>{const m=ui.modal,it=S.menu.find(x=>x.id===m.id);addToCart(it,m.sel,m.qty,m.note.trim());ui.modal=null;toast('已加入 '+it.name);},
-  cartopen:()=>{ui.cartOpen=true;},
-  cartclose:()=>{ui.cartOpen=false;},
-  cqty:el=>{const l=ui.cart[Number(el.dataset.i)];l.qty+=Number(el.dataset.d);if(l.qty<=0)ui.cart.splice(Number(el.dataset.i),1);},
-  crm:el=>{ui.cart.splice(Number(el.dataset.i),1);},
 
-  // ===== 列印與出單功能 (根據使用者要求尺寸) =====
-  printopen: el => {
-    ui.modal = { type: 'print', no: Number(el.dataset.no) };
+  // 7. 優惠與員工管理
+  ctoggle:el=>{const c=S.coupons[Number(el.dataset.i)];c.on=!c.on;logit('優惠碼 '+(c.on?'啟用':'停用'));saveStore();},
+  cadd:()=>{
+    const n=ui.newCoupon,code=n.code.trim().toUpperCase();
+    if(!code||!n.desc.trim())return toast('請完整填寫優惠碼');
+    if(S.coupons.some(c=>c.code===code))return toast('該優惠碼已存在');
+    S.coupons.push({code,desc:n.desc.trim(),type:n.type,v:n.v,min:n.min,on:true});logit('新增優惠碼');saveStore();
+    ui.newCoupon={code:'',desc:'',type:'amt',v:10,min:0};
   },
+  staffAdd:()=>{
+    if(!can('settings')) return toast('缺乏權限');
+    const n=ui.newStaff, name=n.name.trim();
+    if(!name) return toast('請輸入姓名');
+    if(S.staff.some(s=>s.name===name)) return toast('已存在同名員工');
+    S.staff.push({name, role:n.role}); logit('新增員工 '+name); saveStore(); ui.newStaff={name:'',role:'staff'}; toast('已新增員工');
+  },
+  staffDel:el=>{
+    if(!can('settings')) return toast('缺乏權限');
+    const idx=Number(el.dataset.i);
+    if(S.staff.length<=1) return toast('需保留一名員工');
+    S.staff.splice(idx,1); if(ui.op>=S.staff.length) ui.op=0; logit('刪除員工'); saveStore(); toast('已刪除員工');
+  },
+
+  // 8. 列印功能 (依照使用者自訂尺寸)
+  printopen: el => { ui.modal = { type: 'print', no: Number(el.dataset.no) }; },
   doprint: el => {
-    const no = Number(el.dataset.no);
-    const ptype = el.dataset.ptype;
-    const o = S.orders.find(x => x.no === no);
-    const pz = $('#print-zone');
+    const no = Number(el.dataset.no), ptype = el.dataset.ptype, o = S.orders.find(x => x.no === no), pz = $('#print-zone');
     if(!o || !pz) return;
-
-    // 動態載入使用者選擇的列印尺寸
+    
     const pSize = S.settings.printSize || '80mm';
     let dStyle = document.getElementById('dyn-print-style');
-    if(!dStyle) {
-      dStyle = document.createElement('style');
-      dStyle.id = 'dyn-print-style';
-      document.head.appendChild(dStyle);
-    }
+    if(!dStyle) { dStyle = document.createElement('style'); dStyle.id = 'dyn-print-style'; document.head.appendChild(dStyle); }
     dStyle.innerHTML = `@media print { @page { size: ${pSize} auto; margin: 0; } #print-zone { width: ${pSize} !important; display: block !important; margin: 0; padding: 2mm;} }`;
 
     let html = '';
@@ -858,73 +885,19 @@ const H={
     const tLabel = TY[o.type] + (o.type === 'dine' && o.table ? ' · '+o.table+' 號桌' : '');
 
     if(ptype === 'num') {
-      html = `
-        <div class="pt-ticket">
-          <div class="pt-title inv">取餐號碼單</div>
-          <div class="pt-num">${o.no}</div>
-          <div style="text-align:center; font-weight:bold; font-size:16px;">${tLabel}</div>
-          <div style="border-top:1px dashed #000; margin:10px 0 5px 0;"></div>
-          <div style="text-align:center; font-size:12px;">請留意叫號機或螢幕燈號<br>${ts}</div>
-        </div>
-      `;
+      html = `<div class="pt-ticket"><div class="pt-title inv">取餐號碼單</div><div class="pt-num">${o.no}</div><div style="text-align:center; font-weight:bold; font-size:16px;">${tLabel}</div><div style="border-top:1px dashed #000; margin:10px 0 5px 0;"></div><div style="text-align:center; font-size:12px;">請留意叫號機或螢幕燈號<br>${ts}</div></div>`;
     } else if(ptype === 'kit') {
-      let itemsHtml = o.lines.map(l => `
-        <div class="pt-row pt-item"><span>${esc(l.name)}</span><span>x${l.qty}</span></div>
-        ${(lineDesc(l) || l.note) ? `<div class="pt-mod">└ [註] ${esc(lineDesc(l))} ${l.note?'/ '+esc(l.note):''}</div>` : ''}
-      `).join('');
-      html = `
-        <div class="pt-ticket">
-          <div class="pt-title">【廚房工作單】</div>
-          <div class="pt-row"><b>單號: #${o.no}</b><span>${tLabel}</span></div>
-          <div style="border-top:1px dashed #000; margin:5px 0;"></div>
-          ${itemsHtml}
-          <div style="border-top:1px dashed #000; margin:8px 0 5px 0;"></div>
-          ${o.note ? `<div class="pt-item" style="margin-top:0;">整單備註: ${esc(o.note)}</div>` : ''}
-          <div style="text-align:center; font-size:12px; margin-top:10px;">${ts}</div>
-        </div>
-      `;
+      let itemsHtml = o.lines.map(l => `<div class="pt-row pt-item"><span>${esc(l.name)}</span><span>x${l.qty}</span></div>${(lineDesc(l) || l.note) ? `<div class="pt-mod">└ [註] ${esc(lineDesc(l))} ${l.note?'/ '+esc(l.note):''}</div>` : ''}`).join('');
+      html = `<div class="pt-ticket"><div class="pt-title">【廚房工作單】</div><div class="pt-row"><b>單號: #${o.no}</b><span>${tLabel}</span></div><div style="border-top:1px dashed #000; margin:5px 0;"></div>${itemsHtml}<div style="border-top:1px dashed #000; margin:8px 0 5px 0;"></div>${o.note ? `<div class="pt-item" style="margin-top:0;">整單備註: ${esc(o.note)}</div>` : ''}<div style="text-align:center; font-size:12px; margin-top:10px;">${ts}</div></div>`;
     } else if(ptype === 'cus') {
       let itemsHtml = o.lines.map(l => `<div class="pt-row"><span>${esc(l.name)} x${l.qty}</span><span>${money(l.unit*l.qty)}</span></div>`).join('');
-      html = `
-        <div class="pt-ticket">
-          <div class="pt-title inv">消費明細</div>
-          <div class="pt-row"><b>單號: #${o.no}</b><span>${tLabel}</span></div>
-          <div>列印時間: ${ts}</div>
-          <div style="border-top:1px dashed #000; margin:5px 0;"></div>
-          ${itemsHtml}
-          <div style="border-top:1px dashed #000; margin:5px 0;"></div>
-          ${o.disc ? `<div class="pt-row"><span>折扣</span><span>-${money(o.disc)}</span></div>` : ''}
-          <div class="pt-row pt-item" style="margin-top:0;"><span>總計</span><span>${money(o.total)}</span></div>
-          <div class="pt-row"><span>付款狀態</span><span>${PAYS[o.pay.s]}</span></div>
-          <div style="text-align:center; font-size:12px; margin-top:15px;">*** 謝謝光臨 ***</div>
-        </div>
-      `;
+      html = `<div class="pt-ticket"><div class="pt-title inv">消費明細</div><div class="pt-row"><b>單號: #${o.no}</b><span>${tLabel}</span></div><div>列印時間: ${ts}</div><div style="border-top:1px dashed #000; margin:5px 0;"></div>${itemsHtml}<div style="border-top:1px dashed #000; margin:5px 0;"></div>${o.disc ? `<div class="pt-row"><span>折扣</span><span>-${money(o.disc)}</span></div>` : ''}<div class="pt-row pt-item" style="margin-top:0;"><span>總計</span><span>${money(o.total)}</span></div><div class="pt-row"><span>付款狀態</span><span>${PAYS[o.pay.s]}</span></div><div style="text-align:center; font-size:12px; margin-top:15px;">*** 謝謝光臨 ***</div></div>`;
     } else if(ptype === 'stk') {
       let stickers = [];
-      o.lines.forEach(l => {
-        for(let i=0; i<l.qty; i++) {
-          stickers.push(`
-            <div class="pt-sticker" style="width: 100%;">
-              <div class="pt-stk-head">
-                <span>#${o.no} ${tLabel}</span>
-                <span>${i+1}/${l.qty}</span>
-              </div>
-              <div class="pt-stk-name">${esc(l.name)}</div>
-              <div class="pt-stk-mod">
-                ${esc(lineDesc(l))}
-                ${l.note ? '<br>備註: ' + esc(l.note) : ''}
-              </div>
-            </div>
-          `);
-        }
-      });
+      o.lines.forEach(l => { for(let i=0; i<l.qty; i++) { stickers.push(`<div class="pt-sticker" style="width: 100%;"><div class="pt-stk-head"><span>#${o.no} ${tLabel}</span><span>${i+1}/${l.qty}</span></div><div class="pt-stk-name">${esc(l.name)}</div><div class="pt-stk-mod">${esc(lineDesc(l))}${l.note ? '<br>備註: ' + esc(l.note) : ''}</div></div>`); } });
       html = stickers.join('');
     }
-
-    pz.innerHTML = html;
-    ui.modal = null; 
-    render();        
-    setTimeout(() => { window.print(); }, 150);
+    pz.innerHTML = html; ui.modal = null; render(); setTimeout(() => { window.print(); }, 150);
   }
 };
 
@@ -939,13 +912,9 @@ document.addEventListener('change', e => {
         img.onload = () => {
           const canvas = document.createElement('canvas');
           const MAX_SIZE = 300;
-          let width = img.width;
-          let height = img.height;
-          if (width > height) {
-            if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
-          } else {
-            if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
-          }
+          let width = img.width, height = img.height;
+          if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+          else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
           canvas.width = width; canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
@@ -961,16 +930,14 @@ document.addEventListener('change', e => {
   }
 });
 
-// 使用 Try-Catch 包裝所有的點擊行為防呆
+// 全局點擊與輸入事件委派
 document.addEventListener('click',e=>{
   try {
     const el=e.target.closest('[data-act]');if(!el)return;
     if(el.classList.contains('modal')&&e.target.closest('[data-stop]'))return;
     const f=H[el.dataset.act];if(!f)return;
     f(el);render();
-  } catch(err) {
-    console.error("Action error:", err);
-  }
+  } catch(err) { console.error("Action error:", err); }
 });
 function val(t){return t.type==='checkbox'?t.checked:t.dataset.num!==undefined?Number(t.value):t.value;}
 document.addEventListener('input',e=>{
@@ -979,14 +946,8 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{
   const t=e.target;
-  // 前台切換分店的邏輯攔截
   if(t.dataset.act === 'switchStoreCus') {
-    currentPin = t.value;
-    S = loadStore(currentPin);
-    ui.cart = []; ui.cartOpen = false;
-    saveStore();
-    render();
-    return;
+    currentPin = t.value; S = loadStore(currentPin); ui.cart = []; ui.cartOpen = false; saveStore(); render(); return;
   }
   if(!t.dataset||!t.dataset.bind)return;
   setPath(t.dataset.bind,val(t));
