@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>連鎖點餐與 POS 系統 (分店密碼變更與App化)</title>
+<title>連鎖餐飲 POS 系統 (穩定極速版)</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
 <style>
 :root{
@@ -14,11 +14,6 @@
   --f-body:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif;
   --f-disp:'Noto Serif TC','Songti TC',serif;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#131713; --surface:#1c211d; --soft:#262c27; --ink:#edf0ea; --muted:#9aa59d; --line:#313832;
-  --accent:#ee6a5f; --accent-ink:#1b0a07; --tint:#3a2220;
-  --ok:#62c791; --ok-t:#1b3326; --warn:#e2b552; --warn-t:#3a2f14; --bad:#f48b81; --bad-t:#3d211e; --info:#8db4f0; --info-t:#1e2c45;
-  --h0:#ee6a5f; --h1:#62c791; --h2:#e2b552; --h3:#8db4f0; color-scheme:dark}}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px;margin:0}
@@ -42,7 +37,7 @@ h1,h2,h3,p{margin:0}
 main{padding-top:18px;display:grid;gap:16px}
 .pill{display:inline-flex;align-items:center;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700;background:var(--soft);color:var(--muted);white-space:nowrap}
 .pill.ok{background:var(--ok-t);color:var(--ok)} .pill.warn{background:var(--warn-t);color:var(--warn)}
-.pill.bad{background:var(--bad-t);color:var(--bad)} .pill.info{background:var(--info-t);color:var(--info)} .pill.off{background:var(--bad-t);color:var(--bad)}
+.pill.bad{background:var(--bad-t);color:var(--bad)} .pill.info{background:var(--info-t);color:var(--info)}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:8px 16px;font-weight:500;cursor:pointer;min-height:40px;display:inline-flex;align-items:center;justify-content:center}
 .btn:hover{background:var(--soft)}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
@@ -59,12 +54,6 @@ label.f{display:grid;gap:4px;font-size:13px;color:var(--muted)}
 .row.sp{justify-content:space-between}
 .grow{flex:1;min-width:0}
 
-/* PIN Pad Modal */
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto;width:100%}
-.pin-btn{height:54px;font-size:22px;font-weight:700;border-radius:12px;border:1px solid var(--line);background:var(--soft);cursor:pointer}
-.pin-btn:hover{background:var(--line)}
-.pin-display{font-size:28px;letter-spacing:10px;text-align:center;padding:10px;background:var(--soft);border-radius:10px;font-family:monospace;min-height:52px}
-
 /* Layout */
 .order-layout{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:20px;align-items:start}
 .toolbar{display:grid;gap:10px;margin-bottom:14px}
@@ -73,9 +62,7 @@ label.f{display:grid;gap:4px;font-size:13px;color:var(--muted)}
 .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .item{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
-.item.out{opacity:.55}
 .mono{width:64px;height:64px;border-radius:12px;display:grid;place-items:center;font:700 26px var(--f-disp);background:color-mix(in srgb,var(--h) 16%,var(--surface));color:var(--h); flex:none;}
-.item-img{width:64px;height:64px;border-radius:12px;background-size:cover;background-position:center;background-color:var(--soft); flex:none;}
 .item h3{font-size:16px}
 .item p{font-size:13px;color:var(--muted);min-height:1px}
 .ib{display:flex;gap:8px;align-items:baseline}
@@ -99,12 +86,10 @@ label.f{display:grid;gap:4px;font-size:13px;color:var(--muted)}
 .scrim{display:none}
 @media (max-width:899px){
   .order-layout{grid-template-columns:1fr}
-  .cart{position:fixed;left:0;right:0;bottom:0;z-index:30;max-height:88vh;border-radius:18px 18px 0 0;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));
-    padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));transform:translateY(105%);visibility:hidden;transition:transform .2s}
+  .cart{position:fixed;left:0;right:0;bottom:0;z-index:30;max-height:88vh;border-radius:18px 18px 0 0;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));transform:translateY(105%);visibility:hidden;transition:transform .2s}
   .cart.open{transform:none;visibility:visible}
   .scrim.on{display:block;position:fixed;inset:0;background:#0007;z-index:20}
-  .cartbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:space-between;align-items:center;border:0;background:var(--accent);color:var(--accent-ink);
-    padding:14px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));font-weight:700;cursor:pointer}
+  .cartbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:space-between;align-items:center;border:0;background:var(--accent);color:var(--accent-ink);padding:14px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));font-weight:700;cursor:pointer}
   .cartbar.empty{display:none}
 }
 .steps{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 0;padding:0}
@@ -133,11 +118,6 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .stat small{color:var(--muted);display:block;font-size:12px}
 .stat b{font:700 24px var(--f-disp);font-variant-numeric:tabular-nums}
-.bars{display:flex;gap:8px;align-items:flex-end;height:150px;padding-top:8px}
-.bar{flex:1;min-width:0;display:grid;grid-template-rows:1fr auto auto;gap:4px;height:100%;text-align:center;font-size:12px;color:var(--muted)}
-.bar i{align-self:end;background:var(--accent);border-radius:5px 5px 0 0;min-height:3px;display:block}
-.hb{display:grid;grid-template-columns:7em minmax(0,1fr) 3em;gap:8px;align-items:center;font-size:14px}
-.hb i{display:block;height:12px;background:var(--h3);border-radius:4px}
 .subtabs{display:flex;gap:6px;flex-wrap:wrap}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .modal{position:fixed;inset:0;z-index:50;background:#0008;display:grid;place-items:center;padding:16px}
@@ -149,17 +129,17 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .empty-state{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
 .lock{color:var(--muted);font-size:13px}
 
-/* ====== 列印單據與貼紙專用靜態樣式 ====== */
+/* ====== 列印靜態樣式 ====== */
 #print-zone { display: none; margin: 0 auto; color: #000; font-family: 'Courier New', Courier, monospace; font-size: 14px; background: white; }
 .pt-ticket { padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px dashed #000; page-break-after: always; }
 .pt-ticket:last-child { border-bottom: none; }
-.pt-title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 8px; background: #000; color: #fff; padding: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pt-title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 8px; background: #000; color: #fff; padding: 4px; }
 .pt-title.inv { background: none; color: #000; border-bottom: 2px solid #000; }
 .pt-num { font-size: 40px; font-weight: bold; text-align: center; margin: 15px 0; letter-spacing: 2px; }
 .pt-row { display: flex; justify-content: space-between; margin: 4px 0; }
 .pt-item { font-size: 16px; font-weight: bold; margin-top: 10px; }
 .pt-mod { font-size: 13px; margin-left: 12px; }
-.pt-sticker { width: 50mm; min-height: 40mm; padding: 3mm; border: 1px dashed #ccc; margin-bottom: 10px; page-break-after: always; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+.pt-sticker { width: 50mm; min-height: 40mm; padding: 3mm; border: 1px dashed #ccc; margin-bottom: 10px; page-break-after: always; display: flex; flex-direction: column; justify-content: center; }
 .pt-stk-head { font-size: 13px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 2px; margin-bottom: 4px; display: flex; justify-content: space-between;}
 .pt-stk-name { font-size: 18px; font-weight: bold; margin-bottom: 4px; line-height: 1.2;}
 .pt-stk-mod { font-size: 12px; line-height: 1.3;}
@@ -221,9 +201,9 @@ function seed(storeName){
     addF:{label:'加料（餐點）',req:false,multi:true,ch:[['加滷蛋',15],['加麵',20],['加肉',25]]}
   };
   const menu=[
-    {id:'m1',cat:'主食',name:'滷肉飯',price:45,desc:'古早味肉燥，白飯淋上滷汁',opts:[],out:false,img:''},
-    {id:'m2',cat:'主食',name:'紅燒牛肉麵',price:180,desc:'牛腱與牛筋，湯頭熬煮六小時',opts:['spice','addF'],out:false,img:''},
-    {id:'m10',cat:'飲品',name:'古早味紅茶',price:30,desc:'茶香濃，回甘',opts:['size','sugar','ice'],out:false,img:''},
+    {id:'m1',cat:'主食',name:'滷肉飯',price:45,desc:'古早味肉燥，白飯淋上滷汁',opts:[],out:false},
+    {id:'m2',cat:'主食',name:'紅燒牛肉麵',price:180,desc:'牛腱與牛筋，湯頭熬煮六小時',opts:['spice','addF'],out:false},
+    {id:'m10',cat:'飲品',name:'古早味紅茶',price:30,desc:'茶香濃，回甘',opts:['size','sugar','ice'],out:false},
   ];
   function mkSeedLine(id,sel,qty,note){ return mkLine(menu,id,sel,qty,note,groups); }
   function mk(no,type,table,name,phone,addr,lines,status,pm,ago,note){
@@ -297,10 +277,7 @@ function saveStore(){
     localStorage.setItem('pos-data-'+currentPin, JSON.stringify(S));
     localStorage.setItem(LS_REGISTRY, JSON.stringify(registry));
     localStorage.setItem(LS_CURRENT, currentPin);
-  }catch(e){ 
-    toast('儲存失敗！可能是圖片檔案過大超過容量限制');
-    console.error("Save Error:", e);
-  }
+  }catch(e){ toast('儲存失敗'); }
 }
 
 function calc(cart,co){
@@ -328,7 +305,6 @@ function typeLabel(o){return TY[o.type]+(o.type==='dine'?' · '+o.table+' 號桌
 
 function shell(){
   const pend=S.orders.filter(o=>o.status==='pending').length;
-  
   if(ui.mode === 'customer') {
     return '<header class="top"><div class="brand"><span class="mark">店</span><div>'+
       '<select class="store-select" data-act="switchStoreCus">'+
@@ -339,14 +315,12 @@ function shell(){
       '<button class="btn sm" data-act="openPinModal">🔒 商家登入</button></div></header>'+
       '<main>'+vCustomer()+'</main>'+modalHtml();
   }
-
   const r = cur().role;
   const tabs = [];
   if(r!=='kitchen') tabs.push(['counter','櫃台接單']);
   tabs.push(['kitchen','出餐看板']);
   if(r!=='kitchen') tabs.push(['tables','桌位管理']);
   tabs.push(['admin','後台管理']);
-
   if(!tabs.find(t=>t[0]===ui.tab)) ui.tab = tabs[0][0];
 
   let body = '';
@@ -373,11 +347,7 @@ function vCustomer(){
 }
 
 function itemCard(m){
-  const imgHtml = m.img 
-    ? `<div class="item-img" style="background-image:url('${m.img}')"></div>` 
-    : `<div class="mono" style="--h:var(--h${catIdx(m.cat)})">${esc(m.name[0])}</div>`;
-    
-  return '<article class="item '+(m.out?'out':'')+'">'+imgHtml+
+  return '<article class="item"><div class="mono" style="--h:var(--h'+catIdx(m.cat)+')">'+esc(m.name[0])+'</div>'+
     '<div><h3>'+esc(m.name)+'</h3><p>'+esc(m.desc)+'</p><div class="ib"><b>'+money(m.price)+'</b>'+(m.opts.length?'<small>可客製</small>':'')+'</div></div>'+
     '<button class="btn pri" data-act="add" data-id="'+m.id+'"'+(m.out?' disabled':'')+'>'+(m.out?'今日停售':m.opts.length?'選擇':'加入')+'</button></article>';
 }
@@ -413,11 +383,10 @@ function cartPanel(counter,c){
     }
     f+='<label class="f">優惠碼<input id="co-coupon" class="inp" data-bind="co.coupon" value="'+esc(co.coupon)+'" placeholder="例如 LUNCH10"></label>';
     if(co.coupon.trim())f+='<p class="hint '+(c.cok?'ok':'bad')+'">'+esc(c.cmsg)+'</p>';
-    if(c.mem&&c.mem.points>0)f+='<label class="row" style="font-size:14px"><input type="checkbox" id="co-pts" data-bind="co.usePts"'+(co.usePts?' checked':'')+'> 使用點數折抵（可用 '+c.mem.points+' 點，1 點折 $1）</label>';
     const pays=counter?['cash','mobile','card','later']:['later','mobile','card'];
-    f+='<label class="f">付款方式<select id="co-pay" class="inp" data-bind="co.pay">'+pays.map(k=>'<option value="'+k+'"'+(co.pay===k?' selected':'')+'>'+(k==='later'?(counter?'稍後付款':'到店／取餐時付款'):PM[k]+(counter?'':'（模擬）'))+'</option>').join('')+'</select></label>';
+    f+='<label class="f">付款方式<select id="co-pay" class="inp" data-bind="co.pay">'+pays.map(k=>'<option value="'+k+'"'+(co.pay===k?' selected':'')+'>'+(k==='later'?(counter?'稍後付款':'到店／取餐時付款'):PM[k])+'</option>').join('')+'</select></label>';
     f+='<label class="f">整單備註<textarea id="co-note" class="inp" data-bind="co.note" placeholder="例如：少油、不要香菜">'+esc(co.note)+'</textarea></label>';
-    form=seg+f+'<div class="sum"><div><span>小計</span><span>'+money(c.sub)+'</span></div>'+(c.disc?'<div><span>優惠折扣</span><span>−'+money(c.disc)+'</span></div>':'')+(c.pts?'<div><span>點數折抵</span><span>−'+money(c.pts)+'</span></div>':'')+(c.fee?'<div><span>外送運費</span><span>'+money(c.fee)+'</span></div>':'')+'<div class="tot"><span>合計</span><span>'+money(c.total)+'</span></div></div>'+
+    form=seg+f+'<div class="sum"><div><span>小計</span><span>'+money(c.sub)+'</span></div>'+(c.disc?'<div><span>優惠折扣</span><span>−'+money(c.disc)+'</span></div>':'')+(c.fee?'<div><span>外送運費</span><span>'+money(c.fee)+'</span></div>':'')+'<div class="tot"><span>合計</span><span>'+money(c.total)+'</span></div></div>'+
       '<button class="btn pri" style="min-height:46px;width:100%" data-act="'+(counter?'placeCounter':'placeCustomer')+'">'+(counter?'櫃台建立訂單':'確認送出訂單')+'</button>';
   }
   return '<aside class="cart '+(ui.cartOpen?'open':'')+'"><div class="cart-head"><h2>'+(counter?'櫃台新增訂單':'購物車')+'</h2><div class="row">'+(counter?'<button class="btn sm" data-act="cback">返回列表</button>':'')+'<button class="btn sm" data-act="cartclose">收合</button></div></div>'+
@@ -449,7 +418,7 @@ function orderCard(o){
   const dis=p=>can(p)?'':' disabled title="需要權限授權"';
   return '<article class="oc"><div class="row sp"><span class="no">#'+o.no+'</span><div class="row">'+stPill(o)+payPill(o)+'</div></div>'+
     '<div class="muted">'+typeLabel(o)+' · '+hm(o.t)+(o.src==='counter'?' · 櫃台現場':'')+(o.phone?' · '+esc(o.phone):'')+'</div>'+(o.addr?'<div class="muted">'+esc(o.addr)+'</div>':'')+
-    linesHtml(o)+'<div class="row sp"><b>總計 '+money(o.total)+'</b><span class="hint">'+(o.disc?'折扣 '+money(o.disc)+' ':'')+(o.pts?'點數 '+money(o.pts):'')+'</span></div>'+
+    linesHtml(o)+'<div class="row sp"><b>總計 '+money(o.total)+'</b><span class="hint">'+(o.disc?'折扣 '+money(o.disc)+' ':'')+'</span></div>'+
     '<div class="row">'+(open?'<button class="btn pri sm" data-act="adv" data-no="'+o.no+'">'+advLabel(o)+'</button>':'')+
     '<button class="btn sm" data-act="printopen" data-no="'+o.no+'">🖨️ 列印單據</button>'+
     (o.pay.s==='unpaid'&&o.status!=='cancelled'?'<button class="btn sm" data-act="payopen" data-no="'+o.no+'">結帳</button>':'')+
@@ -516,9 +485,8 @@ function aMenu(){
   let h='<div class="row sp"><h2 style="font:700 18px var(--f-disp)">菜單與品項管理</h2>'+(canEdit?'<button class="btn pri" data-act="medit" data-id="">＋ 新增菜單品項</button>':'<span class="lock">僅店長可修改菜單。</span>')+'</div>';
   if(ui.edit)h+=editForm();
   
-  h+='<div class="card scroll"><b>餐點品項列表</b><table><thead><tr><th>圖片</th><th>品項名稱</th><th>分類</th><th class="num">單價</th><th>綁定客製規格</th><th>供應狀態</th><th>操作</th></tr></thead><tbody>'+
+  h+='<div class="card scroll"><b>餐點品項列表</b><table><thead><tr><th>品項名稱</th><th>分類</th><th class="num">單價</th><th>綁定客製規格</th><th>供應狀態</th><th>操作</th></tr></thead><tbody>'+
     S.menu.map(m=>'<tr>'+
-    '<td>'+(m.img?`<img src="${m.img}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;">`:'無')+'</td>'+
     '<td><b>'+esc(m.name)+'</b></td><td>'+esc(m.cat)+'</td><td class="num">'+money(m.price)+'</td><td class="hint">'+(m.opts.map(g=>(S.groups[g]?S.groups[g].label:g)).join('、')||'無')+'</td>'+
     '<td><button class="btn sm '+(m.out?'danger':'')+'" data-act="toggleout" data-id="'+m.id+'">'+(m.out?'已停售':'正常供應')+'</button></td>'+
     '<td>'+(canEdit?'<button class="btn sm" data-act="medit" data-id="'+m.id+'">編輯</button>':'')+'</td></tr>').join('')+'</tbody></table></div>';
@@ -542,10 +510,6 @@ function editForm(){
     '<label class="f">品名<input id="ed-name" class="inp" data-bind="edit.name" value="'+esc(e.name)+'"></label>'+
     '<label class="f">分類<input id="ed-cat" class="inp" list="cats" data-bind="edit.cat" value="'+esc(e.cat)+'"><datalist id="cats">'+cats.map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist></label>'+
     '<label class="f">單價（元）<input id="ed-price" class="inp" type="number" min="0" data-bind="edit.price" data-num value="'+esc(e.price)+'"></label></div>'+
-    '<label class="f">商品圖片上傳 (自動壓縮防當機)<div class="row">'+
-    '<input type="file" id="ed-img-file" accept="image/*" class="inp" style="padding:4px;flex:1">'+
-    (e.img?`<img src="${e.img}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;"><button class="btn sm danger" data-act="rmimg">移除圖片</button>`:'')+
-    '</div></label>'+
     '<label class="f">品項簡介<input id="ed-desc" class="inp" data-bind="edit.desc" value="'+esc(e.desc)+'"></label>'+
     '<div class="og" style="display:grid;gap:8px"><div class="row sp"><b>客製化規格選項（點選以綁定至此餐點）</b>'+
     '<button class="btn sm" data-act="quickGroupModal">＋ 新增規格選項 (設定後永久保存)</button></div>'+
@@ -566,24 +530,17 @@ function aSettings(){
     '<label class="f">外送服務範圍<input id="s-range" class="inp" data-bind="S.settings.deliveryRange" data-save value="'+esc(s.deliveryRange)+'"></label>'+
     '<div class="grid2">'+num('maxActive','接單上限數','單')+num('prep','預估製作時間','分鐘')+num('deliveryMin','外送起送最低金額','元')+num('deliveryFee','外送運費','元')+num('tables','內用總桌數','桌')+'</div></div>';
   
-  // 分店與變更密碼管理專區
   h += '<div class="card" style="margin-top:14px"><h2 style="font:700 18px var(--f-disp);margin-bottom:8px">連鎖分店與密碼管理</h2>'+
     '<table><thead><tr><th>分店名稱</th><th>專屬登入密碼 (PIN)</th><th>操作</th></tr></thead><tbody>'+
     Object.keys(registry).map(p=>`<tr>'+
       '<td>${esc(registry[p])} ${p===currentPin?'<span class="badge">目前管理中</span>':''}</td>'+
       '<td>${p}</td>'+
-      '<td>'+
-        (p!==currentPin?`<button class="btn sm" data-act="switchAdminStore" data-pin="${p}">切換至此店</button>`:'')+
-      '</td>'+
+      '<td>'+(p!==currentPin?`<button class="btn sm" data-act="switchAdminStore" data-pin="${p}">切換至此店</button>`:'')+'</td>'+
     '</tr>`).join('')+
     '</tbody></table>'+
-    
-    // 變更目前分店密碼區塊
     '<div class="grid2" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">'+
     '<label class="f">變更目前店家密碼 (PIN)<div class="row"><input id="ns-edit-pin" class="inp" data-bind="ui.newStorePinEdit" value="'+esc(ui.newStorePinEdit||currentPin)+'" placeholder="新密碼"><button class="btn pri sm" data-act="updateStorePin">更新密碼</button></div></label>'+
     '</div>'+
-
-    // 新增分店區塊
     '<div class="grid2" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">'+
     '<label class="f">新分店名稱<input id="ns-name" class="inp" data-bind="ui.newStoreName" value="'+esc(ui.newStoreName||'')+'" placeholder="例如：中山分店"></label>'+
     '<label class="f">自訂店家密碼<input id="ns-pin" class="inp" data-bind="ui.newStorePin" value="'+esc(ui.newStorePin||'')+'" placeholder="輸入數字密碼，如：8888"></label>'+
@@ -626,7 +583,6 @@ function aLog(){
 
 function modalHtml(){
   const m=ui.modal;if(!m)return '';
-  
   if(m.type==='quickGroup'){
     return '<div class="modal" data-act="mclose"><div class="mp" data-stop>'+
       '<h2>新增客製化規格選項</h2><p class="muted">設定後將永久保存，並可無限次綁定至各餐點</p>'+
@@ -658,8 +614,7 @@ function modalHtml(){
     const sel=m.sel;
     const price=unitOf(it,sel)*m.qty;
     return '<div class="modal" data-act="mclose"><div class="mp" data-stop>'+
-      '<div class="row" style="align-items:flex-start">'+(it.img?`<img src="${it.img}" style="width:64px;height:64px;border-radius:12px;object-fit:cover;">`:'')+
-      '<div><h2>'+esc(it.name)+'</h2><p class="muted">'+esc(it.desc)+'</p></div></div>'+
+      '<div><h2>'+esc(it.name)+'</h2><p class="muted">'+esc(it.desc)+'</p></div>'+
       it.opts.map(g=>{
         const G=S.groups[g]; if(!G) return '';
         return '<div class="og"><b>'+esc(G.label)+(G.req?'（必填）':'（可多選）')+'</b><div class="chips">'+G.ch.map(c=>'<button class="chip '+((sel[g]||[]).includes(c[0])?'on':'')+'" data-act="optpick" data-g="'+g+'" data-c="'+esc(c[0])+'">'+esc(c[0])+(c[1]?' +'+money(c[1]):'')+'</button>').join('')+'</div></div>';
@@ -801,17 +756,16 @@ const H={
   toggleout:el=>{const m=S.menu.find(x=>x.id===el.dataset.id);m.out=!m.out;logit(m.name+(m.out?' 停售':' 供應'));saveStore();},
   medit:el=>{
     const id=el.dataset.id;
-    if(id){const m=S.menu.find(x=>x.id===id);ui.edit={id,name:m.name,cat:m.cat,price:m.price,desc:m.desc,opts:m.opts.slice(),img:m.img||''};}
-    else ui.edit={id:'',name:'',cat:'主食',price:50,desc:'',opts:[],img:''};
+    if(id){const m=S.menu.find(x=>x.id===id);ui.edit={id,name:m.name,cat:m.cat,price:m.price,desc:m.desc,opts:m.opts.slice()};}
+    else ui.edit={id:'',name:'',cat:'主食',price:50,desc:'',opts:[]};
   },
   edopt:el=>{const g=el.dataset.g,o=ui.edit.opts;ui.edit.opts=o.includes(g)?o.filter(x=>x!==g):o.concat(g);},
   edcancel:()=>{ui.edit=null;},
-  rmimg:()=>{ui.edit.img='';},
   edsave:()=>{
     const e=ui.edit;
     if(!e.name.trim()||!e.cat.trim())return toast('請填寫品名與分類');
-    if(e.id){const m=S.menu.find(x=>x.id===e.id);m.name=e.name.trim();m.cat=e.cat.trim();m.price=e.price;m.desc=e.desc;m.opts=e.opts.slice();m.img=e.img;}
-    else{const m={id:'m'+Date.now(),name:e.name.trim(),cat:e.cat.trim(),price:e.price,desc:e.desc,opts:e.opts.slice(),out:false,img:e.img};S.menu.push(m);}
+    if(e.id){const m=S.menu.find(x=>x.id===e.id);m.name=e.name.trim();m.cat=e.cat.trim();m.price=e.price;m.desc=e.desc;m.opts=e.opts.slice();}
+    else{const m={id:'m'+Date.now(),name:e.name.trim(),cat:e.cat.trim(),price:e.price,desc:e.desc,opts:e.opts.slice(),out:false};S.menu.push(m);}
     saveStore();ui.edit=null;toast('✅ 儲存成功');
   },
   eddel:()=>{ S.menu=S.menu.filter(x=>x.id!==ui.edit.id);saveStore();ui.edit=null;toast('🗑️ 品項已刪除'); },
@@ -840,13 +794,19 @@ const H={
     logit('刪除規格：'+gName); saveStore(); toast('已刪除規格');
   },
 
-  // 店家與密碼變更管理
+  // 分店新增與密碼變更管理
   addStore: () => {
     const name = (ui.newStoreName || '').trim(); const pin = (ui.newStorePin || '').trim();
     if(!name || !pin) return toast('請填寫分店名稱與密碼');
     if(registry[pin]) return toast('此密碼已被使用');
-    registry[pin] = name; const newData = seed(name); localStorage.setItem('pos-data-'+pin, JSON.stringify(newData));
-    ui.newStoreName = ''; ui.newStorePin = ''; saveStore(); toast('✅ 已新增店家：' + name);
+    registry[pin] = name; 
+    const newData = seed(name); 
+    localStorage.setItem('pos-data-'+pin, JSON.stringify(newData));
+    localStorage.setItem(LS_REGISTRY, JSON.stringify(registry));
+    ui.newStoreName = ''; ui.newStorePin = ''; 
+    saveStore(); 
+    toast('✅ 已成功新增店家：' + name);
+    render();
   },
   updateStorePin: () => {
     const newPin = (ui.newStorePinEdit || '').trim();
@@ -854,7 +814,6 @@ const H={
     if(newPin === currentPin) return toast('新密碼與目前密碼相同');
     if(registry[newPin]) return toast('此密碼已被其他店家使用');
     
-    // 轉移資料
     registry[newPin] = registry[currentPin];
     delete registry[currentPin];
     const storeData = localStorage.getItem('pos-data-'+currentPin);
@@ -864,6 +823,7 @@ const H={
     currentPin = newPin;
     saveStore();
     toast('✅ 店家密碼已成功變更為：' + newPin);
+    render();
   },
   switchAdminStore: el => {
     currentPin = el.dataset.pin; S = loadStore(currentPin); ui.cart = []; saveStore(); toast('🔄 已切換：' + registry[currentPin]);
@@ -921,34 +881,6 @@ const H={
     pz.innerHTML = html; ui.modal = null; render(); setTimeout(() => { window.print(); }, 150);
   }
 };
-
-document.addEventListener('change', e => {
-  if (e.target.id === 'ed-img-file') {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = ev => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_SIZE = 300;
-          let width = img.width, height = img.height;
-          if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
-          else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
-          canvas.width = width; canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7); 
-          if(!ui.edit) ui.edit = {};
-          ui.edit.img = dataUrl;
-          render();
-        };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-});
 
 document.addEventListener('click',e=>{
   try {
