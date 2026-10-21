@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>連鎖點餐與 POS 系統 (支援圖片與多店家)</title>
+<title>連鎖點餐與 POS 系統 (含客製規格與尺寸自訂)</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
 <style>
 :root{
@@ -68,8 +68,8 @@ label.f{display:grid;gap:4px;font-size:13px;color:var(--muted)}
 /* Layout */
 .order-layout{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:20px;align-items:start}
 .toolbar{display:grid;gap:10px;margin-bottom:14px}
-.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
-.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 16px;cursor:pointer;white-space:nowrap;font-weight:500}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;flex-wrap:wrap;}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 16px;cursor:pointer;white-space:nowrap;font-weight:500; display:inline-flex;}
 .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .item{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
@@ -145,13 +145,12 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .mp h2{font:700 20px var(--f-disp)}
 .og{display:grid;gap:6px}
 .og b{font-size:13px}
-.og .chips{flex-wrap:wrap}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;max-width:90vw;font-weight:500; pointer-events:none;}
 .empty-state{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
 .lock{color:var(--muted);font-size:13px}
 
-/* ====== 列印單據與貼紙專用樣式 ====== */
-#print-zone { display: none; width: 80mm; margin: 0 auto; color: #000; font-family: 'Courier New', Courier, monospace; font-size: 14px; background: white; }
+/* ====== 列印單據與貼紙專用靜態樣式 ====== */
+#print-zone { display: none; margin: 0 auto; color: #000; font-family: 'Courier New', Courier, monospace; font-size: 14px; background: white; }
 .pt-ticket { padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px dashed #000; page-break-after: always; }
 .pt-ticket:last-child { border-bottom: none; }
 .pt-title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 8px; background: #000; color: #fff; padding: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -169,7 +168,6 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   .wrap, .toast, .modal, .scrim, .cartbar { display: none !important; }
   body { background: white; padding: 0; margin: 0; }
   #print-zone { display: block !important; }
-  @page { margin: 0; }
 }
 </style>
 </head>
@@ -191,7 +189,6 @@ const PAYS={unpaid:'未付款',paid:'已付款',refunded:'已退款'};
 const PM={cash:'現金',mobile:'行動支付',card:'信用卡',later:'稍後付款'};
 const ROLE={admin:'店長',staff:'店員',kitchen:'廚房'};
 
-// 多店家全域狀態
 let registry = {};
 try { registry = JSON.parse(localStorage.getItem(LS_REGISTRY)) || {}; } catch(e){}
 if (Object.keys(registry).length === 0) registry['1234'] = '巷口食堂 (總店)';
@@ -242,7 +239,7 @@ function seed(storeName){
   return {
     storeName: storeName || '巷口食堂',
     groups,menu,orders,tables,nextNo:102,
-    settings:{open:true,hours:'10:30 – 21:00',maxActive:20,prep:15,deliveryMin:200,deliveryFee:30,deliveryRange:'店面周邊 2 公里內',tables:8},
+    settings:{open:true,hours:'10:30 – 21:00',maxActive:20,prep:15,deliveryMin:200,deliveryFee:30,deliveryRange:'店面周邊 2 公里內',tables:8,printSize:'80mm'},
     coupons:[{code:'VIP9',desc:'全單 9 折',type:'pct',v:10,min:0,on:true}],
     members:{'0912345678':{name:'王小姐',points:36}},
     staff:[{name:'店長',role:'admin'},{name:'店員',role:'staff'},{name:'廚房',role:'kitchen'}],
@@ -257,6 +254,7 @@ function loadStore(pin){
       const d=JSON.parse(r);
       if(d&&d.menu){
         if(!d.groups) d.groups = seed('範例').groups;
+        if(!d.settings.printSize) d.settings.printSize = '80mm';
         return d;
       }
     }
@@ -275,7 +273,6 @@ const ui={
   newCoupon:{code:'',desc:'',type:'amt',v:10,min:0},
   inputPin:'',
   newStaff:{name:'',role:'staff'},
-  newGroup:{label:'',req:true,multi:false,chStr:''},
   newStoreName:'', newStorePin:''
 };
 
@@ -304,8 +301,8 @@ function calc(cart,co){
   const code=(co.coupon||'').trim().toUpperCase();
   if(code){
     const c=S.coupons.find(x=>x.code===code&&x.on);
-    if(!c)cmsg='找不到這個優惠碼';
-    else if(sub<c.min)cmsg='需消費滿 '+money(c.min);
+    if(!c)cmsg='找不到優惠碼';
+    else if(sub<c.min)cmsg='需滿 '+money(c.min);
     else{disc=c.type==='pct'?Math.round(sub*c.v/100):Math.min(c.v,sub);cmsg='已套用：'+c.desc;cok=true;}
   }
   const mem=S.members[(co.phone||'').trim()];
@@ -508,8 +505,7 @@ function vAdmin(){
 }
 function aMenu(){
   const canEdit=can('price');
-  const ng=ui.newGroup;
-  let h='<div class="row sp"><h2 style="font:700 18px var(--f-disp)">菜單與品項管理</h2>'+(canEdit?'<button class="btn pri" data-act="medit" data-id="">＋ 新增菜單品項</button>':'<span class="lock">僅店長可修改菜單與售價。</span>')+'</div>';
+  let h='<div class="row sp"><h2 style="font:700 18px var(--f-disp)">菜單與品項管理</h2>'+(canEdit?'<button class="btn pri" data-act="medit" data-id="">＋ 新增菜單品項</button>':'<span class="lock">僅店長可修改菜單。</span>')+'</div>';
   if(ui.edit)h+=editForm();
   
   h+='<div class="card scroll"><b>餐點品項列表</b><table><thead><tr><th>圖片</th><th>品項名稱</th><th>分類</th><th class="num">單價</th><th>綁定客製規格</th><th>供應狀態</th><th>操作</th></tr></thead><tbody>'+
@@ -518,12 +514,23 @@ function aMenu(){
     '<td><b>'+esc(m.name)+'</b></td><td>'+esc(m.cat)+'</td><td class="num">'+money(m.price)+'</td><td class="hint">'+(m.opts.map(g=>(S.groups[g]?S.groups[g].label:g)).join('、')||'無')+'</td>'+
     '<td><button class="btn sm '+(m.out?'danger':'')+'" data-act="toggleout" data-id="'+m.id+'">'+(m.out?'已停售':'正常供應')+'</button></td>'+
     '<td>'+(canEdit?'<button class="btn sm" data-act="medit" data-id="'+m.id+'">編輯</button>':'')+'</td></tr>').join('')+'</tbody></table></div>';
+    
+  if(canEdit){
+    h+='<div class="card scroll" style="margin-top:14px"><h2 style="font:700 18px var(--f-disp);margin-bottom:8px">客製規格選項管理 (全域持久化保存)</h2>'+
+      '<table><thead><tr><th>規格名稱</th><th>類型</th><th>選項與加價</th><th>操作</th></tr></thead><tbody>'+
+      Object.keys(S.groups).map(gKey=>{
+        const G=S.groups[gKey];
+        const chStr=G.ch.map(c=>c[0]+(c[1]?' +$'+c[1]:'')).join('、');
+        return '<tr><td><b>'+esc(G.label)+'</b></td><td>'+(G.multi?'多選':'單選')+' · '+(G.req?'必填':'選填')+'</td><td class="hint">'+esc(chStr)+'</td>'+
+          '<td><button class="btn sm danger" data-act="groupDel" data-g="'+gKey+'">刪除</button></td></tr>';
+      }).join('')+'</tbody></table></div>';
+  }
   return h;
 }
 function editForm(){
   const e=ui.edit;
   const cats=[...new Set(S.menu.map(m=>m.cat))];
-  return '<div class="card" style="display:grid;gap:12px"><b>'+(e.id?'編輯菜單品項':'新增菜單品項')+'</b><div class="grid2">'+
+  return '<div class="card" style="display:grid;gap:12px;background:#fbfbfb;border:2px solid var(--accent)"><b>'+(e.id?'編輯菜單品項':'新增菜單品項')+'</b><div class="grid2">'+
     '<label class="f">品名<input id="ed-name" class="inp" data-bind="edit.name" value="'+esc(e.name)+'"></label>'+
     '<label class="f">分類<input id="ed-cat" class="inp" list="cats" data-bind="edit.cat" value="'+esc(e.cat)+'"><datalist id="cats">'+cats.map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist></label>'+
     '<label class="f">單價（元）<input id="ed-price" class="inp" type="number" min="0" data-bind="edit.price" data-num value="'+esc(e.price)+'"></label></div>'+
@@ -532,7 +539,8 @@ function editForm(){
     (e.img?`<img src="${e.img}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;"><button class="btn sm danger" data-act="rmimg">移除圖片</button>`:'')+
     '</div></label>'+
     '<label class="f">品項簡介<input id="ed-desc" class="inp" data-bind="edit.desc" value="'+esc(e.desc)+'"></label>'+
-    '<div class="og" style="display:grid;gap:8px"><b>客製化規格選項（點選以綁定至此餐點）</b>'+
+    '<div class="og" style="display:grid;gap:8px"><div class="row sp"><b>客製化規格選項（點選以綁定至此餐點）</b>'+
+    '<button class="btn sm" data-act="quickGroupModal">＋ 新增規格選項 (設定後永久保存)</button></div>'+
     '<div class="chips">'+
     Object.keys(S.groups).map(g=>'<button class="chip '+(e.opts.includes(g)?'on':'')+'" data-act="edopt" data-g="'+g+'">'+esc(S.groups[g].label)+'</button>').join('')+
     '</div></div>'+
@@ -543,12 +551,13 @@ function aSettings(){
   const num=(k,l,u)=>'<label class="f">'+l+'<div class="row"><input id="s-'+k+'" class="inp" style="max-width:140px" type="number" min="0" data-bind="S.settings.'+k+'" data-num data-save value="'+s[k]+'">'+(u||'')+'</div></label>';
   let h = '<div class="card" style="display:grid;gap:14px"><div class="row sp"><h2 style="font:700 18px var(--f-disp)">營業參數與門市設定</h2></div>'+
     '<div class="grid2">'+
-    '<label class="f">營業時間<input id="s-hours" class="inp" data-bind="S.settings.hours" data-save value="'+esc(s.hours)+'"></label></div>'+
+    '<label class="f">營業時間<input id="s-hours" class="inp" data-bind="S.settings.hours" data-save value="'+esc(s.hours)+'"></label>'+
+    '<label class="f">列印單據尺寸<select id="s-printSize" class="inp" data-bind="S.settings.printSize" data-save><option value="80mm" '+(s.printSize==='80mm'?'selected':'')+'>80mm (標準熱感應紙)</option><option value="58mm" '+(s.printSize==='58mm'?'selected':'')+'>58mm (小型熱感應紙)</option></select></label>'+
+    '</div>'+
     '<label class="row"><input type="checkbox" id="s-open" data-bind="S.settings.open" data-save'+(s.open?' checked':'')+'> 正常營業中（取消勾選將暫停線上點餐）</label>'+
     '<label class="f">外送服務範圍<input id="s-range" class="inp" data-bind="S.settings.deliveryRange" data-save value="'+esc(s.deliveryRange)+'"></label>'+
     '<div class="grid2">'+num('maxActive','接單上限數','單')+num('prep','預估製作時間','分鐘')+num('deliveryMin','外送起送最低金額','元')+num('deliveryFee','外送運費','元')+num('tables','內用總桌數','桌')+'</div></div>';
   
-  // 新增：分店與多帳號密碼管理
   h += '<div class="card" style="margin-top:14px"><h2 style="font:700 18px var(--f-disp);margin-bottom:8px">連鎖分店與密碼管理</h2>'+
     '<table><thead><tr><th>分店名稱</th><th>專屬登入密碼 (PIN)</th><th>操作</th></tr></thead><tbody>'+
     Object.keys(registry).map(p=>`<tr><td>${esc(registry[p])} ${p===currentPin?'<span class="badge">目前管理中</span>':''}</td><td>${p}</td><td>${p!==currentPin?`<button class="btn sm" data-act="switchAdminStore" data-pin="${p}">切換至此店</button>`:''}</td></tr>`).join('')+
@@ -565,7 +574,7 @@ function aPromo(){
     S.coupons.map((c,i)=>'<tr><td><b>'+esc(c.code)+'</b></td><td>'+esc(c.desc)+'</td><td class="num">'+money(c.min)+'</td><td><button class="btn sm '+(c.on?'':'danger')+'" data-act="ctoggle" data-i="'+i+'">'+(c.on?'啟用中':'已停用')+'</button></td></tr>').join('')+'</tbody></table>'+
     '<div class="grid2" style="margin-top:12px"><label class="f">代碼<input id="nc-code" class="inp" data-bind="newCoupon.code" value="'+esc(nc.code)+'"></label>'+
     '<label class="f">說明<input id="nc-desc" class="inp" data-bind="newCoupon.desc" value="'+esc(nc.desc)+'"></label>'+
-    '<label class="f">折扣類型<select id="nc-type" class="inp" data-bind="newCoupon.type"><option value="amt"'+(nc.type==='amt'?' selected':'')+'>固定折抵金額 ($)</option><option value="pct"'+(nc.type==='pct'?' selected':'')+'>百分比打折 (%)</option></select></label>'+
+    '<label class="f">折扣類型<select id="nc-type" class="inp" data-bind="newCoupon.type"><option value="amt"'+(nc.type==='amt'?' selected':'')+'>固定金額</option><option value="pct"'+(nc.type==='pct'?' selected':'')+'>百分比打折</option></select></label>'+
     '<label class="f">折扣數值<input id="nc-v" class="inp" type="number" min="1" data-bind="newCoupon.v" data-num value="'+nc.v+'"></label>'+
     '<label class="f">低消金額<input id="nc-min" class="inp" type="number" min="0" data-bind="newCoupon.min" data-num value="'+nc.min+'"></label></div>'+
     '<button class="btn pri" style="margin-top:10px" data-act="cadd">新增優惠碼</button></div>';
@@ -595,14 +604,26 @@ function aLog(){
 
 function modalHtml(){
   const m=ui.modal;if(!m)return '';
+  
+  if(m.type==='quickGroup'){
+    return '<div class="modal" data-act="mclose"><div class="mp" data-stop>'+
+      '<h2>新增客製化規格選項</h2><p class="muted">設定後將永久保存，並可無限次綁定至各餐點</p>'+
+      '<label class="f">規格名稱<input id="qg-label" class="inp" placeholder="例如：加料、甜度"></label>'+
+      '<div class="grid2">'+
+      '<label class="f">選擇模式<select id="qg-multi" class="inp"><option value="false">單選</option><option value="true">可複選（多選）</option></select></label>'+
+      '<label class="f">是否必填<select id="qg-req" class="inp"><option value="true">必填（一定要選）</option><option value="false">選填（自由加點）</option></select></label>'+
+      '</div>'+
+      '<label class="f">選項與加價設定（格式：名稱:加價，以半形逗號隔開）<input id="qg-ch" class="inp" placeholder="例如：珍珠:10, 椰果:10, 布丁:15"></label>'+
+      '<div class="row" style="margin-top:8px"><button class="btn pri" data-act="quickGroupSave">永久儲存並綁定</button><button class="btn" data-act="mclose">取消</button></div>'+
+      '</div></div>';
+  }
   if(m.type==='pin'){
     return '<div class="modal" data-act="mclose"><div class="mp" data-stop style="text-align:center"><h2>🔒 商家與店長登入</h2><p class="muted">請輸入專屬店家密碼 (預設店為 1234)</p>'+
       '<input type="tel" class="inp" style="text-align:center;font-size:24px;letter-spacing:4px;margin-bottom:12px;" data-bind="inputPin" value="'+esc(ui.inputPin)+'" placeholder="輸入密碼">'+
       '<button class="btn pri" style="width:100%" data-act="submitPin">驗證登入</button><button class="btn" style="width:100%;margin-top:8px" data-act="mclose">取消</button></div></div>';
   }
-  // 列印單據選擇 Modal
   if(m.type==='print'){
-    return '<div class="modal" data-act="mclose"><div class="mp" data-stop><h2>🖨️ 列印單據 (單號 #'+m.no+')</h2><p class="muted">請選擇要列印的單據格式：</p>'+
+    return '<div class="modal" data-act="mclose"><div class="mp" data-stop><h2>🖨️ 列印單據 (單號 #'+m.no+')</h2><p class="muted">目前設定尺寸為：'+(S.settings.printSize||'80mm')+'</p>'+
       '<div class="grid2">'+
       '<button class="btn pri" data-act="doprint" data-no="'+m.no+'" data-ptype="num" style="min-height:50px">🎫 號碼單</button>'+
       '<button class="btn pri" data-act="doprint" data-no="'+m.no+'" data-ptype="kit" style="min-height:50px">🍳 廚師單</button>'+
@@ -701,30 +722,24 @@ const H={
     saveStore();ui.modal=null;
   },
 
-  // ===== 新增分店與店家管理 =====
+  // ===== 分店與店家管理 =====
   addStore: () => {
     const name = (ui.newStoreName || '').trim();
     const pin = (ui.newStorePin || '').trim();
     if(!name || !pin) return toast('請填寫完整分店名稱與密碼');
     if(registry[pin]) return toast('此密碼已被其他店家使用，請更換數字');
-    
     registry[pin] = name;
     const newData = seed(name);
     localStorage.setItem('pos-data-'+pin, JSON.stringify(newData));
-    
     ui.newStoreName = ''; ui.newStorePin = '';
     saveStore();
     toast('✅ 已成功新增店家：' + name);
   },
   switchAdminStore: el => {
-    currentPin = el.dataset.pin;
-    S = loadStore(currentPin);
-    ui.cart = [];
-    saveStore();
-    toast('🔄 已切換至管理：' + registry[currentPin]);
+    currentPin = el.dataset.pin; S = loadStore(currentPin); ui.cart = []; saveStore(); toast('🔄 已切換至管理：' + registry[currentPin]);
   },
 
-  // ===== 菜單編輯 =====
+  // ===== 菜單編輯與客製規格選項 (持久保存) =====
   atab:el=>{ui.atab=el.dataset.v;ui.edit=null;},
   toggleout:el=>{const m=S.menu.find(x=>x.id===el.dataset.id);m.out=!m.out;logit(m.name+(m.out?' 設定為停售':' 恢復供應'));saveStore();},
   medit:el=>{
@@ -744,6 +759,53 @@ const H={
   },
   eddel:()=>{
     S.menu=S.menu.filter(x=>x.id!==ui.edit.id);saveStore();ui.edit=null;toast('🗑️ 品項已刪除');
+  },
+  
+  // 新增客製化規格選項
+  quickGroupModal: () => {
+    if(!can('price')) return toast('缺乏權限');
+    ui.modal = {type:'quickGroup'};
+  },
+  quickGroupSave: () => {
+    if(!can('price')) return toast('缺乏權限');
+    const label = ($('#qg-label')?$('#qg-label').value:'').trim();
+    const multi = $('#qg-multi')?$('#qg-multi').value==='true':false;
+    const req = $('#qg-req')?$('#qg-req').value==='true':true;
+    const chStr = ($('#qg-ch')?$('#qg-ch').value:'').trim();
+
+    if(!label) return toast('請輸入規格名稱');
+    if(!chStr) return toast('請輸入選項與加價設定');
+
+    const ch = [];
+    chStr.split(',').forEach(item=>{
+      const parts = item.split(':');
+      if(parts.length >= 1){
+        const name = parts[0].trim();
+        const price = parts[1] ? Number(parts[1]) || 0 : 0;
+        if(name) ch.push([name, price]);
+      }
+    });
+    if(!ch.length) return toast('請填寫至少一個有效選項');
+
+    const gKey = 'g_' + Date.now();
+    S.groups[gKey] = { label, req, multi, ch };
+    if(ui.edit && ui.edit.opts && !ui.edit.opts.includes(gKey)){
+      ui.edit.opts.push(gKey);
+    }
+    logit('新增客製規格：'+label);
+    saveStore();
+    ui.modal = null;
+    toast('✅ 已成功新增永久規格：「'+label+'」並自動綁定');
+  },
+  groupDel: el => {
+    if(!can('price')) return toast('缺乏權限');
+    const gKey = el.dataset.g;
+    const gName = S.groups[gKey] ? S.groups[gKey].label : gKey;
+    delete S.groups[gKey];
+    S.menu.forEach(m=>{ m.opts = m.opts.filter(x=>x!==gKey); });
+    logit('刪除客製規格：'+gName);
+    saveStore();
+    toast('已永久刪除規格：'+gName);
   },
 
   // ===== 點餐相關 =====
@@ -766,7 +828,7 @@ const H={
   cqty:el=>{const l=ui.cart[Number(el.dataset.i)];l.qty+=Number(el.dataset.d);if(l.qty<=0)ui.cart.splice(Number(el.dataset.i),1);},
   crm:el=>{ui.cart.splice(Number(el.dataset.i),1);},
 
-  // ===== 列印與出單功能 =====
+  // ===== 列印與出單功能 (根據使用者要求尺寸) =====
   printopen: el => {
     ui.modal = { type: 'print', no: Number(el.dataset.no) };
   },
@@ -776,6 +838,16 @@ const H={
     const o = S.orders.find(x => x.no === no);
     const pz = $('#print-zone');
     if(!o || !pz) return;
+
+    // 動態載入使用者選擇的列印尺寸
+    const pSize = S.settings.printSize || '80mm';
+    let dStyle = document.getElementById('dyn-print-style');
+    if(!dStyle) {
+      dStyle = document.createElement('style');
+      dStyle.id = 'dyn-print-style';
+      document.head.appendChild(dStyle);
+    }
+    dStyle.innerHTML = `@media print { @page { size: ${pSize} auto; margin: 0; } #print-zone { width: ${pSize} !important; display: block !important; margin: 0; padding: 2mm;} }`;
 
     let html = '';
     const ts = new Date().toLocaleString('zh-TW', {hour12: false});
@@ -828,7 +900,7 @@ const H={
       o.lines.forEach(l => {
         for(let i=0; i<l.qty; i++) {
           stickers.push(`
-            <div class="pt-sticker">
+            <div class="pt-sticker" style="width: 100%;">
               <div class="pt-stk-head">
                 <span>#${o.no} ${tLabel}</span>
                 <span>${i+1}/${l.qty}</span>
@@ -868,7 +940,7 @@ document.addEventListener('change', e => {
   }
 });
 
-// 使用 Try-Catch 包裝所有的點擊行為，避免因為未預期的錯誤造成「按鈕失效」
+// 使用 Try-Catch 包裝所有的點擊行為防呆
 document.addEventListener('click',e=>{
   try {
     const el=e.target.closest('[data-act]');if(!el)return;
@@ -897,6 +969,7 @@ document.addEventListener('change',e=>{
   }
   if(!t.dataset||!t.dataset.bind)return;
   setPath(t.dataset.bind,val(t));
+  if(t.dataset.save !== undefined) saveStore();
 });
 
 function render(){
